@@ -1,30 +1,53 @@
 import { GLOBAL_COLORS, SPACE_COLORS, SPACE_COUNT, spaceColorPref } from "./colorDefs.ts";
 import { initColorPicker, openColorPicker } from "./colorPicker.ts";
+import { getDynamicStatus } from "../features/dynamicTheme.ts";
 
-const PANEL_ID  = "aurora-ui-panel";
-const BTN_ID    = "aurora-ui-fab";
-const STYLES_ID = "aurora-ui-styles";
+const PANEL_ID   = "aurora-ui-panel";
+const BTN_ID     = "aurora-ui-sidebar-btn";
+const STYLES_ID  = "aurora-ui-styles";
 
 // ── Panel CSS ─────────────────────────────────────────────────────────────────
 
 const PANEL_CSS = `
-#aurora-ui-fab {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  z-index: 2147483640;
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  background: #7c6af7;
-  color: #fff;
-  font-size: 18px;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 16px #7c6af766;
-  display: flex; align-items: center; justify-content: center;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+/* Sidebar button — injected into Zen's sidebar action buttons */
+#aurora-ui-sidebar-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  color: var(--aurora-panel-text, #c0b4ff) !important;
+  font-size: 16px !important;
+  opacity: 0.75 !important;
+  transition: opacity 0.15s, background 0.15s !important;
+  margin: 2px auto !important;
 }
-#aurora-ui-fab:hover { transform: scale(1.1); box-shadow: 0 6px 20px #7c6af799; }
+#aurora-ui-sidebar-btn:hover {
+  opacity: 1 !important;
+  background: var(--aurora-button-hover, #2a2a5a) !important;
+}
+#aurora-ui-sidebar-btn.aurora-panel-open {
+  opacity: 1 !important;
+  background: var(--aurora-accent, #7c6af7) !important;
+  color: #fff !important;
+}
+
+/* Dynamic theme info bar in panel */
+.aurora-dynamic-bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; margin-bottom: 2px;
+  background: #1a1a38; border-radius: 6px;
+  font-size: 11px; color: #9090c0; line-height: 1.4;
+}
+.aurora-dynamic-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: #5550aa;
+}
+.aurora-dynamic-dot.active { background: #7c6af7; box-shadow: 0 0 6px #7c6af7; }
 
 #aurora-ui-panel {
   position: fixed;
@@ -394,6 +417,27 @@ function buildPanel(doc: Document): HTMLElement {
   const pc = doc.createElement("div"); pc.className = "aurora-pc";
   panel.appendChild(pc);
 
+  // Dynamic mode status bar
+  const dynBar = doc.createElement("div"); dynBar.className = "aurora-dynamic-bar";
+  const dynDot = doc.createElement("div"); dynDot.className = "aurora-dynamic-dot";
+  const dynTxt = doc.createElement("span"); dynTxt.textContent = getDynamicStatus();
+  dynBar.appendChild(dynDot); dynBar.appendChild(dynTxt);
+  pc.appendChild(dynBar);
+  // Mark dot active if not off
+  try {
+    const mode = Services.prefs.getStringPref("mod.aurora.dynamic_mode", "off");
+    if (mode !== "off") dynDot.classList.add("active");
+  } catch { /**/ }
+  // Refresh every 30s
+  const dynInterval = setInterval(() => {
+    dynTxt.textContent = getDynamicStatus();
+    try {
+      const mode = Services.prefs.getStringPref("mod.aurora.dynamic_mode", "off");
+      dynDot.classList.toggle("active", mode !== "off");
+    } catch { /**/ }
+  }, 30_000);
+  (panel as HTMLElement & { _dynInterval?: ReturnType<typeof setInterval> })._dynInterval = dynInterval;
+
   // Global colors tab
   makeTab(doc, tabBar, "Globální barvy", true);
   const globalContent = makeTabContent(doc, pc, true);
@@ -442,7 +486,43 @@ function makeTabContent(doc: Document, container: HTMLElement, active: boolean):
 // ── Toggle ────────────────────────────────────────────────────────────────────
 
 function togglePanel(doc: Document): void {
-  doc.getElementById(PANEL_ID)?.classList.toggle("aurora-open");
+  const panel = doc.getElementById(PANEL_ID);
+  const btn   = doc.getElementById(BTN_ID);
+  const isOpen = panel?.classList.toggle("aurora-open");
+  btn?.classList.toggle("aurora-panel-open", isOpen);
+}
+
+// ── Sidebar button injection ──────────────────────────────────────────────────
+
+// Candidate selectors for Zen's sidebar button area (tries each in order)
+const SIDEBAR_TARGETS = [
+  "#zen-sidebar-top-buttons",
+  "#zen-sidebar-top-buttons-customization-target",
+  "#TabsToolbar",
+  "#nav-bar",
+];
+
+function injectSidebarButton(doc: Document): HTMLButtonElement | null {
+  if (doc.getElementById(BTN_ID)) return doc.getElementById(BTN_ID) as HTMLButtonElement;
+
+  const btn = doc.createElement("button") as HTMLButtonElement;
+  btn.id    = BTN_ID;
+  btn.title = "Aurora — nastavení barev  (Ctrl+Shift+A)";
+  btn.textContent = "✦";
+  btn.addEventListener("click", () => togglePanel(doc));
+
+  for (const sel of SIDEBAR_TARGETS) {
+    const target = doc.querySelector(sel);
+    if (target) { target.appendChild(btn); return btn; }
+  }
+
+  // Absolute fallback: bottom-right corner (minimal, not floating on pages)
+  btn.style.cssText =
+    "position:fixed;bottom:12px;right:12px;z-index:2147483638;" +
+    "width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;" +
+    "background:#7c6af7;color:#fff;font-size:15px;";
+  doc.documentElement.appendChild(btn);
+  return btn;
 }
 
 // ── Public init ───────────────────────────────────────────────────────────────
@@ -460,19 +540,15 @@ export function initPanel(doc: Document): () => void {
   // Init the shared color picker widget
   initColorPicker(doc);
 
-  // FAB
-  let fab = doc.getElementById(BTN_ID) as HTMLButtonElement | null;
-  if (!fab) {
-    fab = doc.createElement("button") as HTMLButtonElement;
-    fab.id = BTN_ID; fab.title = "Aurora — nastavení barev";
-    fab.textContent = "✦";
-    fab.addEventListener("click", () => togglePanel(doc));
-    doc.documentElement.appendChild(fab);
-  }
+  // Sidebar button
+  injectSidebarButton(doc);
 
   // Panel
-  if (!doc.getElementById(PANEL_ID)) {
-    doc.documentElement.appendChild(buildPanel(doc));
+  let panel = doc.getElementById(PANEL_ID) as (HTMLElement & { _dynInterval?: ReturnType<typeof setInterval> }) | null;
+  if (!panel) {
+    const built = buildPanel(doc) as HTMLElement & { _dynInterval?: ReturnType<typeof setInterval> };
+    doc.documentElement.appendChild(built);
+    panel = built;
   }
 
   // Ctrl+Shift+A shortcut
@@ -481,12 +557,32 @@ export function initPanel(doc: Document): () => void {
   };
   doc.addEventListener("keydown", onKey, { capture: true });
 
+  // Pref trigger: mod.aurora.ui.open_panel checkbox from Sine settings
+  const prefObserver = {
+    observe(_s: unknown, topic: string, data: string): void {
+      if (topic === "nsPref:changed" && data === "mod.aurora.ui.open_panel") {
+        try {
+          const val = Services.prefs.getBoolPref("mod.aurora.ui.open_panel", false);
+          if (val) {
+            togglePanel(doc);
+            // Reset the checkbox so it can be used again
+            Services.prefs.setBoolPref("mod.aurora.ui.open_panel", false);
+          }
+        } catch { /**/ }
+      }
+    },
+  };
+  Services.prefs.addObserver("mod.aurora.ui.open_panel", prefObserver);
+
   return () => {
-    doc.getElementById(PANEL_ID)?.remove();
+    const p = doc.getElementById(PANEL_ID) as (HTMLElement & { _dynInterval?: ReturnType<typeof setInterval> }) | null;
+    if (p?._dynInterval) clearInterval(p._dynInterval);
+    p?.remove();
     doc.getElementById(BTN_ID)?.remove();
     doc.getElementById(STYLES_ID)?.remove();
     doc.getElementById("aurora-cp-popup")?.remove();
     doc.getElementById("aurora-cp-styles")?.remove();
     doc.removeEventListener("keydown", onKey, true);
+    Services.prefs.removeObserver("mod.aurora.ui.open_panel", prefObserver);
   };
 }

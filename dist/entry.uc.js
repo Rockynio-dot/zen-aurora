@@ -77,54 +77,6 @@
       dynamicMode: s("mod.aurora.dynamic_mode", "off")
     };
   }
-  function saveTheme(theme) {
-    const p = Services.prefs;
-    const ss = (k, v) => p.setStringPref(k, v);
-    const sb = (k, v) => p.setBoolPref(k, v);
-    ss("mod.aurora.color.panel_bg", theme.colors.panelBg);
-    ss("mod.aurora.color.toolbar_bg", theme.colors.toolbarBg);
-    ss("mod.aurora.color.sidebar_bg", theme.colors.sidebarBg);
-    ss("mod.aurora.color.panel_text", theme.colors.panelText);
-    ss("mod.aurora.color.border", theme.colors.border);
-    ss("mod.aurora.color.accent", theme.colors.accent);
-    ss("mod.aurora.color.tab_active_bg", theme.colors.tabActiveBg);
-    ss("mod.aurora.color.tab_inactive_bg", theme.colors.tabInactiveBg);
-    ss("mod.aurora.color.tab_text", theme.colors.tabText);
-    ss("mod.aurora.color.tab_close_hover", theme.colors.tabCloseHover);
-    ss("mod.aurora.color.tab_hover_bg", theme.colors.tabHoverBg);
-    ss("mod.aurora.color.urlbar_bg", theme.colors.urlbarBg);
-    ss("mod.aurora.color.urlbar_text", theme.colors.urlbarText);
-    ss("mod.aurora.color.urlbar_border", theme.colors.urlbarBorder);
-    ss("mod.aurora.color.urlbar_focus", theme.colors.urlbarFocus);
-    ss("mod.aurora.color.browser_bg", theme.colors.browserBg);
-    ss("mod.aurora.color.selection_bg", theme.colors.selectionBg);
-    ss("mod.aurora.color.scrollbar", theme.colors.scrollbar);
-    ss("mod.aurora.color.button_bg", theme.colors.buttonBg);
-    ss("mod.aurora.color.button_hover", theme.colors.buttonHover);
-    ss("mod.aurora.image.bg_size", theme.images.bgSize);
-    ss("mod.aurora.image.bg_position", theme.images.bgPosition);
-    ss("mod.aurora.image.bg_blur", theme.images.bgBlur);
-    ss("mod.aurora.image.bg_opacity", theme.images.bgOpacity);
-    ss("mod.aurora.font.family", theme.typography.fontFamily);
-    ss("mod.aurora.font.size", theme.typography.fontSize);
-    ss("mod.aurora.font.weight", theme.typography.fontWeight);
-    ss("mod.aurora.layout.tab_height", theme.layout.tabHeight);
-    ss("mod.aurora.layout.tab_border_radius", theme.layout.tabBorderRadius);
-    ss("mod.aurora.layout.panel_border_radius", theme.layout.panelBorderRadius);
-    ss("mod.aurora.layout.button_border_radius", theme.layout.buttonBorderRadius);
-    ss("mod.aurora.layout.sidebar_width", theme.layout.sidebarWidth);
-    ss("mod.aurora.layout.toolbar_height", theme.layout.toolbarHeight);
-    ss("mod.aurora.layout.border_width", theme.layout.borderWidth);
-    ss("mod.aurora.effect.panel_opacity", theme.effects.panelOpacity);
-    ss("mod.aurora.effect.panel_blur", theme.effects.panelBlur);
-    sb("mod.aurora.effect.tab_shadow", theme.effects.tabShadow);
-    sb("mod.aurora.effect.accent_glow", theme.effects.accentGlow);
-    ss("mod.aurora.effect.panel_border_style", theme.effects.panelBorderStyle);
-    ss("mod.aurora.animation_speed", theme.animations.speed);
-    ss("mod.aurora.animation.easing", theme.animations.easing);
-    ss("mod.aurora.dynamic_mode", theme.dynamicMode);
-    sb("mod.aurora.sounds_enabled", theme.sounds.enabled);
-  }
 
   // src/core/cssEngine.ts
   var STYLE_ID = "aurora-dynamic-styles";
@@ -603,81 +555,262 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
 
   // src/features/dynamicTheme.ts
   var dynamicTimer = null;
+  var faviconObserverCleanup = null;
+  function sp(key, def) {
+    try {
+      return Services.prefs.getStringPref(key, def) || def;
+    } catch {
+      return def;
+    }
+  }
+  function np(key, def) {
+    const v = parseFloat(sp(key, String(def)));
+    return isNaN(v) ? def : v;
+  }
   function lerp(a, b2, t) {
     return Math.round(a + (b2 - a) * t);
   }
-  function lerpHex(hexA, hexB, t) {
-    const [ar, ag, ab] = hexA.slice(1).match(/.{2}/g).map((h) => parseInt(h, 16));
-    const [br, bg, bb] = hexB.slice(1).match(/.{2}/g).map((h) => parseInt(h, 16));
-    return "#" + [lerp(ar, br, t), lerp(ag, bg, t), lerp(ab, bb, t)].map((v) => v.toString(16).padStart(2, "0")).join("");
+  function hexToRgb2(hex) {
+    const c = hex.replace("#", "");
+    return [
+      parseInt(c.slice(0, 2), 16),
+      parseInt(c.slice(2, 4), 16),
+      parseInt(c.slice(4, 6), 16)
+    ];
   }
-  var DAY_PALETTE = {
-    dominant: "#4a90d9",
-    primary: "#6aaff0",
-    secondary: "#3a7bc8",
-    surface: "#1a2035",
-    onSurface: "#dde8ff"
-  };
-  var NIGHT_PALETTE = {
-    dominant: "#c0622a",
-    primary: "#e07840",
-    secondary: "#a04c1a",
-    surface: "#1f1510",
-    onSurface: "#ffe0cc"
-  };
+  function rgbToHex2(r, g, b2) {
+    return "#" + [r, g, b2].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+  }
+  function lerpHex(a, b2, t) {
+    const [ar, ag, ab] = hexToRgb2(a);
+    const [br, bg, bb] = hexToRgb2(b2);
+    return rgbToHex2(lerp(ar, br, t), lerp(ag, bg, t), lerp(ab, bb, t));
+  }
+  function boostSaturation(hex, factor) {
+    const [r, g, b2] = hexToRgb2(hex).map((v) => v / 255);
+    const max = Math.max(r, g, b2), min = Math.min(r, g, b2);
+    const l = (max + min) / 2;
+    if (max === min) return hex;
+    let s2 = l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
+    s2 = Math.min(1, s2 * factor);
+    const c = (1 - Math.abs(2 * l - 1)) * s2;
+    const x = c * (1 - Math.abs((max === r ? (g - b2) / (max - min) % 6 : max === g ? (b2 - r) / (max - min) + 2 : (r - g) / (max - min) + 4) % 6 - 1));
+    const m = l - c / 2;
+    let rr = 0, gg = 0, bb2 = 0;
+    const hh = max === r ? ((g - b2) / (max - min) * 60 + 360) % 360 : max === g ? (b2 - r) / (max - min) * 60 + 120 : (r - g) / (max - min) * 60 + 240;
+    if (hh < 60) {
+      rr = c;
+      gg = x;
+    } else if (hh < 120) {
+      rr = x;
+      gg = c;
+    } else if (hh < 180) {
+      gg = c;
+      bb2 = x;
+    } else if (hh < 240) {
+      gg = x;
+      bb2 = c;
+    } else if (hh < 300) {
+      rr = x;
+      bb2 = c;
+    } else {
+      rr = c;
+      bb2 = x;
+    }
+    return rgbToHex2((rr + m) * 255, (gg + m) * 255, (bb2 + m) * 255);
+  }
+  function darken2(hex, factor) {
+    const [r, g, b2] = hexToRgb2(hex);
+    return rgbToHex2(r * factor, g * factor, b2 * factor);
+  }
   function getDayNightFactor() {
-    const h = (/* @__PURE__ */ new Date()).getHours();
-    if (h >= 9 && h < 18) return 0;
-    if (h >= 0 && h < 6) return 1;
-    if (h >= 18 && h < 21) return (h - 18) / 3;
-    return 1 - (h - 6) / 3;
+    const dayH = np("mod.aurora.dynamic.day_hour", 7);
+    const nightH = np("mod.aurora.dynamic.night_hour", 20);
+    const transM = np("mod.aurora.dynamic.transition_minutes", 60);
+    const transH = transM / 60;
+    const now = /* @__PURE__ */ new Date();
+    const h = now.getHours() + now.getMinutes() / 60;
+    const dayEnd = dayH + transH;
+    const nightEnd = nightH + transH;
+    if (h >= dayEnd && h < nightH) return 0;
+    if (h >= nightEnd || h < dayH) return 1;
+    if (h >= dayH && h < dayEnd) return 1 - (h - dayH) / transH;
+    if (h >= nightH && h < nightEnd) return (h - nightH) / transH;
+    return 0;
   }
-  function paletteToColors(p) {
-    return {
-      accent: p.primary,
-      panelBg: p.surface,
-      panelText: p.onSurface,
-      border: p.secondary,
-      browserBg: p.surface
+  function applyDayNight(doc) {
+    const t = getDayNightFactor();
+    const dayAccent = sp("mod.aurora.dynamic.day_accent", "#4a90d9");
+    const dayBg = sp("mod.aurora.dynamic.day_bg", "#1a2035");
+    const dayText = sp("mod.aurora.dynamic.day_text", "#dde8ff");
+    const nightAccent = sp("mod.aurora.dynamic.night_accent", "#e07840");
+    const nightBg = sp("mod.aurora.dynamic.night_bg", "#1f1510");
+    const nightText = sp("mod.aurora.dynamic.night_text", "#ffe0cc");
+    const theme = loadTheme();
+    const merged = {
+      ...theme,
+      colors: {
+        ...theme.colors,
+        accent: lerpHex(dayAccent, nightAccent, t),
+        panelBg: lerpHex(dayBg, nightBg, t),
+        toolbarBg: lerpHex(darken2(dayBg, 0.85), darken2(nightBg, 0.85), t),
+        sidebarBg: lerpHex(darken2(dayBg, 0.75), darken2(nightBg, 0.75), t),
+        panelText: lerpHex(dayText, nightText, t),
+        browserBg: lerpHex(darken2(dayBg, 0.6), darken2(nightBg, 0.6), t),
+        urlbarFocus: lerpHex(dayAccent, nightAccent, t),
+        tabActiveBg: lerpHex(darken2(dayBg, 1.5), darken2(nightBg, 1.5), t)
+      }
     };
+    applyTheme(merged, doc);
   }
   async function applyMaterialTheme(doc) {
     const theme = loadTheme();
     if (!theme.images.browserBg) return;
     const palette = await extractPalette(theme.images.browserBg);
-    const dynamicColors = paletteToColors(palette);
-    const merged = { ...theme, colors: { ...theme.colors, ...dynamicColors } };
-    saveTheme(merged);
+    const intensity = np("mod.aurora.dynamic.material_intensity", 0.75);
+    function blend(dynamic, original) {
+      return lerpHex(original, dynamic, intensity);
+    }
+    const merged = {
+      ...theme,
+      colors: {
+        ...theme.colors,
+        accent: blend(palette.primary, theme.colors.accent),
+        panelBg: blend(palette.surface, theme.colors.panelBg),
+        toolbarBg: blend(darken2(palette.surface, 0.85), theme.colors.toolbarBg),
+        sidebarBg: blend(darken2(palette.surface, 0.75), theme.colors.sidebarBg),
+        panelText: blend(palette.onSurface, theme.colors.panelText),
+        border: blend(palette.secondary, theme.colors.border),
+        browserBg: blend(darken2(palette.surface, 0.6), theme.colors.browserBg),
+        tabActiveBg: blend(darken2(palette.surface, 1.5), theme.colors.tabActiveBg),
+        urlbarFocus: blend(palette.primary, theme.colors.urlbarFocus)
+      }
+    };
     applyTheme(merged, doc);
   }
-  function applyDayNight(doc) {
-    const t = getDayNightFactor();
-    const colors = {
-      accent: lerpHex(DAY_PALETTE.primary, NIGHT_PALETTE.primary, t),
-      panelBg: lerpHex(DAY_PALETTE.surface, NIGHT_PALETTE.surface, t),
-      panelText: lerpHex(DAY_PALETTE.onSurface, NIGHT_PALETTE.onSurface, t),
-      border: lerpHex(DAY_PALETTE.secondary, NIGHT_PALETTE.secondary, t),
-      browserBg: lerpHex(DAY_PALETTE.surface, NIGHT_PALETTE.surface, t)
-    };
+  async function extractFaviconColor() {
+    try {
+      const tab = window.gBrowser?.selectedTab;
+      if (!tab) return null;
+      const uri = tab.linkedBrowser?.currentURI?.spec;
+      if (!uri || uri.startsWith("about:") || uri.startsWith("moz-extension:")) return null;
+      const faviconURL = await new Promise((resolve) => {
+        try {
+          const svc = ChromeUtils.import("resource://gre/modules/PlacesUtils.sys.mjs");
+          const PlacesUtils = svc.PlacesUtils;
+          if (!PlacesUtils?.favicons) {
+            resolve(null);
+            return;
+          }
+          const pageURI = Services.io.newURI(uri);
+          PlacesUtils.favicons.getFaviconURLForPage(pageURI, (faviconUri) => {
+            resolve(faviconUri?.spec ?? null);
+          });
+        } catch {
+          resolve(null);
+        }
+      });
+      if (!faviconURL) return null;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      await new Promise((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = reject;
+        img.src = faviconURL;
+      });
+      const canvas = new OffscreenCanvas(16, 16);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, 16, 16);
+      const data = ctx.getImageData(0, 0, 16, 16).data;
+      let r = 0, g = 0, b2 = 0, count = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 128) continue;
+        r += data[i];
+        g += data[i + 1];
+        b2 += data[i + 2];
+        count++;
+      }
+      if (count === 0) return null;
+      const satBoost = np("mod.aurora.dynamic.favicon_saturation_boost", 1.2);
+      const raw = rgbToHex2(r / count, g / count, b2 / count);
+      return boostSaturation(raw, satBoost);
+    } catch {
+      return null;
+    }
+  }
+  var lastTabFaviconColor = "";
+  async function applyTabAccent(doc) {
+    const fallback = sp("mod.aurora.dynamic.favicon_fallback", "#7c6af7");
+    const color = await extractFaviconColor() ?? fallback;
+    if (color === lastTabFaviconColor) return;
+    lastTabFaviconColor = color;
     const theme = loadTheme();
-    const merged = { ...theme, colors: { ...theme.colors, ...colors } };
+    const merged = {
+      ...theme,
+      colors: {
+        ...theme.colors,
+        accent: color,
+        urlbarFocus: color,
+        tabActiveBg: darken2(color, 0.3)
+      }
+    };
     applyTheme(merged, doc);
   }
   function initDynamicTheme(doc) {
     stopDynamicTheme();
     const theme = loadTheme();
     if (theme.dynamicMode === "material") {
-      applyMaterialTheme(doc);
-      dynamicTimer = setInterval(() => applyMaterialTheme(doc), 5 * 60 * 1e3);
+      applyMaterialTheme(doc).catch(() => {
+      });
+      dynamicTimer = setInterval(() => applyMaterialTheme(doc).catch(() => {
+      }), 5 * 60 * 1e3);
     } else if (theme.dynamicMode === "daynight") {
       applyDayNight(doc);
-      dynamicTimer = setInterval(() => applyDayNight(doc), 10 * 60 * 1e3);
+      dynamicTimer = setInterval(() => applyDayNight(doc), 60 * 1e3);
+    } else if (theme.dynamicMode === "tab_accent") {
+      applyTabAccent(doc).catch(() => {
+      });
+      const onTab = () => applyTabAccent(doc).catch(() => {
+      });
+      doc.addEventListener("TabSelect", onTab, { capture: true });
+      dynamicTimer = setInterval(() => applyTabAccent(doc).catch(() => {
+      }), 5e3);
+      faviconObserverCleanup = () => {
+        doc.removeEventListener("TabSelect", onTab, true);
+      };
     }
   }
   function stopDynamicTheme() {
     if (dynamicTimer !== null) {
       clearInterval(dynamicTimer);
       dynamicTimer = null;
+    }
+    faviconObserverCleanup?.();
+    faviconObserverCleanup = null;
+    lastTabFaviconColor = "";
+  }
+  function getDynamicStatus() {
+    try {
+      const mode = Services.prefs.getStringPref("mod.aurora.dynamic_mode", "off");
+      if (mode === "off") return "Vypnuto";
+      if (mode === "material") {
+        const i = np("mod.aurora.dynamic.material_intensity", 0.75);
+        return `Material You \u2014 intenzita ${Math.round(i * 100)}%`;
+      }
+      if (mode === "daynight") {
+        const t = getDayNightFactor();
+        const pct = Math.round(t * 100);
+        const label = pct < 10 ? "\u{1F31E} Den" : pct > 90 ? "\u{1F319} Noc" : `\u{1F306} P\u0159echod ${pct}% noc`;
+        const dayH = np("mod.aurora.dynamic.day_hour", 7);
+        const nightH = np("mod.aurora.dynamic.night_hour", 20);
+        return `${label} (den od ${dayH}:00, noc od ${nightH}:00)`;
+      }
+      if (mode === "tab_accent") {
+        return `Favicon akcent${lastTabFaviconColor ? `: ${lastTabFaviconColor}` : " \u2014 \u010Dek\xE1m na z\xE1lo\u017Eku"}`;
+      }
+      return mode;
+    } catch {
+      return "\u2014";
     }
   }
 
@@ -1218,26 +1351,48 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
 
   // src/ui/panel.ts
   var PANEL_ID = "aurora-ui-panel";
-  var BTN_ID = "aurora-ui-fab";
+  var BTN_ID = "aurora-ui-sidebar-btn";
   var STYLES_ID = "aurora-ui-styles";
   var PANEL_CSS = `
-#aurora-ui-fab {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  z-index: 2147483640;
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  background: #7c6af7;
-  color: #fff;
-  font-size: 18px;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 16px #7c6af766;
-  display: flex; align-items: center; justify-content: center;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+/* Sidebar button \u2014 injected into Zen's sidebar action buttons */
+#aurora-ui-sidebar-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  color: var(--aurora-panel-text, #c0b4ff) !important;
+  font-size: 16px !important;
+  opacity: 0.75 !important;
+  transition: opacity 0.15s, background 0.15s !important;
+  margin: 2px auto !important;
 }
-#aurora-ui-fab:hover { transform: scale(1.1); box-shadow: 0 6px 20px #7c6af799; }
+#aurora-ui-sidebar-btn:hover {
+  opacity: 1 !important;
+  background: var(--aurora-button-hover, #2a2a5a) !important;
+}
+#aurora-ui-sidebar-btn.aurora-panel-open {
+  opacity: 1 !important;
+  background: var(--aurora-accent, #7c6af7) !important;
+  color: #fff !important;
+}
+
+/* Dynamic theme info bar in panel */
+.aurora-dynamic-bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; margin-bottom: 2px;
+  background: #1a1a38; border-radius: 6px;
+  font-size: 11px; color: #9090c0; line-height: 1.4;
+}
+.aurora-dynamic-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: #5550aa;
+}
+.aurora-dynamic-dot.active { background: #7c6af7; box-shadow: 0 0 6px #7c6af7; }
 
 #aurora-ui-panel {
   position: fixed;
@@ -1594,6 +1749,29 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     const pc = doc.createElement("div");
     pc.className = "aurora-pc";
     panel.appendChild(pc);
+    const dynBar = doc.createElement("div");
+    dynBar.className = "aurora-dynamic-bar";
+    const dynDot = doc.createElement("div");
+    dynDot.className = "aurora-dynamic-dot";
+    const dynTxt = doc.createElement("span");
+    dynTxt.textContent = getDynamicStatus();
+    dynBar.appendChild(dynDot);
+    dynBar.appendChild(dynTxt);
+    pc.appendChild(dynBar);
+    try {
+      const mode = Services.prefs.getStringPref("mod.aurora.dynamic_mode", "off");
+      if (mode !== "off") dynDot.classList.add("active");
+    } catch {
+    }
+    const dynInterval = setInterval(() => {
+      dynTxt.textContent = getDynamicStatus();
+      try {
+        const mode = Services.prefs.getStringPref("mod.aurora.dynamic_mode", "off");
+        dynDot.classList.toggle("active", mode !== "off");
+      } catch {
+      }
+    }, 3e4);
+    panel._dynInterval = dynInterval;
     makeTab(doc, tabBar, "Glob\xE1ln\xED barvy", true);
     const globalContent = makeTabContent(doc, pc, true);
     buildGlobalColors(doc, globalContent, status);
@@ -1629,7 +1807,34 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     return div;
   }
   function togglePanel(doc) {
-    doc.getElementById(PANEL_ID)?.classList.toggle("aurora-open");
+    const panel = doc.getElementById(PANEL_ID);
+    const btn = doc.getElementById(BTN_ID);
+    const isOpen = panel?.classList.toggle("aurora-open");
+    btn?.classList.toggle("aurora-panel-open", isOpen);
+  }
+  var SIDEBAR_TARGETS = [
+    "#zen-sidebar-top-buttons",
+    "#zen-sidebar-top-buttons-customization-target",
+    "#TabsToolbar",
+    "#nav-bar"
+  ];
+  function injectSidebarButton(doc) {
+    if (doc.getElementById(BTN_ID)) return doc.getElementById(BTN_ID);
+    const btn = doc.createElement("button");
+    btn.id = BTN_ID;
+    btn.title = "Aurora \u2014 nastaven\xED barev  (Ctrl+Shift+A)";
+    btn.textContent = "\u2726";
+    btn.addEventListener("click", () => togglePanel(doc));
+    for (const sel of SIDEBAR_TARGETS) {
+      const target = doc.querySelector(sel);
+      if (target) {
+        target.appendChild(btn);
+        return btn;
+      }
+    }
+    btn.style.cssText = "position:fixed;bottom:12px;right:12px;z-index:2147483638;width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;background:#7c6af7;color:#fff;font-size:15px;";
+    doc.documentElement.appendChild(btn);
+    return btn;
   }
   function initPanel(doc) {
     let styleEl = doc.getElementById(STYLES_ID);
@@ -1640,17 +1845,12 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     }
     styleEl.textContent = PANEL_CSS;
     initColorPicker(doc);
-    let fab = doc.getElementById(BTN_ID);
-    if (!fab) {
-      fab = doc.createElement("button");
-      fab.id = BTN_ID;
-      fab.title = "Aurora \u2014 nastaven\xED barev";
-      fab.textContent = "\u2726";
-      fab.addEventListener("click", () => togglePanel(doc));
-      doc.documentElement.appendChild(fab);
-    }
-    if (!doc.getElementById(PANEL_ID)) {
-      doc.documentElement.appendChild(buildPanel(doc));
+    injectSidebarButton(doc);
+    let panel = doc.getElementById(PANEL_ID);
+    if (!panel) {
+      const built = buildPanel(doc);
+      doc.documentElement.appendChild(built);
+      panel = built;
     }
     const onKey = (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === "A") {
@@ -1659,13 +1859,31 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       }
     };
     doc.addEventListener("keydown", onKey, { capture: true });
+    const prefObserver = {
+      observe(_s, topic, data) {
+        if (topic === "nsPref:changed" && data === "mod.aurora.ui.open_panel") {
+          try {
+            const val = Services.prefs.getBoolPref("mod.aurora.ui.open_panel", false);
+            if (val) {
+              togglePanel(doc);
+              Services.prefs.setBoolPref("mod.aurora.ui.open_panel", false);
+            }
+          } catch {
+          }
+        }
+      }
+    };
+    Services.prefs.addObserver("mod.aurora.ui.open_panel", prefObserver);
     return () => {
-      doc.getElementById(PANEL_ID)?.remove();
+      const p = doc.getElementById(PANEL_ID);
+      if (p?._dynInterval) clearInterval(p._dynInterval);
+      p?.remove();
       doc.getElementById(BTN_ID)?.remove();
       doc.getElementById(STYLES_ID)?.remove();
       doc.getElementById("aurora-cp-popup")?.remove();
       doc.getElementById("aurora-cp-styles")?.remove();
       doc.removeEventListener("keydown", onKey, true);
+      Services.prefs.removeObserver("mod.aurora.ui.open_panel", prefObserver);
     };
   }
 

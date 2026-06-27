@@ -10,6 +10,12 @@
     "defaultValue": true,
     "restart": true
   },
+  {
+    "property": "mod.aurora.ui.open_panel",
+    "label": "🎨  Otevřít panel barev  (nebo Ctrl+Shift+A)",
+    "type": "checkbox",
+    "defaultValue": false
+  },
 
   {
     "type": "separator",
@@ -487,14 +493,154 @@
   },
   {
     "property": "mod.aurora.dynamic_mode",
-    "label": "Režim dynamického motivu",
+    "label": "Režim",
     "type": "dropdown",
     "defaultValue": "off",
     "placeholder": false,
     "options": [
       { "label": "Vypnuto", "value": "off" },
-      { "label": "Material You (z URL obrázku na pozadí)", "value": "material" },
-      { "label": "Denní cyklus (teplejší večer)", "value": "daynight" }
+      { "label": "Material You — extrakce z obrázku pozadí", "value": "material" },
+      { "label": "Denní cyklus — barvy podle denní doby", "value": "daynight" },
+      { "label": "Akcent z favikony aktivní záložky", "value": "tab_accent" }
+    ]
+  },
+
+  {
+    "type": "separator",
+    "label": "  ↳ Material You"
+  },
+  {
+    "property": "mod.aurora.dynamic.material_intensity",
+    "label": "Intenzita extrakce (jak moc přepíše ručně nastavené barvy)",
+    "type": "dropdown",
+    "defaultValue": "0.75",
+    "placeholder": false,
+    "options": [
+      { "label": "Slabá (25%)", "value": "0.25" },
+      { "label": "Střední (50%)", "value": "0.5" },
+      { "label": "Silná (75%)", "value": "0.75" },
+      { "label": "Plná (100%)", "value": "1.0" }
+    ]
+  },
+
+  {
+    "type": "separator",
+    "label": "  ↳ Denní cyklus"
+  },
+  {
+    "property": "mod.aurora.dynamic.day_hour",
+    "label": "Začátek dne (hodina)",
+    "type": "dropdown",
+    "defaultValue": "7",
+    "placeholder": false,
+    "options": [
+      { "label": "5:00", "value": "5" },
+      { "label": "6:00", "value": "6" },
+      { "label": "7:00", "value": "7" },
+      { "label": "8:00", "value": "8" }
+    ]
+  },
+  {
+    "property": "mod.aurora.dynamic.night_hour",
+    "label": "Začátek noci (hodina)",
+    "type": "dropdown",
+    "defaultValue": "20",
+    "placeholder": false,
+    "options": [
+      { "label": "17:00", "value": "17" },
+      { "label": "18:00", "value": "18" },
+      { "label": "19:00", "value": "19" },
+      { "label": "20:00", "value": "20" },
+      { "label": "21:00", "value": "21" },
+      { "label": "22:00", "value": "22" }
+    ]
+  },
+  {
+    "property": "mod.aurora.dynamic.day_accent",
+    "label": "Akcent ve dne",
+    "type": "string",
+    "defaultValue": "#4a90d9",
+    "placeholder": "#4a90d9",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.dynamic.day_bg",
+    "label": "Pozadí panelů ve dne",
+    "type": "string",
+    "defaultValue": "#1a2035",
+    "placeholder": "#1a2035",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.dynamic.day_text",
+    "label": "Text ve dne",
+    "type": "string",
+    "defaultValue": "#dde8ff",
+    "placeholder": "#dde8ff",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.dynamic.night_accent",
+    "label": "Akcent v noci",
+    "type": "string",
+    "defaultValue": "#e07840",
+    "placeholder": "#e07840",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.dynamic.night_bg",
+    "label": "Pozadí panelů v noci",
+    "type": "string",
+    "defaultValue": "#1f1510",
+    "placeholder": "#1f1510",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.dynamic.night_text",
+    "label": "Text v noci",
+    "type": "string",
+    "defaultValue": "#ffe0cc",
+    "placeholder": "#ffe0cc",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.dynamic.transition_minutes",
+    "label": "Délka přechodu (minuty)",
+    "type": "dropdown",
+    "defaultValue": "60",
+    "placeholder": false,
+    "options": [
+      { "label": "Okamžitý (0 min)", "value": "0" },
+      { "label": "Krátký (30 min)", "value": "30" },
+      { "label": "Normální (60 min)", "value": "60" },
+      { "label": "Pomalý (90 min)", "value": "90" },
+      { "label": "Velmi pomalý (120 min)", "value": "120" }
+    ]
+  },
+
+  {
+    "type": "separator",
+    "label": "  ↳ Akcent z favikony"
+  },
+  {
+    "property": "mod.aurora.dynamic.favicon_fallback",
+    "label": "Záložní akcent (když favicon nemá barvu)",
+    "type": "string",
+    "defaultValue": "#7c6af7",
+    "placeholder": "#7c6af7",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.dynamic.favicon_saturation_boost",
+    "label": "Zesílení saturace extrahované barvy",
+    "type": "dropdown",
+    "defaultValue": "1.2",
+    "placeholder": false,
+    "options": [
+      { "label": "Bez zesílení (1×)", "value": "1.0" },
+      { "label": "Mírné (1.2×)", "value": "1.2" },
+      { "label": "Výrazné (1.5×)", "value": "1.5" },
+      { "label": "Maximální (2×)", "value": "2.0" }
     ]
   },
 
