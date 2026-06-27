@@ -650,9 +650,15 @@
   },
   {
     "property": "mod.aurora.zen.sync_primary_color",
-    "label": "Synchronizovat akcent s --zen-primary-color (gradient sidebaru)",
+    "label": "Přepisovat --zen-primary-color naším akcentem (gradient Zen sidebaru)",
     "type": "checkbox",
     "defaultValue": true
+  },
+  {
+    "property": "mod.aurora.zen.inherit_accent",
+    "label": "Sledovat akcent Zenu — při změně tématu v Zenu aktualizovat i Aurora akcent",
+    "type": "checkbox",
+    "defaultValue": false
   },
 
   {

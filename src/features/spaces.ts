@@ -1,5 +1,5 @@
 import { loadTheme } from "../core/state.ts";
-import { applyTheme, generateCSS, injectStyles } from "../core/cssEngine.ts";
+import { injectStyles } from "../core/cssEngine.ts";
 import type { AuroraTheme } from "../core/state.ts";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -105,13 +105,7 @@ function applySpaceStyles(doc: Document): void {
   const idx   = getActiveSpaceIndex();
   const spaceCSS = buildSpaceCSS(idx, theme);
 
-  let el = doc.getElementById(SPACE_STYLE_ID) as HTMLStyleElement | null;
-  if (!el) {
-    el = doc.createElement("style") as HTMLStyleElement;
-    el.id = SPACE_STYLE_ID;
-    (doc.head ?? doc.documentElement).appendChild(el);
-  }
-  el.textContent = spaceCSS;
+  injectStyles(spaceCSS, SPACE_STYLE_ID, doc);
 
   // Sync --zen-primary-color: use per-space accent or global accent
   const activeAccent = idx >= 0

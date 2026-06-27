@@ -51,8 +51,11 @@ const PANEL_CSS = `
 
 #aurora-ui-panel {
   position: fixed;
-  top: 0; right: -440px;
-  width: 420px; height: 100vh;
+  /* top is set dynamically via JS to avoid overlapping the toolbox */
+  top: var(--aurora-panel-top, 0px);
+  right: -440px;
+  width: 420px;
+  height: calc(100vh - var(--aurora-panel-top, 0px));
   z-index: 2147483639;
   background: #13132a;
   border-left: 1px solid #2d2d5c;
@@ -60,7 +63,7 @@ const PANEL_CSS = `
   display: flex; flex-direction: column;
   font-family: system-ui, sans-serif;
   font-size: 13px; color: #e0e0ff;
-  transition: right 0.25s cubic-bezier(0.4,0,0.2,1);
+  transition: right 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 #aurora-ui-panel.aurora-open { right: 0; }
@@ -492,37 +495,95 @@ function togglePanel(doc: Document): void {
   btn?.classList.toggle("aurora-panel-open", isOpen);
 }
 
+// ── Panel top offset (don't overlap the toolbox) ─────────────────────────────
+
+function updatePanelTop(doc: Document): void {
+  // Find the toolbox — if it's at the very top of the window, offset the panel below it
+  const toolbox = doc.getElementById("navigator-toolbox")
+               ?? doc.querySelector("#nav-bar, #toolbar-menubar");
+  let offset = 0;
+  if (toolbox) {
+    const rect = toolbox.getBoundingClientRect();
+    // Only count if it's a horizontal top bar (not a side panel)
+    if (rect.top < 8 && rect.width > rect.height && rect.height > 0) {
+      offset = Math.round(rect.bottom);
+    }
+  }
+  doc.documentElement.style.setProperty("--aurora-panel-top", `${offset}px`);
+}
+
 // ── Sidebar button injection ──────────────────────────────────────────────────
 
-// Candidate selectors for Zen's sidebar button area (tries each in order)
 const SIDEBAR_TARGETS = [
-  "#zen-sidebar-top-buttons",
   "#zen-sidebar-top-buttons-customization-target",
+  "#zen-sidebar-top-buttons",
+  "#zen-appcontent-navbar",
   "#TabsToolbar",
   "#nav-bar",
 ];
 
-function injectSidebarButton(doc: Document): HTMLButtonElement | null {
-  if (doc.getElementById(BTN_ID)) return doc.getElementById(BTN_ID) as HTMLButtonElement;
-
+function createBtn(doc: Document): HTMLButtonElement {
   const btn = doc.createElement("button") as HTMLButtonElement;
-  btn.id    = BTN_ID;
-  btn.title = "Aurora — nastavení barev  (Ctrl+Shift+A)";
+  btn.id          = BTN_ID;
+  btn.title       = "Aurora — nastavení barev  (Ctrl+Shift+A)";
   btn.textContent = "✦";
   btn.addEventListener("click", () => togglePanel(doc));
+  return btn;
+}
 
+function tryInjectButton(doc: Document, btn: HTMLButtonElement): boolean {
   for (const sel of SIDEBAR_TARGETS) {
     const target = doc.querySelector(sel);
-    if (target) { target.appendChild(btn); return btn; }
+    if (target) {
+      target.insertBefore(btn, target.firstChild);
+      dump(`[Aurora] Button injected into ${sel}\n`);
+      return true;
+    }
   }
+  return false;
+}
 
-  // Absolute fallback: bottom-right corner (minimal, not floating on pages)
-  btn.style.cssText =
-    "position:fixed;bottom:12px;right:12px;z-index:2147483638;" +
-    "width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;" +
-    "background:#7c6af7;color:#fff;font-size:15px;";
-  doc.documentElement.appendChild(btn);
-  return btn;
+function injectSidebarButton(doc: Document): () => void {
+  if (doc.getElementById(BTN_ID)) return () => {};
+
+  const btn = createBtn(doc);
+
+  // Try immediately
+  if (tryInjectButton(doc, btn)) return () => btn.remove();
+
+  // Wait for Zen's sidebar to appear in the DOM (it's added dynamically)
+  let injected = false;
+  let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const obs = new MutationObserver(() => {
+    if (injected || doc.getElementById(BTN_ID)) return;
+    if (tryInjectButton(doc, btn)) {
+      injected = true;
+      obs.disconnect();
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+    }
+  });
+  obs.observe(doc.documentElement, { childList: true, subtree: true });
+
+  // Hard fallback after 4 s: fixed button bottom-right
+  fallbackTimer = setTimeout(() => {
+    if (injected || doc.getElementById(BTN_ID)) return;
+    obs.disconnect();
+    btn.style.cssText =
+      "position:fixed!important;bottom:14px!important;right:14px!important;" +
+      "z-index:2147483638!important;width:36px!important;height:36px!important;" +
+      "border-radius:50%!important;border:none!important;cursor:pointer!important;" +
+      "background:#7c6af7!important;color:#fff!important;font-size:16px!important;" +
+      "box-shadow:0 3px 12px #7c6af755!important;";
+    doc.documentElement.appendChild(btn);
+    dump("[Aurora] Button: fallback to fixed position\n");
+  }, 4000);
+
+  return () => {
+    obs.disconnect();
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+    btn.remove();
+  };
 }
 
 // ── Public init ───────────────────────────────────────────────────────────────
@@ -537,11 +598,23 @@ export function initPanel(doc: Document): () => void {
   }
   styleEl.textContent = PANEL_CSS;
 
+  // Calculate toolbar offset so panel doesn't overlap it
+  updatePanelTop(doc);
+
+  // Re-check offset if toolbar resizes (e.g. Zen compact mode toggle)
+  let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+  const resizeObs = new ResizeObserver(() => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => updatePanelTop(doc), 100);
+  });
+  const toolbox = doc.getElementById("navigator-toolbox");
+  if (toolbox) resizeObs.observe(toolbox);
+
   // Init the shared color picker widget
   initColorPicker(doc);
 
-  // Sidebar button
-  injectSidebarButton(doc);
+  // Sidebar button (with MutationObserver wait)
+  const cleanupBtn = injectSidebarButton(doc);
 
   // Panel
   let panel = doc.getElementById(PANEL_ID) as (HTMLElement & { _dynInterval?: ReturnType<typeof setInterval> }) | null;
@@ -578,10 +651,13 @@ export function initPanel(doc: Document): () => void {
     const p = doc.getElementById(PANEL_ID) as (HTMLElement & { _dynInterval?: ReturnType<typeof setInterval> }) | null;
     if (p?._dynInterval) clearInterval(p._dynInterval);
     p?.remove();
-    doc.getElementById(BTN_ID)?.remove();
+    cleanupBtn();
+    resizeObs.disconnect();
+    if (resizeTimer) clearTimeout(resizeTimer);
     doc.getElementById(STYLES_ID)?.remove();
     doc.getElementById("aurora-cp-popup")?.remove();
     doc.getElementById("aurora-cp-styles")?.remove();
+    doc.documentElement.style.removeProperty("--aurora-panel-top");
     doc.removeEventListener("keydown", onKey, true);
     Services.prefs.removeObserver("mod.aurora.ui.open_panel", prefObserver);
   };

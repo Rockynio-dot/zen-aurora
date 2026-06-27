@@ -80,250 +80,225 @@
 
   // src/core/cssEngine.ts
   var STYLE_ID = "aurora-dynamic-styles";
+  var MD_EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
   var ANIM_SPEED = {
     none: "0s",
-    slow: "0.5s",
-    normal: "0.2s",
+    slow: "0.45s",
+    normal: "0.18s",
     fast: "0.08s"
   };
   function generateCSS(t) {
-    const dur = ANIM_SPEED[t.animations.speed] ?? "0.2s";
-    const ease = t.animations.easing;
-    const trans = `${dur} ${ease}`;
+    const dur = ANIM_SPEED[t.animations.speed] ?? "0.18s";
+    const ease = t.animations.easing === "ease" ? MD_EASE : t.animations.easing;
     const noAnim = t.animations.speed === "none";
+    const trans = `${dur} ${ease}`;
     const bgImage = t.images.browserBg ? `url("${t.images.browserBg}")` : "none";
     const panelRgba = hexToRgba(t.colors.panelBg, t.effects.panelOpacity);
-    const toolbarRgba = hexToRgba(t.colors.toolbarBg, t.effects.panelOpacity);
-    const sidebarRgba = hexToRgba(t.colors.sidebarBg, t.effects.panelOpacity);
+    const toolRgba = hexToRgba(t.colors.toolbarBg, t.effects.panelOpacity);
+    const sideRgba = hexToRgba(t.colors.sidebarBg, t.effects.panelOpacity);
     const blur = t.effects.panelBlur !== "0px" ? `blur(${t.effects.panelBlur})` : "";
-    const tabShadow = t.effects.tabShadow ? `0 2px 8px ${t.colors.accent}66` : "none";
-    const accentGlow = t.effects.accentGlow ? `0 0 12px ${t.colors.accent}88, 0 0 24px ${t.colors.accent}44` : "";
+    const tabShadow = t.effects.tabShadow ? `0 2px 8px ${t.colors.accent}55` : "none";
+    const accentGlow = t.effects.accentGlow ? `0 0 10px ${t.colors.accent}66, 0 0 22px ${t.colors.accent}33` : "";
+    const T = (props) => noAnim ? "" : `transition: ${props.split(",").map((p) => `${p.trim()} ${trans}`).join(", ")} !important;`;
     return `
-/* \u2500\u2500 Aurora CSS Variables \u2500\u2500 */
+/* \u2550\u2550 Aurora CSS Variables \u2550\u2550 */
 :root {
   --aurora-panel-bg:          ${panelRgba};
-  --aurora-toolbar-bg:        ${toolbarRgba};
-  --aurora-sidebar-bg:        ${sidebarRgba};
+  --aurora-toolbar-bg:        ${toolRgba};
+  --aurora-sidebar-bg:        ${sideRgba};
   --aurora-panel-text:        ${t.colors.panelText};
   --aurora-border:            ${t.colors.border};
-  --aurora-border-width:      ${t.layout.borderWidth};
-  --aurora-border-style:      ${t.effects.panelBorderStyle};
+  --aurora-border-w:          ${t.layout.borderWidth};
+  --aurora-border-s:          ${t.effects.panelBorderStyle};
   --aurora-accent:            ${t.colors.accent};
-  --aurora-tab-active-bg:     ${t.colors.tabActiveBg};
-  --aurora-tab-inactive-bg:   ${t.colors.tabInactiveBg};
+  --aurora-tab-active:        ${t.colors.tabActiveBg};
+  --aurora-tab-inactive:      ${t.colors.tabInactiveBg};
   --aurora-tab-text:          ${t.colors.tabText};
   --aurora-tab-close-hover:   ${t.colors.tabCloseHover};
-  --aurora-tab-hover-bg:      ${t.colors.tabHoverBg};
+  --aurora-tab-hover:         ${t.colors.tabHoverBg};
   --aurora-urlbar-bg:         ${t.colors.urlbarBg};
   --aurora-urlbar-text:       ${t.colors.urlbarText};
   --aurora-urlbar-border:     ${t.colors.urlbarBorder};
   --aurora-urlbar-focus:      ${t.colors.urlbarFocus};
   --aurora-browser-bg:        ${t.colors.browserBg};
-  --aurora-selection-bg:      ${t.colors.selectionBg};
+  --aurora-selection:         ${t.colors.selectionBg};
   --aurora-scrollbar:         ${t.colors.scrollbar};
-  --aurora-button-bg:         ${t.colors.buttonBg};
-  --aurora-button-hover:      ${t.colors.buttonHover};
-  --aurora-tab-height:        ${t.layout.tabHeight};
-  --aurora-tab-radius:        ${t.layout.tabBorderRadius};
-  --aurora-panel-radius:      ${t.layout.panelBorderRadius};
-  --aurora-button-radius:     ${t.layout.buttonBorderRadius};
-  --aurora-sidebar-width:     ${t.layout.sidebarWidth};
-  --aurora-toolbar-height:    ${t.layout.toolbarHeight};
-  --aurora-font-family:       ${t.typography.fontFamily};
-  --aurora-font-size:         ${t.typography.fontSize};
-  --aurora-font-weight:       ${t.typography.fontWeight};
-  --aurora-anim:              ${dur};
+  --aurora-btn-bg:            ${t.colors.buttonBg};
+  --aurora-btn-hover:         ${t.colors.buttonHover};
+  --aurora-tab-h:             ${t.layout.tabHeight};
+  --aurora-tab-r:             ${t.layout.tabBorderRadius};
+  --aurora-panel-r:           ${t.layout.panelBorderRadius};
+  --aurora-btn-r:             ${t.layout.buttonBorderRadius};
+  --aurora-sidebar-w:         ${t.layout.sidebarWidth};
+  --aurora-toolbar-h:         ${t.layout.toolbarHeight};
+  --aurora-font:              ${t.typography.fontFamily};
+  --aurora-font-sz:           ${t.typography.fontSize};
+  --aurora-font-w:            ${t.typography.fontWeight};
+  --aurora-dur:               ${dur};
   --aurora-ease:              ${ease};
   --aurora-blur:              ${blur};
-  --aurora-bg-image:          ${bgImage};
+  --aurora-bg-img:            ${bgImage};
   --aurora-bg-size:           ${t.images.bgSize};
-  --aurora-bg-position:       ${t.images.bgPosition};
+  --aurora-bg-pos:            ${t.images.bgPosition};
   --aurora-bg-blur:           ${t.images.bgBlur};
   --aurora-bg-opacity:        ${t.images.bgOpacity};
   --aurora-tab-shadow:        ${tabShadow};
-  --aurora-accent-glow:       ${accentGlow};
+  --aurora-glow:              ${accentGlow};
 }
 
-/* \u2500\u2500 Toolbars & Panels \u2500\u2500 */
+/* \u2550\u2550 Zen native sync \u2550\u2550 */
+${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root { --zen-primary-color: ${t.colors.accent} !important; }` : ""}
+
+/* \u2550\u2550 Toolbox / Top Bar \u2550\u2550 */
 #navigator-toolbox {
-  background-color: var(--aurora-toolbar-bg) !important;
-  border-bottom: var(--aurora-border-width) var(--aurora-border-style) var(--aurora-border) !important;
+  background: var(--aurora-toolbar-bg) !important;
+  border-bottom: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
+  ${T("background-color")}
 }
 
+/* \u2550\u2550 Panels (tab bar, nav bar, bookmarks) \u2550\u2550 */
 #TabsToolbar,
 #PersonalToolbar,
 #nav-bar {
-  background-color: var(--aurora-panel-bg) !important;
+  background: var(--aurora-panel-bg) !important;
   color: var(--aurora-panel-text) !important;
-  min-height: var(--aurora-toolbar-height) !important;
-  font-family: var(--aurora-font-family) !important;
-  font-size: var(--aurora-font-size) !important;
-  font-weight: var(--aurora-font-weight) !important;
+  min-height: var(--aurora-toolbar-h) !important;
+  font-family: var(--aurora-font) !important;
+  font-size: var(--aurora-font-sz) !important;
+  ${T("background-color, color")}
 }
 
-/* \u2500\u2500 Sidebar \u2500\u2500 */
+/* \u2550\u2550 Zen sidebar \u2550\u2550 */
 #sidebar-box,
 #zen-sidebar-top-buttons,
 #zen-sidebar-top-buttons-customization-target,
+#zen-appcontent-navbar,
 .zen-sidebar-action-button {
-  background-color: var(--aurora-sidebar-bg) !important;
+  background: var(--aurora-sidebar-bg) !important;
   border-color: var(--aurora-border) !important;
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
+  ${T("background-color")}
 }
 
 #sidebar-box {
-  min-width: var(--aurora-sidebar-width) !important;
-  max-width: var(--aurora-sidebar-width) !important;
-  border-right: var(--aurora-border-width) var(--aurora-border-style) var(--aurora-border) !important;
+  min-width: var(--aurora-sidebar-w) !important;
+  max-width: var(--aurora-sidebar-w) !important;
+  border-right: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
 }
 
-/* \u2500\u2500 Tabs \u2500\u2500 */
+/* \u2550\u2550 Tabs \u2550\u2550 */
 .tabbrowser-tab .tab-background {
-  background-color: var(--aurora-tab-inactive-bg) !important;
-  border-radius: var(--aurora-tab-radius) !important;
-  border: var(--aurora-border-width) var(--aurora-border-style) transparent !important;
-  ${noAnim ? "" : `transition: background-color ${trans}, box-shadow ${trans} !important;`}
+  background: var(--aurora-tab-inactive) !important;
+  border-radius: var(--aurora-tab-r) !important;
+  border: var(--aurora-border-w) var(--aurora-border-s) transparent !important;
+  ${T("background-color, border-color, box-shadow")}
 }
 
 .tabbrowser-tab[selected] .tab-background {
-  background-color: var(--aurora-tab-active-bg) !important;
+  background: var(--aurora-tab-active) !important;
   border-color: var(--aurora-border) !important;
   box-shadow: var(--aurora-tab-shadow) !important;
 }
 
-.tabbrowser-tab:hover .tab-background {
-  background-color: var(--aurora-tab-hover-bg) !important;
+.tabbrowser-tab:hover:not([selected]) .tab-background {
+  background: var(--aurora-tab-hover) !important;
 }
 
-.tab-label,
-.tab-text {
+.tab-label, .tab-text {
   color: var(--aurora-tab-text) !important;
-  font-family: var(--aurora-font-family) !important;
-  font-size: var(--aurora-font-size) !important;
-  font-weight: var(--aurora-font-weight) !important;
+  font-family: var(--aurora-font) !important;
+  font-size: var(--aurora-font-sz) !important;
+  font-weight: var(--aurora-font-w) !important;
 }
 
-.tab-close-button:hover {
-  color: var(--aurora-tab-close-hover) !important;
-}
+.tab-close-button:hover { color: var(--aurora-tab-close-hover) !important; }
+.tabbrowser-tab { min-height: var(--aurora-tab-h) !important; max-height: var(--aurora-tab-h) !important; }
 
-.tabbrowser-tab {
-  min-height: var(--aurora-tab-height) !important;
-  max-height: var(--aurora-tab-height) !important;
-}
-
-/* \u2500\u2500 URL Bar \u2500\u2500 */
+/* \u2550\u2550 URL Bar \u2550\u2550 */
 #urlbar,
 #urlbar-background {
-  background-color: var(--aurora-urlbar-bg) !important;
+  background: var(--aurora-urlbar-bg) !important;
   color: var(--aurora-urlbar-text) !important;
-  border: var(--aurora-border-width) var(--aurora-border-style) var(--aurora-urlbar-border) !important;
-  border-radius: var(--aurora-panel-radius) !important;
-  ${noAnim ? "" : `transition: border-color ${trans}, box-shadow ${trans} !important;`}
+  border: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-urlbar-border) !important;
+  border-radius: var(--aurora-panel-r) !important;
+  ${T("background-color, border-color, box-shadow")}
 }
 
 #urlbar[focused] #urlbar-background,
 #urlbar:focus-within #urlbar-background {
   border-color: var(--aurora-urlbar-focus) !important;
-  box-shadow: 0 0 0 2px ${t.colors.urlbarFocus}40 !important;
+  box-shadow: 0 0 0 2px ${t.colors.urlbarFocus}30 !important;
 }
 
-#urlbar-input {
-  color: var(--aurora-urlbar-text) !important;
-  font-family: var(--aurora-font-family) !important;
-}
+#urlbar-input { color: var(--aurora-urlbar-text) !important; font-family: var(--aurora-font) !important; }
 
-/* \u2500\u2500 Main browser area \u2500\u2500 */
-#browser {
-  background-color: var(--aurora-browser-bg) !important;
-}
+/* \u2550\u2550 Browser content area \u2550\u2550 */
+#browser { background: var(--aurora-browser-bg) !important; }
 
 #browser::before {
   content: "";
-  position: fixed;
-  inset: 0;
-  background-image: var(--aurora-bg-image);
+  position: fixed; inset: 0; pointer-events: none; z-index: -1;
+  background-image: var(--aurora-bg-img);
   background-size: var(--aurora-bg-size);
-  background-position: var(--aurora-bg-position);
+  background-position: var(--aurora-bg-pos);
   background-repeat: no-repeat;
   opacity: var(--aurora-bg-opacity);
-  ${t.images.bgBlur !== "0px" ? `filter: blur(var(--aurora-bg-blur));` : ""}
-  pointer-events: none;
-  z-index: -1;
+  ${t.images.bgBlur !== "0px" ? "filter: blur(var(--aurora-bg-blur));" : ""}
 }
 
-/* \u2500\u2500 Buttons & Toolbar items \u2500\u2500 */
+/* \u2550\u2550 Toolbar buttons \u2550\u2550 */
 toolbarbutton,
 .toolbarbutton-1,
 .zen-sidebar-action-button {
-  background-color: transparent !important;
-  border-radius: var(--aurora-button-radius) !important;
+  background: transparent !important;
+  border-radius: var(--aurora-btn-r) !important;
   color: var(--aurora-panel-text) !important;
-  ${noAnim ? "" : `transition: background-color ${trans}, opacity ${trans} !important;`}
+  ${T("background-color, box-shadow, opacity")}
 }
 
 toolbarbutton:hover,
-.toolbarbutton-1:hover {
-  background-color: var(--aurora-button-hover) !important;
-  ${t.effects.accentGlow ? `box-shadow: var(--aurora-accent-glow) !important;` : ""}
+.toolbarbutton-1:hover,
+.zen-sidebar-action-button:hover {
+  background: var(--aurora-btn-hover) !important;
+  ${t.effects.accentGlow ? "box-shadow: var(--aurora-glow) !important;" : ""}
 }
 
 toolbarbutton[checked="true"],
-toolbarbutton[open="true"] {
-  background-color: var(--aurora-button-bg) !important;
-}
+toolbarbutton[open="true"] { background: var(--aurora-btn-bg) !important; }
 
-/* \u2500\u2500 Popup menus \u2500\u2500 */
+/* \u2550\u2550 Popup menus \u2550\u2550 */
 menupopup,
 .panel-arrowcontainer,
 .panel-arrowcontent,
 #appMenu-popup,
 #customizationui-widget-panel {
-  background-color: var(--aurora-panel-bg) !important;
-  border: var(--aurora-border-width) var(--aurora-border-style) var(--aurora-border) !important;
-  border-radius: var(--aurora-panel-radius) !important;
+  background: var(--aurora-panel-bg) !important;
+  border: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
+  border-radius: var(--aurora-panel-r) !important;
   color: var(--aurora-panel-text) !important;
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
 }
 
-menuitem,
-menu {
+menuitem, menu {
   color: var(--aurora-panel-text) !important;
-  border-radius: var(--aurora-button-radius) !important;
+  border-radius: var(--aurora-btn-r) !important;
+  ${T("background-color")}
 }
 
-menuitem:hover,
-menu:hover {
-  background-color: var(--aurora-button-hover) !important;
-}
+menuitem:hover, menu:hover { background: var(--aurora-btn-hover) !important; }
 
-/* \u2500\u2500 Scrollbar \u2500\u2500 */
-scrollbar,
-scrollbarbutton,
-slider {
-  background-color: transparent !important;
-}
+/* \u2550\u2550 Selection \u2550\u2550 */
+::selection { background: var(--aurora-selection) !important; }
 
-thumb {
-  background-color: var(--aurora-scrollbar) !important;
-  border-radius: 999px !important;
-}
+/* \u2550\u2550 Scrollbar \u2550\u2550 */
+scrollbar, scrollbarbutton, slider { background: transparent !important; }
+thumb { background: var(--aurora-scrollbar) !important; border-radius: 999px !important; }
 
-/* \u2500\u2500 Accent glow na aktivn\xED z\xE1lo\u017Ece \u2500\u2500 */
-${t.effects.accentGlow ? `
-.tabbrowser-tab[selected] .tab-background {
-  box-shadow: var(--aurora-tab-shadow), var(--aurora-accent-glow) !important;
-}
-` : ""}
+/* \u2550\u2550 Accent glow on active tab \u2550\u2550 */
+${t.effects.accentGlow ? `.tabbrowser-tab[selected] .tab-background { box-shadow: var(--aurora-tab-shadow), var(--aurora-glow) !important; }` : ""}
 
-/* \u2500\u2500 Zen Browser native variable sync \u2500\u2500 */
-${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `
-:root {
-  --zen-primary-color: ${t.colors.accent} !important;
-}` : ""}
-
-/* \u2500\u2500 Vypnut\xED animac\xED \u2500\u2500 */
+/* \u2550\u2550 Kill all animations \u2550\u2550 */
 ${noAnim ? "*, *::before, *::after { transition: none !important; animation: none !important; }" : ""}
 `.trim();
   }
@@ -337,17 +312,23 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     if (isNaN(r) || isNaN(g) || isNaN(b2)) return hex;
     return `rgba(${r}, ${g}, ${b2}, ${isNaN(a) ? 1 : a})`;
   }
-  function injectStyles(css, targetDoc = document) {
+  function applyTheme(theme, targetDoc = document) {
     let el = targetDoc.getElementById(STYLE_ID);
     if (!el) {
       el = targetDoc.createElement("style");
       el.id = STYLE_ID;
       (targetDoc.head ?? targetDoc.documentElement).appendChild(el);
     }
-    el.textContent = css;
+    el.textContent = generateCSS(theme);
   }
-  function applyTheme(theme, targetDoc = document) {
-    injectStyles(generateCSS(theme), targetDoc);
+  function injectStyles(css, id, targetDoc = document) {
+    let el = targetDoc.getElementById(id);
+    if (!el) {
+      el = targetDoc.createElement("style");
+      el.id = id;
+      (targetDoc.head ?? targetDoc.documentElement).appendChild(el);
+    }
+    el.textContent = css;
   }
 
   // src/core/events.ts
@@ -882,13 +863,7 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     const theme = loadTheme();
     const idx = getActiveSpaceIndex();
     const spaceCSS = buildSpaceCSS(idx, theme);
-    let el = doc.getElementById(SPACE_STYLE_ID);
-    if (!el) {
-      el = doc.createElement("style");
-      el.id = SPACE_STYLE_ID;
-      (doc.head ?? doc.documentElement).appendChild(el);
-    }
-    el.textContent = spaceCSS;
+    injectStyles(spaceCSS, SPACE_STYLE_ID, doc);
     const activeAccent = idx >= 0 ? spaceColor(idx, "accent", theme.colors.accent) : theme.colors.accent;
     syncZenPrimaryColor(activeAccent);
   }
@@ -902,17 +877,17 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
   }
   function initSpaces(doc) {
     applySpaceStyles(doc);
-    const styleObserver = new MutationObserver(() => {
+    const styleObserver2 = new MutationObserver(() => {
       onPossibleSpaceChange(doc);
     });
-    styleObserver.observe(doc.documentElement, {
+    styleObserver2.observe(doc.documentElement, {
       attributes: true,
       attributeFilter: ["style"]
     });
     const onTabSelect = () => onPossibleSpaceChange(doc);
     doc.addEventListener("TabSelect", onTabSelect, { capture: true });
     return () => {
-      styleObserver.disconnect();
+      styleObserver2.disconnect();
       doc.removeEventListener("TabSelect", onTabSelect, true);
       doc.getElementById(SPACE_STYLE_ID)?.remove();
     };
@@ -1335,12 +1310,16 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     pickerV = v;
     updateUI();
     const rect = anchorEl.getBoundingClientRect();
+    const PICKER_W = 244;
+    const PICKER_H = 310;
+    const nearRightEdge = rect.left + PICKER_W > window.innerWidth - 20;
+    let left = nearRightEdge ? rect.right - PICKER_W : rect.left;
     let top = rect.bottom + 6;
-    let left = rect.left;
-    if (left + 240 > window.innerWidth) left = window.innerWidth - 244;
-    if (top + 320 > window.innerHeight) top = rect.top - 324;
-    if (left < 4) left = 4;
-    if (top < 4) top = 4;
+    if (top + PICKER_H > window.innerHeight - 8) {
+      top = rect.top - PICKER_H - 6;
+    }
+    left = Math.max(4, Math.min(left, window.innerWidth - PICKER_W - 4));
+    top = Math.max(4, Math.min(top, window.innerHeight - PICKER_H - 4));
     popupEl.style.top = `${top}px`;
     popupEl.style.left = `${left}px`;
     popupEl.classList.add("open");
@@ -1396,8 +1375,11 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
 
 #aurora-ui-panel {
   position: fixed;
-  top: 0; right: -440px;
-  width: 420px; height: 100vh;
+  /* top is set dynamically via JS to avoid overlapping the toolbox */
+  top: var(--aurora-panel-top, 0px);
+  right: -440px;
+  width: 420px;
+  height: calc(100vh - var(--aurora-panel-top, 0px));
   z-index: 2147483639;
   background: #13132a;
   border-left: 1px solid #2d2d5c;
@@ -1405,7 +1387,7 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
   display: flex; flex-direction: column;
   font-family: system-ui, sans-serif;
   font-size: 13px; color: #e0e0ff;
-  transition: right 0.25s cubic-bezier(0.4,0,0.2,1);
+  transition: right 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 #aurora-ui-panel.aurora-open { right: 0; }
@@ -1812,29 +1794,72 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     const isOpen = panel?.classList.toggle("aurora-open");
     btn?.classList.toggle("aurora-panel-open", isOpen);
   }
+  function updatePanelTop(doc) {
+    const toolbox = doc.getElementById("navigator-toolbox") ?? doc.querySelector("#nav-bar, #toolbar-menubar");
+    let offset = 0;
+    if (toolbox) {
+      const rect = toolbox.getBoundingClientRect();
+      if (rect.top < 8 && rect.width > rect.height && rect.height > 0) {
+        offset = Math.round(rect.bottom);
+      }
+    }
+    doc.documentElement.style.setProperty("--aurora-panel-top", `${offset}px`);
+  }
   var SIDEBAR_TARGETS = [
-    "#zen-sidebar-top-buttons",
     "#zen-sidebar-top-buttons-customization-target",
+    "#zen-sidebar-top-buttons",
+    "#zen-appcontent-navbar",
     "#TabsToolbar",
     "#nav-bar"
   ];
-  function injectSidebarButton(doc) {
-    if (doc.getElementById(BTN_ID)) return doc.getElementById(BTN_ID);
+  function createBtn(doc) {
     const btn = doc.createElement("button");
     btn.id = BTN_ID;
     btn.title = "Aurora \u2014 nastaven\xED barev  (Ctrl+Shift+A)";
     btn.textContent = "\u2726";
     btn.addEventListener("click", () => togglePanel(doc));
+    return btn;
+  }
+  function tryInjectButton(doc, btn) {
     for (const sel of SIDEBAR_TARGETS) {
       const target = doc.querySelector(sel);
       if (target) {
-        target.appendChild(btn);
-        return btn;
+        target.insertBefore(btn, target.firstChild);
+        dump(`[Aurora] Button injected into ${sel}
+`);
+        return true;
       }
     }
-    btn.style.cssText = "position:fixed;bottom:12px;right:12px;z-index:2147483638;width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;background:#7c6af7;color:#fff;font-size:15px;";
-    doc.documentElement.appendChild(btn);
-    return btn;
+    return false;
+  }
+  function injectSidebarButton(doc) {
+    if (doc.getElementById(BTN_ID)) return () => {
+    };
+    const btn = createBtn(doc);
+    if (tryInjectButton(doc, btn)) return () => btn.remove();
+    let injected = false;
+    let fallbackTimer = null;
+    const obs = new MutationObserver(() => {
+      if (injected || doc.getElementById(BTN_ID)) return;
+      if (tryInjectButton(doc, btn)) {
+        injected = true;
+        obs.disconnect();
+        if (fallbackTimer) clearTimeout(fallbackTimer);
+      }
+    });
+    obs.observe(doc.documentElement, { childList: true, subtree: true });
+    fallbackTimer = setTimeout(() => {
+      if (injected || doc.getElementById(BTN_ID)) return;
+      obs.disconnect();
+      btn.style.cssText = "position:fixed!important;bottom:14px!important;right:14px!important;z-index:2147483638!important;width:36px!important;height:36px!important;border-radius:50%!important;border:none!important;cursor:pointer!important;background:#7c6af7!important;color:#fff!important;font-size:16px!important;box-shadow:0 3px 12px #7c6af755!important;";
+      doc.documentElement.appendChild(btn);
+      dump("[Aurora] Button: fallback to fixed position\n");
+    }, 4e3);
+    return () => {
+      obs.disconnect();
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      btn.remove();
+    };
   }
   function initPanel(doc) {
     let styleEl = doc.getElementById(STYLES_ID);
@@ -1844,8 +1869,16 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       (doc.head ?? doc.documentElement).appendChild(styleEl);
     }
     styleEl.textContent = PANEL_CSS;
+    updatePanelTop(doc);
+    let resizeTimer = null;
+    const resizeObs = new ResizeObserver(() => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => updatePanelTop(doc), 100);
+    });
+    const toolbox = doc.getElementById("navigator-toolbox");
+    if (toolbox) resizeObs.observe(toolbox);
     initColorPicker(doc);
-    injectSidebarButton(doc);
+    const cleanupBtn = injectSidebarButton(doc);
     let panel = doc.getElementById(PANEL_ID);
     if (!panel) {
       const built = buildPanel(doc);
@@ -1878,12 +1911,141 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       const p = doc.getElementById(PANEL_ID);
       if (p?._dynInterval) clearInterval(p._dynInterval);
       p?.remove();
-      doc.getElementById(BTN_ID)?.remove();
+      cleanupBtn();
+      resizeObs.disconnect();
+      if (resizeTimer) clearTimeout(resizeTimer);
       doc.getElementById(STYLES_ID)?.remove();
       doc.getElementById("aurora-cp-popup")?.remove();
       doc.getElementById("aurora-cp-styles")?.remove();
+      doc.documentElement.style.removeProperty("--aurora-panel-top");
       doc.removeEventListener("keydown", onKey, true);
       Services.prefs.removeObserver("mod.aurora.ui.open_panel", prefObserver);
+    };
+  }
+
+  // src/core/zenSync.ts
+  var INIT_PREF = "mod.aurora.initialized";
+  function hexToHsl(hex) {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b2 = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b2), min = Math.min(r, g, b2);
+    const l = (max + min) / 2;
+    if (max === min) return [0, 0, l];
+    const d = max - min;
+    const s2 = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    const h = max === r ? ((g - b2) / d + (g < b2 ? 6 : 0)) / 6 : max === g ? ((b2 - r) / d + 2) / 6 : ((r - g) / d + 4) / 6;
+    return [h * 360, s2, l];
+  }
+  function derivePaletteFromAccent(accent) {
+    const [h] = hexToHsl(accent);
+    const bg = `hsl(${h}, 18%, 10%)`;
+    const bgMd = `hsl(${h}, 16%, 12%)`;
+    const bgLt = `hsl(${h}, 14%, 15%)`;
+    const text = `hsl(${h}, 60%, 92%)`;
+    const brd = `hsl(${h}, 25%, 25%)`;
+    return {
+      "mod.aurora.color.panel_bg": bgMd,
+      "mod.aurora.color.toolbar_bg": bg,
+      "mod.aurora.color.sidebar_bg": bg,
+      "mod.aurora.color.panel_text": text,
+      "mod.aurora.color.border": brd,
+      "mod.aurora.color.accent": accent,
+      "mod.aurora.color.tab_active_bg": bgLt,
+      "mod.aurora.color.tab_inactive_bg": bgMd,
+      "mod.aurora.color.tab_text": text,
+      "mod.aurora.color.tab_close_hover": "#ff6b6b",
+      "mod.aurora.color.tab_hover_bg": bgLt,
+      "mod.aurora.color.urlbar_bg": bgMd,
+      "mod.aurora.color.urlbar_text": text,
+      "mod.aurora.color.urlbar_border": brd,
+      "mod.aurora.color.urlbar_focus": accent,
+      "mod.aurora.color.browser_bg": bg,
+      "mod.aurora.color.selection_bg": accent + "44",
+      "mod.aurora.color.scrollbar": brd,
+      "mod.aurora.color.button_bg": bgLt,
+      "mod.aurora.color.button_hover": `hsl(${h}, 20%, 22%)`
+    };
+  }
+  function readZenAccent(doc) {
+    try {
+      const inline = doc.documentElement.style.getPropertyValue("--zen-primary-color").trim();
+      if (inline && inline.startsWith("#")) return inline;
+      const computed = getComputedStyle(doc.documentElement).getPropertyValue("--zen-primary-color").trim();
+      if (computed && computed.startsWith("#")) return computed;
+      const pref = Services.prefs.getStringPref("zen.theme.accent-color", "");
+      if (pref && pref.startsWith("#")) return pref;
+    } catch {
+    }
+    return null;
+  }
+  function captureZenColorsOnFirstRun(doc) {
+    try {
+      const alreadyInit = Services.prefs.getBoolPref(INIT_PREF, false);
+      if (alreadyInit) return;
+      const hasCustomAccent = Services.prefs.prefHasUserValue("mod.aurora.color.accent");
+      if (hasCustomAccent) {
+        Services.prefs.setBoolPref(INIT_PREF, true);
+        return;
+      }
+      const zenAccent = readZenAccent(doc);
+      if (zenAccent) {
+        const palette = derivePaletteFromAccent(zenAccent);
+        for (const [pref, val] of Object.entries(palette)) {
+          try {
+            Services.prefs.setStringPref(pref, val);
+          } catch {
+          }
+        }
+        dump(`[Aurora] First run: captured Zen accent ${zenAccent}
+`);
+      }
+      Services.prefs.setBoolPref(INIT_PREF, true);
+    } catch (e) {
+      dump(`[Aurora] First-run capture error: ${e}
+`);
+    }
+  }
+  var lastKnownZenAccent = "";
+  function applyZenAccentToAurora(accent) {
+    if (accent === lastKnownZenAccent) return;
+    lastKnownZenAccent = accent;
+    const syncEnabled = Services.prefs.getBoolPref("mod.aurora.zen.inherit_accent", false);
+    if (!syncEnabled) return;
+    try {
+      Services.prefs.setStringPref("mod.aurora.color.accent", accent);
+      Services.prefs.setStringPref("mod.aurora.color.urlbar_focus", accent);
+    } catch {
+    }
+  }
+  var zenPrefObserver = {
+    observe(_s, topic, data) {
+      if (topic !== "nsPref:changed") return;
+      if (data === "zen.theme.accent-color") {
+        try {
+          const accent = Services.prefs.getStringPref("zen.theme.accent-color", "");
+          if (accent) applyZenAccentToAurora(accent);
+        } catch {
+        }
+      }
+    }
+  };
+  var styleObserver = null;
+  function initZenSync(doc) {
+    Services.prefs.addObserver("zen.theme.accent-color", zenPrefObserver);
+    styleObserver = new MutationObserver(() => {
+      const accent = doc.documentElement.style.getPropertyValue("--zen-primary-color").trim();
+      if (accent) applyZenAccentToAurora(accent);
+    });
+    styleObserver.observe(doc.documentElement, {
+      attributes: true,
+      attributeFilter: ["style"]
+    });
+    return () => {
+      Services.prefs.removeObserver("zen.theme.accent-color", zenPrefObserver);
+      styleObserver?.disconnect();
+      styleObserver = null;
+      lastKnownZenAccent = "";
     };
   }
 
@@ -1892,6 +2054,16 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
   var dynamicRunning = false;
   var stopSpaces = null;
   var stopPanel = null;
+  var stopZenSync = null;
+  var debounceTimer = null;
+  function scheduleApply(doc) {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      debounceTimer = null;
+      applyAll(doc).catch((e) => dump(`[Aurora] debounce apply error: ${e}
+`));
+    }, 80);
+  }
   async function applyAll(doc) {
     const theme = loadTheme();
     applyTheme(theme, doc);
@@ -1919,31 +2091,36 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
         return;
       }
       const doc = document;
+      captureZenColorsOnFirstRun(doc);
       await applyAll(doc);
       initEvents(doc);
       stopSpaces = initSpaces(doc);
       stopPanel = initPanel(doc);
+      stopZenSync = initZenSync(doc);
       const observer = {
-        observe(_subject, topic, data) {
-          if (topic === "nsPref:changed" && data.startsWith("mod.aurora.")) {
-            applyAll(doc).catch((e) => dump(`[Aurora] Observer error: ${e}
-`));
-          }
+        observe(_s, topic, data) {
+          if (topic !== "nsPref:changed") return;
+          const key = data;
+          if (!key.startsWith("mod.aurora.")) return;
+          if (key === "mod.aurora.ui.open_panel") return;
+          scheduleApply(doc);
         }
       };
       Services.prefs.addObserver("mod.aurora.", observer);
       doc.defaultView?.addEventListener("beforeunload", () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
         Services.prefs.removeObserver("mod.aurora.", observer);
         stopSounds();
         stopDynamicTheme();
         stopSpaces?.();
         stopPanel?.();
+        stopZenSync?.();
       }, { once: true });
-      dump("[Aurora] Loaded successfully.\n");
+      dump("[Aurora] Loaded.\n");
     } catch (e) {
-      dump(`[Aurora] Error during init: ${e}
+      dump(`[Aurora] Init error: ${e}
 `);
-      console.error("[Aurora] Error during init:", e);
+      console.error("[Aurora] Init error:", e);
     }
   }
   if (document.readyState === "loading") {

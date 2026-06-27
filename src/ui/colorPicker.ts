@@ -384,15 +384,25 @@ export function openColorPicker(
   pickerH = h; pickerS = s; pickerV = v;
   updateUI();
 
-  const rect = anchorEl.getBoundingClientRect();
-  let top  = rect.bottom + 6;
-  let left = rect.left;
+  const rect       = anchorEl.getBoundingClientRect();
+  const PICKER_W   = 244;
+  const PICKER_H   = 310;
 
-  // Keep inside viewport
-  if (left + 240 > window.innerWidth)  left  = window.innerWidth  - 244;
-  if (top  + 320 > window.innerHeight) top   = rect.top - 324;
-  if (left < 4) left = 4;
-  if (top  < 4) top  = 4;
+  // If the anchor is in the right half of the viewport, open picker to the LEFT
+  const nearRightEdge = rect.left + PICKER_W > window.innerWidth - 20;
+  let left = nearRightEdge
+    ? rect.right - PICKER_W          // align right edges
+    : rect.left;                     // align left edges
+
+  // Vertical: prefer below, fallback above
+  let top = rect.bottom + 6;
+  if (top + PICKER_H > window.innerHeight - 8) {
+    top = rect.top - PICKER_H - 6;
+  }
+
+  // Final clamping to viewport
+  left = Math.max(4, Math.min(left, window.innerWidth  - PICKER_W - 4));
+  top  = Math.max(4, Math.min(top,  window.innerHeight - PICKER_H - 4));
 
   popupEl.style.top  = `${top}px`;
   popupEl.style.left = `${left}px`;

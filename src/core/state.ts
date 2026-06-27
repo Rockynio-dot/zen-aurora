@@ -56,7 +56,7 @@ export interface AuroraTheme {
     speed: string;
     easing: string;
   };
-  dynamicMode: "off" | "material" | "daynight";
+  dynamicMode: "off" | "material" | "daynight" | "tab_accent";
 }
 
 function s(key: string, def: string): string {
