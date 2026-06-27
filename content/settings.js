@@ -1313,28 +1313,10 @@ body {
       { label: "700 \u2014 tu\u010Dn\xE9", value: "700" }
     ], "400");
     buildSectionHeading(doc, el, "Barvy textu");
-    const useIndividual = getBoolPref("mod.aurora.style.individual_text_colors", false);
-    buildToggle(
-      doc,
-      el,
-      "Nastavit ka\u017Ed\xFD text zvl\xE1\u0161\u0165 (p\u0159ep\xED\u0161e barvu v\u0161ech text\u016F)",
-      "mod.aurora.style.individual_text_colors",
-      false,
-      (v) => {
-        indContainer.style.display = v ? "block" : "none";
-        masterSection.style.display = v ? "none" : "block";
-      }
-    );
-    const masterSection = doc.createElement("div");
-    masterSection.style.display = useIndividual ? "none" : "block";
-    colorRow(doc, masterSection, "Barva v\u0161ech text\u016F", "mod.aurora.color.panel_text", "#e0e0ff", st, "panely + z\xE1lo\u017Eky + urlbar");
-    el.appendChild(masterSection);
-    const indContainer = doc.createElement("div");
-    indContainer.style.display = useIndividual ? "block" : "none";
-    colorRow(doc, indContainer, "Text panel\u016F (toolbar, sidebar, menu)", "mod.aurora.color.panel_text", "#e0e0ff", st, "#TabsToolbar toolbarbutton menuitem");
-    colorRow(doc, indContainer, "Text z\xE1lo\u017Eek", "mod.aurora.color.tab_text", "#c0c0e0", st, ".tab-label .tab-text");
-    colorRow(doc, indContainer, "Text URL li\u0161ty", "mod.aurora.color.urlbar_text", "#e0e0ff", st, "#urlbar-input");
-    el.appendChild(indContainer);
+    colorRow(doc, el, "Text panel\u016F (toolbar, sidebar, menu)", "mod.aurora.color.panel_text", "#e0e0ff", st, "#TabsToolbar toolbarbutton menuitem");
+    colorRow(doc, el, "Text z\xE1lo\u017Eek (.tab-label)", "mod.aurora.color.tab_text", "#c0c0e0", st, ".tab-label .tab-text");
+    colorRow(doc, el, "Text URL li\u0161ty (#urlbar-input)", "mod.aurora.color.urlbar_text", "#e0e0ff", st, "#urlbar-input");
+    buildToggle(doc, el, "Individu\xE1ln\xED barvy textu (z\xE1lo\u017Eky a urlbar maj\xED vlastn\xED barvu, jinak se kop\xEDruje barva panel\u016F)", "mod.aurora.style.individual_text_colors", false);
   }
   function buildAccessibility(doc, el, _st) {
     buildSectionHeading(doc, el, "Barevn\xE9 sch\xE9ma obsahu (prefers-color-scheme)");

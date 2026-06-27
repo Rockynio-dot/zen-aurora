@@ -684,23 +684,12 @@ function buildFontText(doc: Document, el: HTMLElement, st: HTMLElement): void {
   ], "400");
 
   buildSectionHeading(doc, el, "Barvy textu");
-  const useIndividual = getBoolPref("mod.aurora.style.individual_text_colors", false);
-
-  // Master toggle
-  buildToggle(doc, el, "Nastavit každý text zvlášť (přepíše barvu všech textů)", "mod.aurora.style.individual_text_colors", false,
-    (v) => { indContainer.style.display = v ? "block" : "none"; masterSection.style.display = v ? "none" : "block"; });
-
-  // Master section (single color for all text)
-  const masterSection = doc.createElement("div"); masterSection.style.display = useIndividual ? "none" : "block";
-  colorRow(doc, masterSection, "Barva všech textů", "mod.aurora.color.panel_text", "#e0e0ff", st, "panely + záložky + urlbar");
-  el.appendChild(masterSection);
-
-  // Individual section
-  const indContainer = doc.createElement("div"); indContainer.style.display = useIndividual ? "block" : "none";
-  colorRow(doc, indContainer, "Text panelů (toolbar, sidebar, menu)", "mod.aurora.color.panel_text",  "#e0e0ff", st, "#TabsToolbar toolbarbutton menuitem");
-  colorRow(doc, indContainer, "Text záložek",                         "mod.aurora.color.tab_text",    "#c0c0e0", st, ".tab-label .tab-text");
-  colorRow(doc, indContainer, "Text URL lišty",                       "mod.aurora.color.urlbar_text", "#e0e0ff", st, "#urlbar-input");
-  el.appendChild(indContainer);
+  // Vždy zobrazeny — toggle pouze říká, zda CSS engine použije individuální hodnoty
+  // nebo zkopíruje panel_text na záložky i urlbar
+  colorRow(doc, el, "Text panelů (toolbar, sidebar, menu)", "mod.aurora.color.panel_text",  "#e0e0ff", st, "#TabsToolbar toolbarbutton menuitem");
+  colorRow(doc, el, "Text záložek (.tab-label)",            "mod.aurora.color.tab_text",    "#c0c0e0", st, ".tab-label .tab-text");
+  colorRow(doc, el, "Text URL lišty (#urlbar-input)",       "mod.aurora.color.urlbar_text", "#e0e0ff", st, "#urlbar-input");
+  buildToggle(doc, el, "Individuální barvy textu (záložky a urlbar mají vlastní barvu, jinak se kopíruje barva panelů)", "mod.aurora.style.individual_text_colors", false);
 }
 
 // ── 8. Přístupnost ────────────────────────────────────────────────────────────
