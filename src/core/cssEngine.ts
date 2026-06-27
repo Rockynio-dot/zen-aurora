@@ -233,16 +233,23 @@ menupopup,
   border: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
   border-radius: var(--aurora-panel-r) !important;
   color: var(--aurora-panel-text) !important;
+  font-size: 11.5px !important;
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
 }
 
 menuitem, menu {
   color: var(--aurora-panel-text) !important;
   border-radius: var(--aurora-btn-r) !important;
+  padding-block: 3px !important;
+  padding-inline: 8px !important;
+  min-height: 22px !important;
+  font-size: 11.5px !important;
   ${T("background-color")}
 }
 
 menuitem:hover, menu:hover { background: var(--aurora-btn-hover) !important; }
+
+menuseparator { margin-block: 2px !important; }
 
 /* ══ Selection ══ */
 ::selection { background: var(--aurora-selection) !important; }

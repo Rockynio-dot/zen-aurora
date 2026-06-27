@@ -384,13 +384,20 @@ function buildColorRow(
 
 // ── Sections ──────────────────────────────────────────────────────────────────
 
+const TEXT_COLOR_PREFS = [
+  "mod.aurora.color.panel_text",
+  "mod.aurora.color.tab_text",
+  "mod.aurora.color.urlbar_text",
+];
+
 function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
+  // Text colors excluded from groups — handled separately below
   const groups: [string, string[]][] = [
-    ["Panely & Sidebar", ["panel_bg","toolbar_bg","sidebar_bg","panel_text","border","accent"]],
-    ["Workspace strip", ["workspace_strip_bg","workspace_dot","workspace_dot_active"]],
-    ["Záložky", ["tab_active_bg","tab_inactive_bg","tab_text","tab_close_hover","tab_hover_bg"]],
-    ["URL lišta", ["urlbar_bg","urlbar_text","urlbar_border","urlbar_focus"]],
-    ["Obsah & Ostatní", ["browser_bg","selection_bg","scrollbar","button_bg","button_hover"]],
+    ["Panely & Sidebar", ["panel_bg","toolbar_bg","sidebar_bg","border","accent"]],
+    ["Workspace strip",  ["workspace_strip_bg","workspace_dot","workspace_dot_active"]],
+    ["Záložky",          ["tab_active_bg","tab_inactive_bg","tab_close_hover","tab_hover_bg"]],
+    ["URL lišta",        ["urlbar_bg","urlbar_border","urlbar_focus"]],
+    ["Obsah & Ostatní",  ["browser_bg","selection_bg","scrollbar","button_bg","button_hover"]],
   ];
   for (const [heading, keys] of groups) {
     buildSectionHeading(doc, el, heading);
@@ -399,6 +406,64 @@ function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
       if (f) buildColorRow(doc, el, f.label, f.pref, f.default, st);
     }
   }
+
+  // ── Grouped text colors ──────────────────────────────────────────────────
+  buildSectionHeading(doc, el, "Barvy textu");
+
+  const masterDef = "#e0e0ff";
+  const masterCur = getPref("mod.aurora.color.panel_text", masterDef);
+
+  // Master row
+  const masterRow = doc.createElement("div"); masterRow.className = "aoc-row";
+  const masterLbl = doc.createElement("span"); masterLbl.className = "aoc-label"; masterLbl.textContent = "Barva všech textů";
+  const masterSwatch = doc.createElement("div"); masterSwatch.className = "aoc-color-swatch";
+  masterSwatch.style.background = masterCur;
+  const masterHex = doc.createElement("input") as HTMLInputElement;
+  masterHex.type = "text"; masterHex.className = "aoc-color-hex";
+  masterHex.value = masterCur; masterHex.maxLength = 9; masterHex.placeholder = masterDef;
+
+  const setAllText = (hex: string) => {
+    masterSwatch.style.background = hex; masterHex.value = hex;
+    for (const p of TEXT_COLOR_PREFS) setPref(p, hex);
+    status(st, "✓ Text nastaven", "ok");
+  };
+
+  masterSwatch.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openColorPicker(masterSwatch, masterHex.value || masterDef, setAllText);
+  });
+  masterHex.addEventListener("change", () => {
+    const v = masterHex.value.trim();
+    setAllText(v.startsWith("#") ? v : `#${v}`);
+  });
+
+  masterRow.appendChild(masterLbl); masterRow.appendChild(masterSwatch); masterRow.appendChild(masterHex);
+  el.appendChild(masterRow);
+
+  // Expand button + lazy individual rows
+  const expandBtn = doc.createElement("button"); expandBtn.className = "ao-nav-btn";
+  expandBtn.style.cssText = "margin: 6px 0; width: 100%; justify-content: center; font-size: 11px;";
+  expandBtn.textContent = "▼ Nastavit každý text zvlášť";
+
+  const indContainer = doc.createElement("div"); indContainer.style.display = "none";
+  let indBuilt = false;
+  let expanded = false;
+
+  expandBtn.addEventListener("click", () => {
+    expanded = !expanded;
+    if (expanded && !indBuilt) {
+      indBuilt = true;
+      const fields = TEXT_COLOR_PREFS.map(p => GLOBAL_COLORS.find(f => f.pref === p)).filter(Boolean);
+      for (const f of fields) {
+        if (f) buildColorRow(doc, indContainer, f.label, f.pref, f.default, st);
+      }
+    }
+    indContainer.style.display = expanded ? "block" : "none";
+    expandBtn.textContent = expanded ? "▲ Skrýt individuální nastavení" : "▼ Nastavit každý text zvlášť";
+  });
+
+  el.appendChild(expandBtn);
+  el.appendChild(indContainer);
 }
 
 function buildSpaces(doc: Document, el: HTMLElement, st: HTMLElement): void {

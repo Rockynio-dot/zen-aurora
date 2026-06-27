@@ -309,16 +309,23 @@ menupopup,
   border: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
   border-radius: var(--aurora-panel-r) !important;
   color: var(--aurora-panel-text) !important;
+  font-size: 11.5px !important;
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
 }
 
 menuitem, menu {
   color: var(--aurora-panel-text) !important;
   border-radius: var(--aurora-btn-r) !important;
+  padding-block: 3px !important;
+  padding-inline: 8px !important;
+  min-height: 22px !important;
+  font-size: 11.5px !important;
   ${T("background-color")}
 }
 
 menuitem:hover, menu:hover { background: var(--aurora-btn-hover) !important; }
+
+menuseparator { margin-block: 2px !important; }
 
 /* \u2550\u2550 Selection \u2550\u2550 */
 ::selection { background: var(--aurora-selection) !important; }
@@ -1856,12 +1863,17 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     row2.appendChild(hexIn);
     container.appendChild(row2);
   }
+  var TEXT_COLOR_PREFS = [
+    "mod.aurora.color.panel_text",
+    "mod.aurora.color.tab_text",
+    "mod.aurora.color.urlbar_text"
+  ];
   function buildColors(doc, el, st) {
     const groups = [
-      ["Panely & Sidebar", ["panel_bg", "toolbar_bg", "sidebar_bg", "panel_text", "border", "accent"]],
+      ["Panely & Sidebar", ["panel_bg", "toolbar_bg", "sidebar_bg", "border", "accent"]],
       ["Workspace strip", ["workspace_strip_bg", "workspace_dot", "workspace_dot_active"]],
-      ["Z\xE1lo\u017Eky", ["tab_active_bg", "tab_inactive_bg", "tab_text", "tab_close_hover", "tab_hover_bg"]],
-      ["URL li\u0161ta", ["urlbar_bg", "urlbar_text", "urlbar_border", "urlbar_focus"]],
+      ["Z\xE1lo\u017Eky", ["tab_active_bg", "tab_inactive_bg", "tab_close_hover", "tab_hover_bg"]],
+      ["URL li\u0161ta", ["urlbar_bg", "urlbar_border", "urlbar_focus"]],
       ["Obsah & Ostatn\xED", ["browser_bg", "selection_bg", "scrollbar", "button_bg", "button_hover"]]
     ];
     for (const [heading, keys] of groups) {
@@ -1871,6 +1883,63 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
         if (f) buildColorRow(doc, el, f.label, f.pref, f.default, st);
       }
     }
+    buildSectionHeading(doc, el, "Barvy textu");
+    const masterDef = "#e0e0ff";
+    const masterCur = getPref("mod.aurora.color.panel_text", masterDef);
+    const masterRow = doc.createElement("div");
+    masterRow.className = "aoc-row";
+    const masterLbl = doc.createElement("span");
+    masterLbl.className = "aoc-label";
+    masterLbl.textContent = "Barva v\u0161ech text\u016F";
+    const masterSwatch = doc.createElement("div");
+    masterSwatch.className = "aoc-color-swatch";
+    masterSwatch.style.background = masterCur;
+    const masterHex = doc.createElement("input");
+    masterHex.type = "text";
+    masterHex.className = "aoc-color-hex";
+    masterHex.value = masterCur;
+    masterHex.maxLength = 9;
+    masterHex.placeholder = masterDef;
+    const setAllText = (hex) => {
+      masterSwatch.style.background = hex;
+      masterHex.value = hex;
+      for (const p of TEXT_COLOR_PREFS) setPref(p, hex);
+      status(st, "\u2713 Text nastaven", "ok");
+    };
+    masterSwatch.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openColorPicker(masterSwatch, masterHex.value || masterDef, setAllText);
+    });
+    masterHex.addEventListener("change", () => {
+      const v = masterHex.value.trim();
+      setAllText(v.startsWith("#") ? v : `#${v}`);
+    });
+    masterRow.appendChild(masterLbl);
+    masterRow.appendChild(masterSwatch);
+    masterRow.appendChild(masterHex);
+    el.appendChild(masterRow);
+    const expandBtn = doc.createElement("button");
+    expandBtn.className = "ao-nav-btn";
+    expandBtn.style.cssText = "margin: 6px 0; width: 100%; justify-content: center; font-size: 11px;";
+    expandBtn.textContent = "\u25BC Nastavit ka\u017Ed\xFD text zvl\xE1\u0161\u0165";
+    const indContainer = doc.createElement("div");
+    indContainer.style.display = "none";
+    let indBuilt = false;
+    let expanded = false;
+    expandBtn.addEventListener("click", () => {
+      expanded = !expanded;
+      if (expanded && !indBuilt) {
+        indBuilt = true;
+        const fields = TEXT_COLOR_PREFS.map((p) => GLOBAL_COLORS.find((f) => f.pref === p)).filter(Boolean);
+        for (const f of fields) {
+          if (f) buildColorRow(doc, indContainer, f.label, f.pref, f.default, st);
+        }
+      }
+      indContainer.style.display = expanded ? "block" : "none";
+      expandBtn.textContent = expanded ? "\u25B2 Skr\xFDt individu\xE1ln\xED nastaven\xED" : "\u25BC Nastavit ka\u017Ed\xFD text zvl\xE1\u0161\u0165";
+    });
+    el.appendChild(expandBtn);
+    el.appendChild(indContainer);
   }
   function buildSpaces(doc, el, st) {
     const tabBar = doc.createElement("div");
