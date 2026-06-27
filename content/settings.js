@@ -565,87 +565,92 @@
     container.appendChild(h);
   }
 
+  // src/core/state.ts
+  var AURORA_COLOR_DEFAULTS = {
+    "mod.aurora.color.panel_bg": "#1a1a2e",
+    "mod.aurora.color.toolbar_bg": "#16162a",
+    "mod.aurora.color.sidebar_bg": "#12122a",
+    "mod.aurora.color.panel_text": "#e0e0ff",
+    "mod.aurora.color.tab_text": "#c0c0e0",
+    "mod.aurora.color.urlbar_text": "#e0e0ff",
+    "mod.aurora.color.border": "#3a3a5c",
+    "mod.aurora.color.accent": "#7c6af7",
+    "mod.aurora.color.tab_active_bg": "#2a2a4e",
+    "mod.aurora.color.tab_inactive_bg": "#1a1a2e",
+    "mod.aurora.color.tab_close_hover": "#ff6b6b",
+    "mod.aurora.color.tab_hover_bg": "#252550",
+    "mod.aurora.color.urlbar_bg": "#1e1e3a",
+    "mod.aurora.color.urlbar_border": "#3a3a6c",
+    "mod.aurora.color.urlbar_focus": "#7c6af7",
+    "mod.aurora.color.browser_bg": "#0f0f1a",
+    "mod.aurora.color.selection_bg": "#7c6af740",
+    "mod.aurora.color.scrollbar": "#3a3a6c",
+    "mod.aurora.color.button_bg": "#2a2a4e",
+    "mod.aurora.color.button_hover": "#3a3a6e",
+    "mod.aurora.color.workspace_strip_bg": "#0d0d1e",
+    "mod.aurora.color.workspace_dot": "#3a3a6c",
+    "mod.aurora.color.workspace_dot_active": "#7c6af7"
+  };
+
   // src/ui/settingsPage.ts
   var CSS = `
 *, *::before, *::after { box-sizing: border-box; }
-
 body {
-  margin: 0; padding: 0;
-  display: flex; height: 100vh; overflow: hidden;
-  font-family: system-ui, -apple-system, sans-serif;
-  font-size: 13px; color: #e0e0ff;
-  background: #10102a;
+  margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif; font-size: 13px;
+  color: #e0e0ff; background: #10102a;
 }
-
-/* \u2500\u2500 Left nav \u2500\u2500 */
 .ao-nav {
-  width: 180px; flex-shrink: 0;
-  background: #0b0b1f;
-  border-right: 1px solid #1e1e44;
-  display: flex; flex-direction: column;
-  padding: 16px 0 8px;
-  overflow-y: auto;
+  width: 180px; flex-shrink: 0; background: #0b0b1f;
+  border-right: 1px solid #1e1e44; display: flex; flex-direction: column;
+  padding: 16px 0 8px; overflow-y: auto;
 }
 .ao-nav-logo {
-  padding: 0 16px 16px;
-  font-size: 16px; font-weight: 800; color: #a89bff; letter-spacing: 0.5px;
+  padding: 0 16px 16px; font-size: 16px; font-weight: 800; color: #a89bff;
   border-bottom: 1px solid #1e1e44; margin-bottom: 8px;
 }
 .ao-nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 16px; cursor: pointer; color: #6660aa;
-  border-left: 2px solid transparent;
-  transition: color 0.1s, background 0.1s, border-color 0.1s;
+  display: flex; align-items: center; gap: 10px; padding: 9px 16px;
+  cursor: pointer; color: #6660aa; border-left: 2px solid transparent;
+  transition: color .1s, background .1s, border-color .1s;
   user-select: none; font-size: 12.5px;
 }
 .ao-nav-item:hover { color: #c0b4ff; background: #12123a; }
-.ao-nav-item.active {
-  color: #c0b4ff; background: #16163a;
-  border-left-color: #7c6af7; font-weight: 600;
-}
+.ao-nav-item.active { color: #c0b4ff; background: #16163a; border-left-color: #7c6af7; font-weight: 600; }
 .ao-nav-icon { font-size: 15px; width: 18px; text-align: center; }
 .ao-nav-sep { height: 1px; background: #1e1e44; margin: 8px 16px; }
-.ao-nav-actions { margin-top: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
 .ao-nav-btn {
   padding: 7px 10px; border: 1px solid #2d2d5c; border-radius: 8px;
-  background: #0f0f28; color: #8880cc; font-size: 11px;
-  cursor: pointer; text-align: left; font-family: inherit;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
-  display: flex; align-items: center; gap: 6px;
+  background: #0f0f28; color: #8880cc; font-size: 11px; cursor: pointer;
+  font-family: inherit; transition: background .1s, color .1s, border-color .1s;
+  display: flex; align-items: center; gap: 6px; text-align: left;
 }
 .ao-nav-btn:hover { background: #1a1a3a; color: #c0b4ff; border-color: #4a4a8a; }
 .ao-nav-btn.danger { border-color: #4a1a1a; color: #c06060; }
 .ao-nav-btn.danger:hover { background: #2a1010; border-color: #8a2a2a; color: #ff8080; }
-
-/* \u2500\u2500 Main \u2500\u2500 */
-.ao-main { flex: 1; background: #10102a; display: flex; flex-direction: column; overflow: hidden; }
+.ao-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .ao-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 24px; border-bottom: 1px solid #1e1e44;
-  background: #0d0d22; flex-shrink: 0;
+  padding: 14px 24px; border-bottom: 1px solid #1e1e44; background: #0d0d22; flex-shrink: 0;
 }
 .ao-header-title { font-size: 15px; font-weight: 700; color: #c0b4ff; display: flex; align-items: center; gap: 8px; }
 .ao-header-sub { font-size: 11px; color: #5550aa; font-weight: 400; margin-left: 4px; }
 .ao-header-close {
   background: #1a1a38; border: 1px solid #2d2d5c; border-radius: 8px;
   color: #8880cc; font-size: 13px; cursor: pointer; padding: 5px 12px;
-  font-family: inherit; transition: background 0.1s, color 0.1s;
+  font-family: inherit; transition: background .1s, color .1s;
 }
 .ao-header-close:hover { background: #2a2a4e; color: #e0e0ff; }
-
 .ao-content { flex: 1; overflow-y: auto; padding: 24px; }
 .ao-content::-webkit-scrollbar { width: 4px; }
-.ao-content::-webkit-scrollbar-track { background: transparent; }
 .ao-content::-webkit-scrollbar-thumb { background: #2d2d5c; border-radius: 4px; }
-
 .ao-section { display: none; }
 .ao-section.active { display: block; }
 
-/* \u2500\u2500 Controls \u2500\u2500 */
+/* Controls */
 .aoc-section-heading {
-  font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
-  text-transform: uppercase; color: #4a4a8a;
-  padding: 16px 0 8px; margin-top: 8px;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+  color: #4a4a8a; padding: 16px 0 8px; margin-top: 8px;
 }
 .aoc-section-heading:first-child { padding-top: 0; margin-top: 0; }
 .aoc-row {
@@ -654,12 +659,9 @@ body {
 }
 .aoc-row:last-child { border-bottom: none; }
 .aoc-label { color: #b0b0d0; font-size: 12.5px; flex: 1; }
-
-/* Color */
 .aoc-color-swatch {
-  width: 28px; height: 28px; border-radius: 7px;
-  border: 2px solid #2d2d5c; cursor: pointer; flex-shrink: 0;
-  transition: border-color 0.12s, transform 0.12s;
+  width: 28px; height: 28px; border-radius: 7px; border: 2px solid #2d2d5c;
+  cursor: pointer; flex-shrink: 0; transition: border-color .12s, transform .12s;
 }
 .aoc-color-swatch:hover { border-color: #7c6af7; transform: scale(1.08); }
 .aoc-color-hex {
@@ -668,108 +670,91 @@ body {
   padding: 5px 6px; text-align: center; flex-shrink: 0;
 }
 .aoc-color-hex:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
-
-/* Toggle */
 .aoc-toggle {
   width: 36px; height: 20px; border-radius: 10px; background: #2a2a4e;
-  flex-shrink: 0; position: relative; cursor: pointer; transition: background 0.15s; outline: none;
+  flex-shrink: 0; position: relative; cursor: pointer; transition: background .15s; outline: none;
 }
-.aoc-toggle:focus-visible { box-shadow: 0 0 0 2px #7c6af7; }
 .aoc-toggle.on { background: #7c6af7; }
-.aoc-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 8px; background: #fff; transition: left 0.15s; }
+.aoc-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 8px; background: #fff; transition: left .15s; }
 .aoc-toggle.on .aoc-thumb { left: 18px; }
-
-/* Slider */
 .aoc-row-slider { flex-direction: column; align-items: stretch; gap: 4px; }
 .aoc-slider-header { display: flex; justify-content: space-between; align-items: center; }
 .aoc-slider-val { color: #7c6af7; font-size: 12px; font-family: monospace; }
-.aoc-slider {
-  width: 100%; height: 4px; cursor: pointer;
-  -webkit-appearance: none; appearance: none;
-  background: #2d2d5c; border-radius: 2px;
-}
-.aoc-slider::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: #7c6af7; cursor: pointer; box-shadow: 0 0 0 2px #0d0d22;
-}
-
-/* Select */
-.aoc-select {
-  background: #0d0d22; border: 1px solid #2d2d5c; border-radius: 6px;
-  color: #c0b4ff; font-size: 12px; font-family: inherit;
-  padding: 5px 8px; cursor: pointer; flex-shrink: 0; min-width: 180px;
-}
+.aoc-slider { width: 100%; height: 4px; cursor: pointer; -webkit-appearance: none; appearance: none; background: #2d2d5c; border-radius: 2px; }
+.aoc-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #7c6af7; cursor: pointer; box-shadow: 0 0 0 2px #0d0d22; }
+.aoc-select { background: #0d0d22; border: 1px solid #2d2d5c; border-radius: 6px; color: #c0b4ff; font-size: 12px; font-family: inherit; padding: 5px 8px; cursor: pointer; flex-shrink: 0; min-width: 180px; }
 .aoc-select:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
-
-/* Text input */
-.aoc-input {
-  background: #0d0d22; border: 1px solid #2d2d5c; border-radius: 6px;
-  color: #c0b4ff; font-size: 12px; font-family: inherit;
-  padding: 5px 8px; flex: 1; min-width: 0;
-}
+.aoc-input { background: #0d0d22; border: 1px solid #2d2d5c; border-radius: 6px; color: #c0b4ff; font-size: 12px; font-family: inherit; padding: 5px 8px; flex: 1; min-width: 0; }
 .aoc-input:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
 
-/* Target badge \u2014 small CSS selector hint next to a label */
+/* Quick settings */
+.ao-quick-swatch-big {
+  width: 64px; height: 64px; border-radius: 14px; border: 3px solid #2d2d5c;
+  cursor: pointer; flex-shrink: 0; transition: border-color .12s, transform .12s;
+}
+.ao-quick-swatch-big:hover { border-color: #7c6af7; transform: scale(1.04); }
+.ao-quick-preview { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+.ao-quick-preview-dot { width: 24px; height: 24px; border-radius: 6px; border: 1px solid #2d2d5c; }
+.ao-apply-btn {
+  padding: 10px 20px; background: #7c6af7; border: none; border-radius: 8px;
+  color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: background .1s, transform .1s;
+}
+.ao-apply-btn:hover { background: #9080ff; transform: translateY(-1px); }
+.ao-apply-btn:active { transform: translateY(0); }
+
+/* Badge */
 .ao-badge {
   display: inline-block; font-size: 9px; font-family: monospace;
   background: #141430; border: 1px solid #252550; border-radius: 3px;
-  color: #5550aa; padding: 1px 4px; margin-left: 6px;
-  vertical-align: middle; white-space: nowrap;
+  color: #5550aa; padding: 1px 4px; margin-left: 6px; vertical-align: middle;
+}
+
+/* Note */
+.ao-note {
+  font-size: 11.5px; color: #5550aa; line-height: 1.6; padding: 8px 12px;
+  background: #0d0d22; border: 1px solid #1e1e44; border-radius: 6px; margin-bottom: 12px;
 }
 
 /* Space tabs */
 .ao-space-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
 .ao-space-tab {
   padding: 5px 12px; border-radius: 6px; border: 1px solid #2d2d5c;
-  background: #0d0d22; color: #6660aa; font-size: 12px;
-  cursor: pointer; font-family: inherit;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  background: #0d0d22; color: #6660aa; font-size: 12px; cursor: pointer; font-family: inherit;
+  transition: background .1s, color .1s, border-color .1s;
 }
 .ao-space-tab:hover { color: #c0b4ff; border-color: #4a4a8a; }
 .ao-space-tab.active { background: #1e1e3e; color: #c0b4ff; border-color: #7c6af7; }
 .ao-space-content { display: none; }
 .ao-space-content.active { display: block; }
 
-/* Dynamic status */
-.ao-dynamic-status {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 14px; margin-bottom: 12px;
-  background: #0d0d22; border: 1px solid #1e1e44;
-  border-radius: 8px; font-size: 11.5px; color: #9090c0;
-}
-.ao-dynamic-dot { width: 8px; height: 8px; border-radius: 50%; background: #3a3a6c; flex-shrink: 0; }
-.ao-dynamic-dot.on { background: #7c6af7; box-shadow: 0 0 8px #7c6af7; }
-
-/* Info note */
-.ao-note {
-  font-size: 11.5px; color: #5550aa; line-height: 1.6;
-  padding: 8px 12px; background: #0d0d22; border: 1px solid #1e1e44;
-  border-radius: 6px; margin-bottom: 12px;
-}
-
 /* Presets */
 .ao-preset-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .ao-preset-item {
   display: flex; align-items: center; gap: 8px; padding: 10px 14px;
-  background: #0d0d22; border: 1px solid #1e1e44; border-radius: 8px;
-  transition: border-color 0.1s;
+  background: #0d0d22; border: 1px solid #1e1e44; border-radius: 8px; transition: border-color .1s;
 }
 .ao-preset-item:hover { border-color: #2d2d5c; }
 .ao-preset-swatch-row { display: flex; gap: 3px; flex-shrink: 0; }
 .ao-preset-swatch { width: 14px; height: 14px; border-radius: 3px; }
-.ao-preset-name { flex: 1; color: #c0b4ff; font-size: 12.5px; }
+.ao-preset-name-view { flex: 1; color: #c0b4ff; font-size: 12.5px; }
+.ao-preset-name-edit {
+  flex: 1; background: #141432; border: 1px solid #7c6af7; border-radius: 4px;
+  color: #c0b4ff; font-size: 12px; font-family: inherit; padding: 3px 7px; min-width: 0;
+}
 .ao-preset-time { color: #5550aa; font-size: 11px; white-space: nowrap; }
 .ao-preset-btn {
   padding: 4px 10px; border-radius: 5px; font-size: 11px;
   border: 1px solid #2d2d5c; background: #141432; color: #8880cc;
-  cursor: pointer; font-family: inherit; transition: background 0.1s, color 0.1s;
+  cursor: pointer; font-family: inherit; transition: background .1s, color .1s;
 }
 .ao-preset-btn:hover { background: #1e1e44; color: #c0b4ff; }
 .ao-preset-btn.load { border-color: #7c6af7; color: #a89bff; }
 .ao-preset-btn.load:hover { background: #1e1e4a; }
+.ao-preset-btn.save { border-color: #3a6a3a; color: #80c080; }
+.ao-preset-btn.save:hover { background: #1a2a1a; }
 .ao-preset-btn.del:hover { border-color: #8a2a2a; color: #ff8080; }
-.ao-preset-save { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.ao-preset-save-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
 .ao-preset-name-in {
   flex: 1; background: #0d0d22; border: 1px solid #2d2d5c; border-radius: 6px;
   color: #c0b4ff; font-size: 12px; font-family: inherit; padding: 7px 10px;
@@ -777,29 +762,17 @@ body {
 .ao-preset-name-in:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
 .ao-preset-save-btn {
   padding: 7px 16px; background: #7c6af7; border: none; border-radius: 6px;
-  color: #fff; font-size: 12px; cursor: pointer; font-family: inherit; transition: background 0.1s;
+  color: #fff; font-size: 12px; cursor: pointer; font-family: inherit; transition: background .1s;
 }
 .ao-preset-save-btn:hover { background: #9080ff; }
 
-/* About card */
-.ao-about-card {
-  padding: 16px; background: #0d0d22; border: 1px solid #1e1e44;
-  border-radius: 10px; margin-bottom: 12px;
-}
+/* About */
+.ao-about-card { padding: 16px; background: #0d0d22; border: 1px solid #1e1e44; border-radius: 10px; margin-bottom: 12px; }
 .ao-about-title { font-size: 18px; font-weight: 700; color: #a89bff; margin-bottom: 4px; }
 .ao-about-sub { font-size: 12px; color: #5550aa; }
 
-/* Coverage grid */
-.ao-coverage-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 8px 0 16px;
-}
-.ao-coverage-item {
-  padding: 5px 8px; background: #0a0a1e; border: 1px solid #1a1a38;
-  border-radius: 5px; font-size: 10px; font-family: monospace; color: #5550aa;
-}
-
-/* Status bar */
-.ao-status { font-size: 11px; height: 16px; color: #5550aa; padding: 2px 0; transition: color 0.2s; }
+/* Status */
+.ao-status { font-size: 11px; height: 16px; color: #5550aa; padding: 2px 0; transition: color .2s; }
 .ao-status.ok  { color: #60c060; }
 .ao-status.err { color: #c06060; }
 `;
@@ -811,19 +784,19 @@ body {
       el.className = "ao-status";
     }, 2400);
   }
-  function badge(doc, text) {
-    const b = doc.createElement("span");
-    b.className = "ao-badge";
-    b.textContent = text;
-    return b;
-  }
   function note(doc, text) {
     const n = doc.createElement("div");
     n.className = "ao-note";
     n.textContent = text;
     return n;
   }
-  function buildColorRow(doc, container, label, pref, def, st, cssTarget) {
+  function badge(doc, text) {
+    const b = doc.createElement("span");
+    b.className = "ao-badge";
+    b.textContent = text;
+    return b;
+  }
+  function colorRow(doc, container, label, pref, def, st, cssTarget) {
     const row2 = doc.createElement("div");
     row2.className = "aoc-row";
     const lbl = doc.createElement("span");
@@ -831,121 +804,244 @@ body {
     lbl.textContent = label;
     if (cssTarget) lbl.appendChild(badge(doc, cssTarget));
     const cur = getPref(pref, def);
-    const swatch = doc.createElement("div");
-    swatch.className = "aoc-color-swatch";
-    swatch.style.background = cur || def || "#555";
-    const hexIn = doc.createElement("input");
-    hexIn.type = "text";
-    hexIn.className = "aoc-color-hex";
-    hexIn.value = cur || def;
-    hexIn.maxLength = 9;
-    hexIn.placeholder = def;
-    const sync = (hex) => {
-      swatch.style.background = hex;
-      hexIn.value = hex;
-      setPref(pref, hex);
+    const sw = doc.createElement("div");
+    sw.className = "aoc-color-swatch";
+    sw.style.background = cur || def || "#555";
+    const hex = doc.createElement("input");
+    hex.type = "text";
+    hex.className = "aoc-color-hex";
+    hex.value = cur || def;
+    hex.maxLength = 9;
+    const sync = (v) => {
+      sw.style.background = v;
+      hex.value = v;
+      setPref(pref, v);
       status(st, "\u2713", "ok");
     };
-    swatch.addEventListener("click", (e) => {
+    sw.addEventListener("click", (e) => {
       e.stopPropagation();
-      openColorPicker(swatch, hexIn.value || def, sync);
+      openColorPicker(sw, hex.value || def, sync);
     });
-    hexIn.addEventListener("change", () => {
-      const v = hexIn.value.trim();
+    hex.addEventListener("change", () => {
+      const v = hex.value.trim();
       sync(v.startsWith("#") ? v : `#${v}`);
     });
     row2.appendChild(lbl);
-    row2.appendChild(swatch);
-    row2.appendChild(hexIn);
+    row2.appendChild(sw);
+    row2.appendChild(hex);
     container.appendChild(row2);
   }
-  var TEXT_COLOR_PREFS = [
-    ["mod.aurora.color.panel_text", "Text panel\u016F (toolbar, sidebar, menu)", "#TabsToolbar toolbarbutton menuitem"],
-    ["mod.aurora.color.tab_text", "Text z\xE1lo\u017Eek", ".tab-label .tab-text"],
-    ["mod.aurora.color.urlbar_text", "Text URL li\u0161ty", "#urlbar-input"]
-  ];
+  function hexToHsl(hex) {
+    const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r:
+          h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+          break;
+        case g:
+          h = ((b - r) / d + 2) / 6;
+          break;
+        case b:
+          h = ((r - g) / d + 4) / 6;
+          break;
+      }
+    }
+    return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+  }
+  function hslHex(h, s, l) {
+    s /= 100;
+    l /= 100;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) => {
+      const k = (n + h / 30) % 12, c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * c).toString(16).padStart(2, "0");
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  }
+  function generateDarkPalette(accent) {
+    const [h, s] = hexToHsl(accent);
+    const sat = Math.min(s, 40);
+    return {
+      "mod.aurora.color.accent": accent,
+      "mod.aurora.color.urlbar_focus": accent,
+      "mod.aurora.color.workspace_dot_active": accent,
+      "mod.aurora.color.browser_bg": hslHex(h, Math.min(sat, 20), 7),
+      "mod.aurora.color.workspace_strip_bg": hslHex(h, Math.min(sat, 25), 8),
+      "mod.aurora.color.toolbar_bg": hslHex(h, Math.min(sat, 28), 10),
+      "mod.aurora.color.sidebar_bg": hslHex(h, Math.min(sat, 28), 9),
+      "mod.aurora.color.panel_bg": hslHex(h, Math.min(sat, 28), 12),
+      "mod.aurora.color.tab_inactive_bg": hslHex(h, Math.min(sat, 26), 12),
+      "mod.aurora.color.urlbar_bg": hslHex(h, Math.min(sat, 30), 14),
+      "mod.aurora.color.tab_active_bg": hslHex(h, Math.min(sat, 42), 19),
+      "mod.aurora.color.tab_hover_bg": hslHex(h, Math.min(sat, 35), 16),
+      "mod.aurora.color.button_bg": hslHex(h, Math.min(sat, 42), 18),
+      "mod.aurora.color.button_hover": hslHex(h, Math.min(sat, 38), 22),
+      "mod.aurora.color.border": hslHex(h, Math.min(sat, 42), 24),
+      "mod.aurora.color.urlbar_border": hslHex(h, Math.min(sat, 42), 26),
+      "mod.aurora.color.workspace_dot": hslHex(h, Math.min(sat, 38), 26),
+      "mod.aurora.color.scrollbar": hslHex(h, Math.min(sat, 38), 28),
+      "mod.aurora.color.selection_bg": accent + "40",
+      "mod.aurora.color.panel_text": hslHex(h, 20, 90),
+      "mod.aurora.color.tab_text": hslHex(h, 15, 82),
+      "mod.aurora.color.urlbar_text": hslHex(h, 20, 90),
+      "mod.aurora.color.tab_close_hover": "#ff6b6b"
+    };
+  }
+  function generateLightPalette(accent) {
+    const [h, s] = hexToHsl(accent);
+    const sat = Math.min(s, 30);
+    return {
+      "mod.aurora.color.accent": accent,
+      "mod.aurora.color.urlbar_focus": accent,
+      "mod.aurora.color.workspace_dot_active": accent,
+      "mod.aurora.color.browser_bg": hslHex(h, Math.min(sat, 8), 97),
+      "mod.aurora.color.workspace_strip_bg": hslHex(h, Math.min(sat, 12), 91),
+      "mod.aurora.color.toolbar_bg": hslHex(h, Math.min(sat, 12), 93),
+      "mod.aurora.color.sidebar_bg": hslHex(h, Math.min(sat, 10), 92),
+      "mod.aurora.color.panel_bg": hslHex(h, Math.min(sat, 12), 95),
+      "mod.aurora.color.tab_inactive_bg": hslHex(h, Math.min(sat, 10), 89),
+      "mod.aurora.color.urlbar_bg": hslHex(h, Math.min(sat, 8), 98),
+      "mod.aurora.color.tab_active_bg": hslHex(h, Math.min(sat, 18), 84),
+      "mod.aurora.color.tab_hover_bg": hslHex(h, Math.min(sat, 14), 87),
+      "mod.aurora.color.button_bg": hslHex(h, Math.min(sat, 18), 83),
+      "mod.aurora.color.button_hover": hslHex(h, Math.min(sat, 14), 78),
+      "mod.aurora.color.border": hslHex(h, Math.min(sat, 18), 72),
+      "mod.aurora.color.urlbar_border": hslHex(h, Math.min(sat, 18), 68),
+      "mod.aurora.color.workspace_dot": hslHex(h, Math.min(sat, 25), 62),
+      "mod.aurora.color.scrollbar": hslHex(h, Math.min(sat, 18), 68),
+      "mod.aurora.color.selection_bg": accent + "30",
+      "mod.aurora.color.panel_text": hslHex(h, 10, 12),
+      "mod.aurora.color.tab_text": hslHex(h, 8, 18),
+      "mod.aurora.color.urlbar_text": hslHex(h, 10, 12),
+      "mod.aurora.color.tab_close_hover": "#cc3333"
+    };
+  }
+  function applyPalette(palette) {
+    for (const [k, v] of Object.entries(palette)) {
+      try {
+        Services.prefs.setStringPref(k, v);
+      } catch {
+      }
+    }
+  }
+  function buildQuick(doc, el, st) {
+    el.appendChild(note(doc, 'Vyberte jeden akcent a Aurora vygeneruje celou paletu barev \u2014 stejn\u011B jako "Upravit motiv" v Zenu.'));
+    buildSectionHeading(doc, el, "Akcent");
+    const accentRow = doc.createElement("div");
+    accentRow.style.cssText = "display:flex;gap:16px;align-items:center;padding:8px 0;";
+    const curAccent = getPref("mod.aurora.color.accent", "#7c6af7");
+    const swBig = doc.createElement("div");
+    swBig.className = "ao-quick-swatch-big";
+    swBig.style.background = curAccent;
+    const accentHex = doc.createElement("input");
+    accentHex.type = "text";
+    accentHex.className = "aoc-color-hex";
+    accentHex.style.cssText = "width:90px;font-size:13px;height:36px;";
+    accentHex.value = curAccent;
+    accentHex.maxLength = 9;
+    const syncAccent = (v) => {
+      swBig.style.background = v;
+      accentHex.value = v;
+      updatePreview(v);
+    };
+    swBig.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openColorPicker(swBig, accentHex.value || "#7c6af7", syncAccent);
+    });
+    accentHex.addEventListener("change", () => {
+      const v = accentHex.value.trim();
+      syncAccent(v.startsWith("#") ? v : `#${v}`);
+    });
+    const modeSelect = doc.createElement("select");
+    modeSelect.className = "aoc-select";
+    modeSelect.style.minWidth = "120px";
+    for (const [val, lbl] of [["dark", "\u{1F319} Tmav\xFD"], ["light", "\u2600\uFE0F Sv\u011Btl\xFD"]]) {
+      const opt = doc.createElement("option");
+      opt.value = val;
+      opt.textContent = lbl;
+      modeSelect.appendChild(opt);
+    }
+    accentRow.appendChild(swBig);
+    accentRow.appendChild(accentHex);
+    accentRow.appendChild(modeSelect);
+    el.appendChild(accentRow);
+    buildSectionHeading(doc, el, "N\xE1hled palety");
+    const preview = doc.createElement("div");
+    preview.className = "ao-quick-preview";
+    el.appendChild(preview);
+    const previewKeys = [
+      "mod.aurora.color.browser_bg",
+      "mod.aurora.color.toolbar_bg",
+      "mod.aurora.color.panel_bg",
+      "mod.aurora.color.sidebar_bg",
+      "mod.aurora.color.tab_active_bg",
+      "mod.aurora.color.border",
+      "mod.aurora.color.accent",
+      "mod.aurora.color.panel_text"
+    ];
+    const dots = [];
+    for (const k of previewKeys) {
+      const dot = doc.createElement("div");
+      dot.className = "ao-quick-preview-dot";
+      dot.title = k.replace("mod.aurora.color.", "");
+      dot.style.background = getPref(k, "#333");
+      preview.appendChild(dot);
+      dots.push(dot);
+    }
+    function updatePreview(accent) {
+      const palette = modeSelect.value === "light" ? generateLightPalette(accent) : generateDarkPalette(accent);
+      dots.forEach((dot, i) => {
+        dot.style.background = palette[previewKeys[i]] ?? "#333";
+      });
+    }
+    modeSelect.addEventListener("change", () => updatePreview(accentHex.value));
+    updatePreview(curAccent);
+    const applyBtn = doc.createElement("button");
+    applyBtn.className = "ao-apply-btn";
+    applyBtn.style.cssText = "display:block;margin:16px 0 0;";
+    applyBtn.textContent = "\u2726 Pou\u017E\xEDt paletu";
+    applyBtn.addEventListener("click", () => {
+      const v = accentHex.value.trim();
+      const palette = modeSelect.value === "light" ? generateLightPalette(v) : generateDarkPalette(v);
+      applyPalette(palette);
+      status(st, "\u2713 Paleta aplikov\xE1na", "ok");
+    });
+    el.appendChild(applyBtn);
+  }
   function buildColors(doc, el, st) {
     buildSectionHeading(doc, el, "Akcent & Ohrani\u010Den\xED");
-    buildColorRow(doc, el, "Akcent", "mod.aurora.color.accent", "#7c6af7", st, "--zen-primary-color");
-    buildColorRow(doc, el, "Ohrani\u010Den\xED", "mod.aurora.color.border", "#3a3a5c", st, "v\u0161echny border");
+    colorRow(doc, el, "Akcent", "mod.aurora.color.accent", "#7c6af7", st, "--zen-primary-color");
+    colorRow(doc, el, "Ohrani\u010Den\xED", "mod.aurora.color.border", "#3a3a5c", st, "v\u0161echny border");
     buildSectionHeading(doc, el, "Toolbar");
-    buildColorRow(doc, el, "Pozad\xED toolbaru", "mod.aurora.color.toolbar_bg", "#16162a", st, "#navigator-toolbox");
-    buildSectionHeading(doc, el, "Panely (nav bar \xB7 z\xE1lo\u017Ekov\xFD panel \xB7 menu)");
-    buildColorRow(doc, el, "Pozad\xED panel\u016F", "mod.aurora.color.panel_bg", "#1a1a2e", st, "#TabsToolbar #nav-bar menupopup");
-    buildColorRow(doc, el, "Tla\u010D\xEDtka aktivn\xED/checked", "mod.aurora.color.button_bg", "#2a2a4e", st, "toolbarbutton[checked]");
-    buildColorRow(doc, el, "Tla\u010D\xEDtka hover", "mod.aurora.color.button_hover", "#3a3a6e", st, "toolbarbutton:hover menuitem:hover");
+    colorRow(doc, el, "Pozad\xED toolbaru", "mod.aurora.color.toolbar_bg", "#16162a", st, "#navigator-toolbox");
+    buildSectionHeading(doc, el, "Panely (nav bar \xB7 z\xE1lo\u017Ekov\xFD \xB7 menu)");
+    colorRow(doc, el, "Pozad\xED panel\u016F", "mod.aurora.color.panel_bg", "#1a1a2e", st, "#TabsToolbar #nav-bar menupopup");
+    colorRow(doc, el, "Tla\u010D\xEDtka aktivn\xED", "mod.aurora.color.button_bg", "#2a2a4e", st, "toolbarbutton[checked]");
+    colorRow(doc, el, "Tla\u010D\xEDtka hover", "mod.aurora.color.button_hover", "#3a3a6e", st, "toolbarbutton:hover menuitem:hover");
     buildSectionHeading(doc, el, "Sidebar");
-    buildColorRow(doc, el, "Pozad\xED sidebaru", "mod.aurora.color.sidebar_bg", "#12122a", st, "#sidebar-box #zen-sidebar-top-buttons");
+    colorRow(doc, el, "Pozad\xED sidebaru", "mod.aurora.color.sidebar_bg", "#12122a", st, "#sidebar-box");
     buildSectionHeading(doc, el, "Workspace strip (lev\xFD panel se spaces)");
-    buildColorRow(doc, el, "Pozad\xED stripu", "mod.aurora.color.workspace_strip_bg", "#0d0d1e", st, "#zen-appcontent-navbar");
-    buildColorRow(doc, el, "Dot neaktivn\xED", "mod.aurora.color.workspace_dot", "#3a3a6c", st, ".zen-workspace-dot");
-    buildColorRow(doc, el, "Dot aktivn\xED", "mod.aurora.color.workspace_dot_active", "#7c6af7", st, ".zen-workspace-dot[selected]");
+    colorRow(doc, el, "Pozad\xED stripu", "mod.aurora.color.workspace_strip_bg", "#0d0d1e", st, "#zen-appcontent-navbar");
+    colorRow(doc, el, "Dot neaktivn\xED", "mod.aurora.color.workspace_dot", "#3a3a6c", st, ".zen-workspace-dot");
+    colorRow(doc, el, "Dot aktivn\xED", "mod.aurora.color.workspace_dot_active", "#7c6af7", st, ".zen-workspace-dot[selected]");
     buildSectionHeading(doc, el, "Z\xE1lo\u017Eky (.tabbrowser-tab)");
-    buildColorRow(doc, el, "Aktivn\xED z\xE1lo\u017Eka", "mod.aurora.color.tab_active_bg", "#2a2a4e", st, "[selected] .tab-background");
-    buildColorRow(doc, el, "Neaktivn\xED z\xE1lo\u017Eka", "mod.aurora.color.tab_inactive_bg", "#1a1a2e", st, ".tab-background");
-    buildColorRow(doc, el, "Hover z\xE1lo\u017Eky", "mod.aurora.color.tab_hover_bg", "#252550", st, ":hover .tab-background");
-    buildColorRow(doc, el, "\u2715 tla\u010D\xEDtko hover", "mod.aurora.color.tab_close_hover", "#ff6b6b", st, ".tab-close-button:hover");
+    colorRow(doc, el, "Aktivn\xED z\xE1lo\u017Eka", "mod.aurora.color.tab_active_bg", "#2a2a4e", st, "[selected] .tab-background");
+    colorRow(doc, el, "Neaktivn\xED z\xE1lo\u017Eka", "mod.aurora.color.tab_inactive_bg", "#1a1a2e", st, ".tab-background");
+    colorRow(doc, el, "Hover z\xE1lo\u017Eky", "mod.aurora.color.tab_hover_bg", "#252550", st, ":hover .tab-background");
+    colorRow(doc, el, "\u2715 tla\u010D\xEDtko hover", "mod.aurora.color.tab_close_hover", "#ff6b6b", st, ".tab-close-button:hover");
     buildSectionHeading(doc, el, "URL li\u0161ta (#urlbar)");
-    buildColorRow(doc, el, "Pozad\xED", "mod.aurora.color.urlbar_bg", "#1e1e3a", st, "#urlbar-background");
-    buildColorRow(doc, el, "Ohrani\u010Den\xED idle", "mod.aurora.color.urlbar_border", "#3a3a6c", st, "#urlbar border");
-    buildColorRow(doc, el, "Ohrani\u010Den\xED focus", "mod.aurora.color.urlbar_focus", "#7c6af7", st, "#urlbar:focus-within");
-    buildSectionHeading(doc, el, "Obsah prohl\xED\u017Ee\u010De");
-    buildColorRow(doc, el, "Pozad\xED obsahu (#browser)", "mod.aurora.color.browser_bg", "#0f0f1a", st, "#browser");
-    buildColorRow(doc, el, "V\xFDb\u011Br textu (::selection)", "mod.aurora.color.selection_bg", "#7c6af740", st, "::selection");
-    buildColorRow(doc, el, "Scrollbar (thumb)", "mod.aurora.color.scrollbar", "#3a3a6c", st, "thumb");
-    buildSectionHeading(doc, el, "Barvy textu");
-    const masterDef = "#e0e0ff";
-    const masterRow = doc.createElement("div");
-    masterRow.className = "aoc-row";
-    const masterLbl = doc.createElement("span");
-    masterLbl.className = "aoc-label";
-    masterLbl.textContent = "Barva v\u0161ech text\u016F";
-    masterLbl.appendChild(badge(doc, "panely + z\xE1lo\u017Eky + urlbar"));
-    const masterSwatch = doc.createElement("div");
-    masterSwatch.className = "aoc-color-swatch";
-    masterSwatch.style.background = getPref("mod.aurora.color.panel_text", masterDef);
-    const masterHex = doc.createElement("input");
-    masterHex.type = "text";
-    masterHex.className = "aoc-color-hex";
-    masterHex.value = getPref("mod.aurora.color.panel_text", masterDef);
-    masterHex.maxLength = 9;
-    const setAllText = (hex) => {
-      masterSwatch.style.background = hex;
-      masterHex.value = hex;
-      for (const [p] of TEXT_COLOR_PREFS) setPref(p, hex);
-      status(st, "\u2713 V\u0161echny texty nastaveny", "ok");
-    };
-    masterSwatch.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openColorPicker(masterSwatch, masterHex.value || masterDef, setAllText);
-    });
-    masterHex.addEventListener("change", () => {
-      const v = masterHex.value.trim();
-      setAllText(v.startsWith("#") ? v : `#${v}`);
-    });
-    masterRow.appendChild(masterLbl);
-    masterRow.appendChild(masterSwatch);
-    masterRow.appendChild(masterHex);
-    el.appendChild(masterRow);
-    const expandBtn = doc.createElement("button");
-    expandBtn.className = "ao-nav-btn";
-    expandBtn.style.cssText = "margin:6px 0;width:100%;justify-content:center;font-size:11px;";
-    expandBtn.textContent = "\u25BC Nastavit ka\u017Ed\xFD text zvl\xE1\u0161\u0165";
-    const indContainer = doc.createElement("div");
-    indContainer.style.display = "none";
-    let indBuilt = false, expanded = false;
-    expandBtn.addEventListener("click", () => {
-      expanded = !expanded;
-      if (expanded && !indBuilt) {
-        indBuilt = true;
-        for (const [p, lbl, tgt] of TEXT_COLOR_PREFS)
-          buildColorRow(doc, indContainer, lbl, p, masterDef, st, tgt);
-      }
-      indContainer.style.display = expanded ? "block" : "none";
-      expandBtn.textContent = expanded ? "\u25B2 Skr\xFDt" : "\u25BC Nastavit ka\u017Ed\xFD text zvl\xE1\u0161\u0165";
-    });
-    el.appendChild(expandBtn);
-    el.appendChild(indContainer);
+    colorRow(doc, el, "Pozad\xED", "mod.aurora.color.urlbar_bg", "#1e1e3a", st, "#urlbar-background");
+    colorRow(doc, el, "Ohrani\u010Den\xED idle", "mod.aurora.color.urlbar_border", "#3a3a6c", st, "#urlbar border");
+    colorRow(doc, el, "Ohrani\u010Den\xED focus", "mod.aurora.color.urlbar_focus", "#7c6af7", st, "#urlbar:focus-within");
+    buildSectionHeading(doc, el, "Obsah a ostatn\xED");
+    colorRow(doc, el, "Pozad\xED obsahu (#browser)", "mod.aurora.color.browser_bg", "#0f0f1a", st, "#browser");
+    colorRow(doc, el, "V\xFDb\u011Br textu (::selection)", "mod.aurora.color.selection_bg", "#7c6af740", st, "::selection");
+    colorRow(doc, el, "Scrollbar (thumb)", "mod.aurora.color.scrollbar", "#3a3a6c", st, "thumb");
   }
   function buildSpaces(doc, el, st) {
     el.appendChild(note(doc, "P\u0159ep\xED\u0161e glob\xE1ln\xED barvy jen pro vybran\xFD Space. Pr\xE1zdn\xE9 pole = glob\xE1ln\xED hodnota."));
@@ -961,7 +1057,21 @@ body {
       const content = doc.createElement("div");
       content.className = "ao-space-content" + (i === 0 ? " active" : "");
       for (const sc of SPACE_COLORS)
-        buildColorRow(doc, content, sc.label, spaceColorPref(i, sc.key), sc.default, st);
+        colorRow(doc, content, sc.label, spaceColorPref(i, sc.key), sc.default, st);
+      const resetBtn = doc.createElement("button");
+      resetBtn.className = "ao-nav-btn danger";
+      resetBtn.style.cssText = "margin-top:12px;width:100%;";
+      resetBtn.textContent = `\u27F3 Reset Space ${i + 1} na v\xFDchoz\xED`;
+      const spaceIdx = i;
+      resetBtn.addEventListener("click", () => {
+        for (const sc of SPACE_COLORS)
+          try {
+            Services.prefs.clearUserPref(spaceColorPref(spaceIdx, sc.key));
+          } catch {
+          }
+        status(st, `Space ${spaceIdx + 1} resetov\xE1n`, "ok");
+      });
+      content.appendChild(resetBtn);
       el.appendChild(content);
       contents.push(content);
     }
@@ -974,83 +1084,46 @@ body {
       contents.forEach((c, ci) => c.classList.toggle("active", ci === idx));
     });
   }
-  function buildDynamic(doc, el, st) {
-    const statBar = doc.createElement("div");
-    statBar.className = "ao-dynamic-status";
-    const dot = doc.createElement("div");
-    dot.className = "ao-dynamic-dot";
-    const txt = doc.createElement("span");
-    const mode = getPref("mod.aurora.dynamic_mode", "off");
-    const modeLabels = {
-      off: "Dynamick\xFD motiv: Vypnut\xFD",
-      material: "Material You \u2014 aktivn\xED",
-      daynight: "Denn\xED cyklus \u2014 aktivn\xED",
-      tab_accent: "Akcent z favikony \u2014 aktivn\xED"
-    };
-    txt.textContent = modeLabels[mode] ?? mode;
-    if (mode !== "off") dot.classList.add("on");
-    statBar.appendChild(dot);
-    statBar.appendChild(txt);
-    el.appendChild(statBar);
-    buildSectionHeading(doc, el, "Re\u017Eim");
-    buildSelect(doc, el, "Aktivn\xED re\u017Eim", "mod.aurora.dynamic_mode", [
-      { label: "Vypnuto", value: "off" },
-      { label: "Material You", value: "material" },
-      { label: "Denn\xED cyklus", value: "daynight" },
-      { label: "Akcent z favikony", value: "tab_accent" }
-    ], "off", (v) => {
-      dot.classList.toggle("on", v !== "off");
-      txt.textContent = modeLabels[v] ?? v;
-    });
-    buildSectionHeading(doc, el, "Material You");
-    buildSelect(doc, el, "Intenzita", "mod.aurora.dynamic.material_intensity", [
-      { label: "Slab\xE1 (25%)", value: "0.25" },
-      { label: "St\u0159edn\xED (50%)", value: "0.5" },
-      { label: "Siln\xE1 (75%)", value: "0.75" },
-      { label: "Pln\xE1 (100%)", value: "1.0" }
-    ], "0.75");
-    buildSectionHeading(doc, el, "Denn\xED cyklus");
-    buildSelect(
-      doc,
-      el,
-      "Za\u010D\xE1tek dne",
-      "mod.aurora.dynamic.day_hour",
-      [5, 6, 7, 8].map((h) => ({ label: `${h}:00`, value: String(h) })),
-      "7"
-    );
-    buildSelect(
-      doc,
-      el,
-      "Za\u010D\xE1tek noci",
-      "mod.aurora.dynamic.night_hour",
-      [17, 18, 19, 20, 21, 22].map((h) => ({ label: `${h}:00`, value: String(h) })),
-      "20"
-    );
-    buildSelect(doc, el, "D\xE9lka p\u0159echodu", "mod.aurora.dynamic.transition_minutes", [
-      { label: "Okam\u017Eit\xFD", value: "0" },
-      { label: "30 min", value: "30" },
-      { label: "60 min", value: "60" },
-      { label: "90 min", value: "90" }
-    ], "60");
-    buildColorRow(doc, el, "Akcent ve dne", "mod.aurora.dynamic.day_accent", "#4a90d9", st);
-    buildColorRow(doc, el, "Pozad\xED ve dne", "mod.aurora.dynamic.day_bg", "#1a2035", st);
-    buildColorRow(doc, el, "Text ve dne", "mod.aurora.dynamic.day_text", "#dde8ff", st);
-    buildColorRow(doc, el, "Akcent v noci", "mod.aurora.dynamic.night_accent", "#e07840", st);
-    buildColorRow(doc, el, "Pozad\xED v noci", "mod.aurora.dynamic.night_bg", "#1f1510", st);
-    buildColorRow(doc, el, "Text v noci", "mod.aurora.dynamic.night_text", "#ffe0cc", st);
-    buildSectionHeading(doc, el, "Akcent z favikony");
-    buildColorRow(doc, el, "Z\xE1lo\u017En\xED barva", "mod.aurora.dynamic.favicon_fallback", "#7c6af7", st);
-    buildSelect(doc, el, "Zes\xEDlen\xED saturace", "mod.aurora.dynamic.favicon_saturation_boost", [
-      { label: "Bez (1\xD7)", value: "1.0" },
-      { label: "M\xEDrn\xE9 (1.2\xD7)", value: "1.2" },
-      { label: "V\xFDrazn\xE9 (1.5\xD7)", value: "1.5" },
-      { label: "Maximum (2\xD7)", value: "2.0" }
-    ], "1.2");
-  }
   function buildBackground(doc, el, _st) {
-    el.appendChild(note(doc, "Obr\xE1zek pozad\xED se zobrazuje za #browser::before. Pr\u016Fhlednost a blur panel\u016F nastav\xED\u0161 v sekci Efekty."));
+    el.appendChild(note(doc, "Obr\xE1zek se zobrazuje za #browser::before. Pr\u016Fhlednost a blur panel\u016F nastav v sekci Efekty."));
     buildSectionHeading(doc, el, "Obr\xE1zek pozad\xED (#browser::before)");
-    buildTextInput(doc, el, "URL obr\xE1zku", "mod.aurora.image.browser_bg", "https://...", "");
+    const urlRow = doc.createElement("div");
+    urlRow.className = "aoc-row";
+    const urlLbl = doc.createElement("span");
+    urlLbl.className = "aoc-label";
+    urlLbl.textContent = "URL nebo cesta k souboru";
+    const urlInp = doc.createElement("input");
+    urlInp.type = "text";
+    urlInp.className = "aoc-input";
+    urlInp.value = getPref("mod.aurora.image.browser_bg", "");
+    urlInp.placeholder = "https://... nebo file:///C:/...";
+    const fileBtn = doc.createElement("button");
+    fileBtn.className = "ao-nav-btn";
+    fileBtn.textContent = "\u{1F4C2}";
+    fileBtn.title = "Vybrat soubor";
+    fileBtn.style.cssText = "flex-shrink:0;padding:5px 10px;";
+    fileBtn.addEventListener("click", () => {
+      const inp = doc.createElement("input");
+      inp.type = "file";
+      inp.accept = "image/*";
+      inp.style.display = "none";
+      inp.addEventListener("change", () => {
+        const f = inp.files?.[0];
+        if (!f) return;
+        const path = f.mozFullPath ?? "";
+        const url = path ? `file:///${path.replace(/\\/g, "/")}` : URL.createObjectURL(f);
+        urlInp.value = url;
+        setPref("mod.aurora.image.browser_bg", url);
+      });
+      doc.body.appendChild(inp);
+      inp.click();
+      setTimeout(() => inp.remove(), 3e4);
+    });
+    urlInp.addEventListener("change", () => setPref("mod.aurora.image.browser_bg", urlInp.value.trim()));
+    urlRow.appendChild(urlLbl);
+    urlRow.appendChild(urlInp);
+    urlRow.appendChild(fileBtn);
+    el.appendChild(urlRow);
     buildSelect(doc, el, "Velikost (background-size)", "mod.aurora.image.bg_size", [
       { label: "Cover \u2014 vypln\xED plochu", value: "cover" },
       { label: "Contain \u2014 cel\xFD viditeln\xFD", value: "contain" },
@@ -1066,8 +1139,28 @@ body {
     ], "center");
     buildSlider(doc, el, "Rozmaz\xE1n\xED obr\xE1zku (filter: blur)", "mod.aurora.image.bg_blur", 0, 30, 1, "px", 0);
     buildSlider(doc, el, "Pr\u016Fhlednost obr\xE1zku (opacity)", "mod.aurora.image.bg_opacity", 0, 1, 0.05, "", 1);
+    buildSectionHeading(doc, el, "Startovac\xED str\xE1nka");
+    buildToggle(doc, el, "V\u017Edy otev\u0159\xEDt domovskou str\xE1nku na nov\xE9 z\xE1lo\u017Ece", "mod.aurora.newtab_homepage", false, (v) => {
+      try {
+        if (v) {
+          Services.prefs.setIntPref("browser.newtabpage.enabled", 0);
+          Services.prefs.setStringPref("browser.newtab.url", Services.prefs.getStringPref("browser.startup.homepage", "about:home"));
+        } else {
+          Services.prefs.setIntPref("browser.newtabpage.enabled", 1);
+        }
+      } catch {
+      }
+    });
   }
   function buildLayout(doc, el, _st) {
+    buildSectionHeading(doc, el, "Zapnut\xED stylov\xE1n\xED prvk\u016F");
+    el.appendChild(note(doc, "Pokud prvek vypne\u0161, Aurora ho nech\xE1 v Zen v\xFDchoz\xEDm stylu."));
+    buildToggle(doc, el, "Z\xE1lo\u017Eky (.tabbrowser-tab)", "mod.aurora.style.tabs", true);
+    buildToggle(doc, el, "URL li\u0161ta (#urlbar)", "mod.aurora.style.urlbar", true);
+    buildToggle(doc, el, "Sidebar (#sidebar-box)", "mod.aurora.style.sidebar", true);
+    buildToggle(doc, el, "Toolbar (#navigator-toolbox, #TabsToolbar\u2026)", "mod.aurora.style.toolbar", true);
+    buildToggle(doc, el, "Workspace strip (#zen-appcontent-navbar)", "mod.aurora.style.workspace_strip", true);
+    buildToggle(doc, el, "Popup menu (menupopup, menuitem)", "mod.aurora.style.menus", true);
     buildSectionHeading(doc, el, "Z\xE1lo\u017Eky (.tabbrowser-tab)");
     buildSlider(doc, el, "V\xFD\u0161ka z\xE1lo\u017Eky (min/max-height)", "mod.aurora.layout.tab_height", 20, 60, 1, "px", 36);
     buildSlider(doc, el, "Zaoblen\xED z\xE1lo\u017Eky (border-radius)", "mod.aurora.layout.tab_border_radius", 0, 20, 1, "px", 8);
@@ -1077,20 +1170,33 @@ body {
     buildSlider(doc, el, "\u0160\xED\u0159ka sidebaru (min/max-width)", "mod.aurora.layout.sidebar_width", 120, 400, 4, "px", 200);
     buildSectionHeading(doc, el, "Workspace strip (#zen-appcontent-navbar)");
     buildSlider(doc, el, "\u0160\xED\u0159ka stripu (min/max-width)", "mod.aurora.layout.workspace_strip_width", 20, 80, 2, "px", 36);
-    buildSectionHeading(doc, el, "Zaoblen\xED prvk\u016F");
+    buildSectionHeading(doc, el, "Zaoblen\xED");
     buildSlider(doc, el, "Zaoblen\xED panel\u016F / URL (#urlbar, menupopup)", "mod.aurora.layout.panel_border_radius", 0, 24, 1, "px", 8);
     buildSlider(doc, el, "Zaoblen\xED tla\u010D\xEDtek / polo\u017Eek menu", "mod.aurora.layout.button_border_radius", 0, 20, 1, "px", 6);
     buildSectionHeading(doc, el, "Ohrani\u010Den\xED");
-    buildSlider(doc, el, "Tlou\u0161\u0165ka ohrani\u010Den\xED (border-width \u2014 v\u0161e)", "mod.aurora.layout.border_width", 0, 4, 1, "px", 1);
+    buildSlider(doc, el, "Tlou\u0161\u0165ka (border-width \u2014 v\u0161e)", "mod.aurora.layout.border_width", 0, 4, 1, "px", 1);
+    buildSectionHeading(doc, el, "Rozvr\u017Een\xED toolbaru");
+    buildSelect(doc, el, "Re\u017Eim toolbaru", "mod.aurora.layout.toolbar_mode", [
+      { label: "V\xEDce panel\u016F (v\xFDchoz\xED)", value: "multi" },
+      { label: "Jeden panel (bez z\xE1lo\u017Ekov\xE9 li\u0161ty)", value: "single" },
+      { label: "Sbalen\xFD (auto-hide)", value: "collapsed" }
+    ], "multi");
+    buildSectionHeading(doc, el, "Hitbox horn\xED li\u0161ty (p\u0159i auto-hide)");
+    el.appendChild(note(doc, "Zv\u011Bt\u0161\xED neviditelnou oblast naho\u0159e, kter\xE1 aktivuje vysunut\xED li\u0161ty."));
+    buildSlider(doc, el, "V\xFD\u0161ka hitboxu", "mod.aurora.layout.hitbox_height", 4, 40, 2, "px", 4);
   }
-  function buildEffects(doc, el, _st) {
+  function buildEffects(doc, el, st) {
     buildSectionHeading(doc, el, "Pr\u016Fhlednost panel\u016F");
-    el.appendChild(note(doc, "Ovliv\u0148uje #navigator-toolbox, #sidebar-box, #zen-appcontent-navbar a menupopup. Blur = frosted glass efekt."));
-    buildSlider(doc, el, "Pr\u016Fhlednost panel\u016F (panel-bg rgba alpha)", "mod.aurora.effect.panel_opacity", 0, 1, 0.05, "", 1);
-    buildSlider(doc, el, "Blur panel\u016F (backdrop-filter: blur)", "mod.aurora.effect.panel_blur", 0, 30, 1, "px", 0);
+    el.appendChild(note(doc, "Ovliv\u0148uje #navigator-toolbox, #sidebar-box, #zen-appcontent-navbar, menupopup. Blur = frosted glass."));
+    buildSlider(doc, el, "Pr\u016Fhlednost panel\u016F (rgba alpha)", "mod.aurora.effect.panel_opacity", 0, 1, 0.05, "", 1);
+    buildSlider(doc, el, "Blur panel\u016F (backdrop-filter)", "mod.aurora.effect.panel_blur", 0, 30, 1, "px", 0);
+    buildSectionHeading(doc, el, "No Gap Mod");
+    el.appendChild(note(doc, "Odstran\xED mezery mezi panely (--zen-element-separation = 0px). Nastav barvu pozad\xED pro mezery."));
+    buildToggle(doc, el, "Zapnout No Gap Mod", "mod.aurora.layout.no_gap_mod", false);
+    colorRow(doc, el, "Barva pozad\xED mezer", "mod.aurora.layout.no_gap_bg", "#000000", st, "#tabbrowser-tabpanels");
     buildSectionHeading(doc, el, "St\xEDny a z\xE1\u0159e");
     buildToggle(doc, el, "St\xEDn aktivn\xED z\xE1lo\u017Eky (.tabbrowser-tab[selected])", "mod.aurora.effect.tab_shadow", false);
-    buildToggle(doc, el, "Z\xE1\u0159e akcentu p\u0159i hoveru a na aktivn\xED z\xE1lo\u017Ece (glow)", "mod.aurora.effect.accent_glow", false);
+    buildToggle(doc, el, "Z\xE1\u0159e akcentu p\u0159i hoveru a aktivn\xED z\xE1lo\u017Ece (glow)", "mod.aurora.effect.accent_glow", false);
     buildSectionHeading(doc, el, "Styl ohrani\u010Den\xED (border-style \u2014 v\u0161e)");
     buildSelect(doc, el, "Styl", "mod.aurora.effect.panel_border_style", [
       { label: "Pln\xE9 (solid)", value: "solid" },
@@ -1100,7 +1206,7 @@ body {
     ], "solid");
     buildSectionHeading(doc, el, "Animace (CSS transitions \u2014 v\u0161e)");
     buildSelect(doc, el, "Rychlost (transition-duration)", "mod.aurora.animation_speed", [
-      { label: "Vypnut\xE9 \u2014 \u017E\xE1dn\xE9 animace (0s)", value: "none" },
+      { label: "Vypnut\xE9 \u2014 \u017E\xE1dn\xE9 (0s)", value: "none" },
       { label: "Pomal\xE9 (0.45s)", value: "slow" },
       { label: "Norm\xE1ln\xED (0.18s)", value: "normal" },
       { label: "Rychl\xE9 (0.08s)", value: "fast" }
@@ -1112,8 +1218,8 @@ body {
       { label: "Spring (p\u0159ekmit)", value: "cubic-bezier(0.34,1.56,0.64,1)" }
     ], "ease");
   }
-  function buildFontSounds(doc, el, _st) {
-    buildSectionHeading(doc, el, "P\xEDsmo (font \u2014 z\xE1lo\u017Eky, panely, URL li\u0161ta)");
+  function buildFontText(doc, el, st) {
+    buildSectionHeading(doc, el, "P\xEDsmo (z\xE1lo\u017Eky, panely, URL li\u0161ta)");
     buildTextInput(doc, el, "Rodina (font-family)", "mod.aurora.font.family", "system-ui, sans-serif", "inherit");
     buildSlider(doc, el, "Velikost (font-size)", "mod.aurora.font.size", 10, 20, 1, "px", 13);
     buildSelect(doc, el, "Tu\u010Dnost (font-weight)", "mod.aurora.font.weight", [
@@ -1123,9 +1229,59 @@ body {
       { label: "600 \u2014 semibold", value: "600" },
       { label: "700 \u2014 tu\u010Dn\xE9", value: "700" }
     ], "400");
-    buildSectionHeading(doc, el, "Zvukov\xE9 efekty kl\xE1vesnice");
-    el.appendChild(note(doc, "Jemn\xE9 klik\xE1n\xED p\u0159i psan\xED do URL li\u0161ty. Vy\u017Eaduje restart prohl\xED\u017Ee\u010De."));
-    buildToggle(doc, el, "Zapnout zvukov\xE9 efekty", "mod.aurora.sounds_enabled", false);
+    buildSectionHeading(doc, el, "Barvy textu");
+    const useIndividual = getBoolPref("mod.aurora.style.individual_text_colors", false);
+    buildToggle(
+      doc,
+      el,
+      "Nastavit ka\u017Ed\xFD text zvl\xE1\u0161\u0165 (p\u0159ep\xED\u0161e barvu v\u0161ech text\u016F)",
+      "mod.aurora.style.individual_text_colors",
+      false,
+      (v) => {
+        indContainer.style.display = v ? "block" : "none";
+        masterSection.style.display = v ? "none" : "block";
+      }
+    );
+    const masterSection = doc.createElement("div");
+    masterSection.style.display = useIndividual ? "none" : "block";
+    colorRow(doc, masterSection, "Barva v\u0161ech text\u016F", "mod.aurora.color.panel_text", "#e0e0ff", st, "panely + z\xE1lo\u017Eky + urlbar");
+    el.appendChild(masterSection);
+    const indContainer = doc.createElement("div");
+    indContainer.style.display = useIndividual ? "block" : "none";
+    colorRow(doc, indContainer, "Text panel\u016F (toolbar, sidebar, menu)", "mod.aurora.color.panel_text", "#e0e0ff", st, "#TabsToolbar toolbarbutton menuitem");
+    colorRow(doc, indContainer, "Text z\xE1lo\u017Eek", "mod.aurora.color.tab_text", "#c0c0e0", st, ".tab-label .tab-text");
+    colorRow(doc, indContainer, "Text URL li\u0161ty", "mod.aurora.color.urlbar_text", "#e0e0ff", st, "#urlbar-input");
+    el.appendChild(indContainer);
+  }
+  function buildAccessibility(doc, el, _st) {
+    buildSectionHeading(doc, el, "Barevn\xE9 sch\xE9ma obsahu (prefers-color-scheme)");
+    el.appendChild(note(doc, "Nastav\xED jak webov\xE9 str\xE1nky vid\xED v\xE1\u0161 preferovan\xFD barevn\xFD motiv. Ovliv\u0148uje weby kter\xE9 reaguj\xED na dark/light mode."));
+    buildSelect(doc, el, "Sch\xE9ma obsahu", "mod.aurora.accessibility.color_scheme", [
+      { label: "Dle syst\xE9mu (auto)", value: "auto" },
+      { label: "Tmav\xFD (dark)", value: "dark" },
+      { label: "Sv\u011Btl\xFD (light)", value: "light" }
+    ], "auto", (v) => {
+      try {
+        const map = { auto: 0, dark: 1, light: 2 };
+        Services.prefs.setIntPref("browser.theme.content-preferred-color-scheme", map[v] ?? 0);
+      } catch {
+      }
+    });
+    buildSectionHeading(doc, el, "Vysok\xFD kontrast prohl\xED\u017Ee\u010De");
+    buildSelect(doc, el, "Kontrast", "mod.aurora.accessibility.web_contrast", [
+      { label: "Vypnuto", value: "off" },
+      { label: "Vysok\xFD kontrast tmav\xFD", value: "high-dark" },
+      { label: "Vysok\xFD kontrast sv\u011Btl\xFD", value: "high-light" }
+    ], "off");
+    buildSectionHeading(doc, el, "Simulace barvosleposti");
+    el.appendChild(note(doc, "Aplikuje CSS filtr na cel\xFD prohl\xED\u017Ee\u010D. Pom\xE1h\xE1 p\u0159i n\xE1vrhu p\u0159\xEDstupn\xE9ho UI nebo pro u\u017Eivatele s vadou barvocitu."));
+    buildSelect(doc, el, "Typ barvosleposti", "mod.aurora.accessibility.color_blind_mode", [
+      { label: "Vypnuto", value: "off" },
+      { label: "Protanopie (nedostatek \u010Derven\xE9)", value: "protanopia" },
+      { label: "Deuteranopie (nedostatek zelen\xE9)", value: "deuteranopia" },
+      { label: "Tritanopie (nedostatek modr\xE9)", value: "tritanopia" },
+      { label: "Achromatopsie (bez barev)", value: "achromatopsia" }
+    ], "off");
   }
   var ALL_STRING_PREFS = [
     ...GLOBAL_COLORS.map((c) => c.pref),
@@ -1148,11 +1304,24 @@ body {
     "mod.aurora.layout.workspace_strip_width",
     "mod.aurora.layout.toolbar_height",
     "mod.aurora.layout.border_width",
+    "mod.aurora.layout.toolbar_mode",
+    "mod.aurora.layout.hitbox_height",
+    "mod.aurora.layout.no_gap_bg",
     "mod.aurora.animation_speed",
-    "mod.aurora.animation.easing",
-    "mod.aurora.dynamic_mode"
+    "mod.aurora.animation.easing"
   ];
-  var ALL_BOOL_PREFS = ["mod.aurora.effect.tab_shadow", "mod.aurora.effect.accent_glow", "mod.aurora.sounds_enabled"];
+  var ALL_BOOL_PREFS = [
+    "mod.aurora.effect.tab_shadow",
+    "mod.aurora.effect.accent_glow",
+    "mod.aurora.layout.no_gap_mod",
+    "mod.aurora.style.tabs",
+    "mod.aurora.style.urlbar",
+    "mod.aurora.style.sidebar",
+    "mod.aurora.style.toolbar",
+    "mod.aurora.style.workspace_strip",
+    "mod.aurora.style.menus",
+    "mod.aurora.style.individual_text_colors"
+  ];
   function capturePreset() {
     const data = {};
     for (const p of ALL_STRING_PREFS) {
@@ -1203,14 +1372,17 @@ body {
     for (let i = 1; i <= 20; i++) {
       const raw = Services.prefs.getStringPref(`mod.aurora.preset.${i}`, "");
       if (!raw) {
-        Services.prefs.setStringPref(
-          `mod.aurora.preset.${i}`,
-          JSON.stringify({ name, ts: Date.now(), data: capturePreset() })
-        );
+        Services.prefs.setStringPref(`mod.aurora.preset.${i}`, JSON.stringify({ name, ts: Date.now(), data: capturePreset() }));
         return i;
       }
     }
     return -1;
+  }
+  function updatePresetMeta(idx, name, data) {
+    try {
+      Services.prefs.setStringPref(`mod.aurora.preset.${idx}`, JSON.stringify({ name, ts: Date.now(), data }));
+    } catch {
+    }
   }
   function deletePreset(idx) {
     try {
@@ -1236,21 +1408,26 @@ body {
       for (const p of presets) {
         const item = doc.createElement("div");
         item.className = "ao-preset-item";
-        const swatches = doc.createElement("div");
-        swatches.className = "ao-preset-swatch-row";
+        const swRow = doc.createElement("div");
+        swRow.className = "ao-preset-swatch-row";
         try {
           const data = JSON.parse(p.json);
           for (const key of ["mod.aurora.color.accent", "mod.aurora.color.panel_bg", "mod.aurora.color.tab_active_bg"]) {
             const sw = doc.createElement("div");
             sw.className = "ao-preset-swatch";
             sw.style.background = data[key] || "#333";
-            swatches.appendChild(sw);
+            swRow.appendChild(sw);
           }
         } catch {
         }
-        const name = doc.createElement("span");
-        name.className = "ao-preset-name";
-        name.textContent = p.name;
+        const nameView = doc.createElement("span");
+        nameView.className = "ao-preset-name-view";
+        nameView.textContent = p.name;
+        const nameEdit = doc.createElement("input");
+        nameEdit.type = "text";
+        nameEdit.className = "ao-preset-name-edit";
+        nameEdit.value = p.name;
+        nameEdit.style.display = "none";
         const time = doc.createElement("span");
         time.className = "ao-preset-time";
         time.textContent = new Date(p.ts).toLocaleDateString("cs-CZ");
@@ -1261,17 +1438,54 @@ body {
           applyPresetData(p.json);
           status(st, `Na\u010Dten "${p.name}"`, "ok");
         });
+        const renBtn = doc.createElement("button");
+        renBtn.className = "ao-preset-btn";
+        renBtn.textContent = "\u270E";
+        renBtn.title = "P\u0159ejmenovat";
+        let editing = false;
+        renBtn.addEventListener("click", () => {
+          editing = !editing;
+          nameView.style.display = editing ? "none" : "";
+          nameEdit.style.display = editing ? "" : "none";
+          if (!editing) {
+            const n = nameEdit.value.trim() || p.name;
+            nameView.textContent = n;
+            updatePresetMeta(p.idx, n, p.json);
+            status(st, `P\u0159ejmenov\xE1n na "${n}"`, "ok");
+          } else {
+            nameEdit.focus();
+            nameEdit.select();
+          }
+          renBtn.textContent = editing ? "\u2713" : "\u270E";
+        });
+        nameEdit.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") renBtn.click();
+          if (e.key === "Escape") {
+            editing = true;
+            renBtn.click();
+          }
+        });
+        const overBtn = doc.createElement("button");
+        overBtn.className = "ao-preset-btn save";
+        overBtn.textContent = "\u2191 P\u0159epsat";
+        overBtn.addEventListener("click", () => {
+          updatePresetMeta(p.idx, p.name, capturePreset());
+          status(st, `P\u0159eps\xE1n "${p.name}"`, "ok");
+        });
         const delBtn = doc.createElement("button");
         delBtn.className = "ao-preset-btn del";
-        delBtn.textContent = "Smazat";
+        delBtn.textContent = "\u2715";
         delBtn.addEventListener("click", () => {
           deletePreset(p.idx);
           refresh();
         });
-        item.appendChild(swatches);
-        item.appendChild(name);
+        item.appendChild(swRow);
+        item.appendChild(nameView);
+        item.appendChild(nameEdit);
         item.appendChild(time);
         item.appendChild(loadBtn);
+        item.appendChild(renBtn);
+        item.appendChild(overBtn);
         item.appendChild(delBtn);
         listEl.appendChild(item);
       }
@@ -1279,7 +1493,7 @@ body {
     refresh();
     buildSectionHeading(doc, el, "Ulo\u017Eit aktu\xE1ln\xED nastaven\xED");
     const saveRow = doc.createElement("div");
-    saveRow.className = "ao-preset-save";
+    saveRow.className = "ao-preset-save-row";
     const nameIn = doc.createElement("input");
     nameIn.type = "text";
     nameIn.className = "ao-preset-name-in";
@@ -1387,59 +1601,20 @@ body {
     t.textContent = "\u2726 Aurora";
     const sub = doc.createElement("div");
     sub.className = "ao-about-sub";
-    sub.textContent = "Kompletn\xED UI overhaul pro Zen Browser \xB7 v0.1.0 \xB7 Rockynio-dot";
+    sub.textContent = "Kompletn\xED UI overhaul pro Zen Browser \xB7 v0.2.0 \xB7 Rockynio-dot";
     card.appendChild(t);
     card.appendChild(sub);
     el.appendChild(card);
-    buildSectionHeading(doc, el, "CSS pokryt\xED \u2014 ovlivn\u011Bn\xE9 prvky");
-    const grid = doc.createElement("div");
-    grid.className = "ao-coverage-grid";
-    for (const sel of [
-      "#navigator-toolbox",
-      "#TabsToolbar",
-      "#PersonalToolbar",
-      "#nav-bar",
-      "#sidebar-box",
-      "#zen-sidebar-top-buttons",
-      "#zen-sidebar-top-buttons-customization-target",
-      ".zen-sidebar-action-button",
-      "#zen-appcontent-navbar",
-      ".zen-workspace-dot",
-      ".zen-workspace-button",
-      ".tabbrowser-tab .tab-background",
-      ".tab-label .tab-text",
-      ".tab-close-button:hover",
-      "#urlbar",
-      "#urlbar-background",
-      "#urlbar:focus-within",
-      "#urlbar-input",
-      "#browser",
-      "#browser::before",
-      "toolbarbutton",
-      "toolbarbutton:hover",
-      "toolbarbutton[checked]",
-      "menupopup .panel-arrowcontainer",
-      "menuitem menu",
-      "menuseparator",
-      "::selection",
-      "thumb (scrollbar)"
-    ]) {
-      const item = doc.createElement("div");
-      item.className = "ao-coverage-item";
-      item.textContent = sel;
-      grid.appendChild(item);
-    }
-    el.appendChild(grid);
-    buildSectionHeading(doc, el, "Resetovat nastaven\xED");
+    buildSectionHeading(doc, el, "Reset barev");
     const resetColorsBtn = doc.createElement("button");
     resetColorsBtn.className = "ao-nav-btn danger";
     resetColorsBtn.style.cssText = "width:100%;margin-bottom:8px;";
-    resetColorsBtn.textContent = "\u27F3  Reset v\u0161ech barev na v\xFDchoz\xED";
+    resetColorsBtn.textContent = "\u27F3  Reset barev na Aurora v\xFDchoz\xED (fialov\xFD dark)";
     resetColorsBtn.addEventListener("click", () => {
-      if (!confirm("Opravdu resetovat v\u0161echny barvy? Tuto akci nelze vr\xE1tit.")) return;
-      for (const f of GLOBAL_COLORS) {
+      if (!confirm("Opravdu resetovat v\u0161echny barvy na Aurora v\xFDchoz\xED?")) return;
+      for (const [pref, val] of Object.entries(AURORA_COLOR_DEFAULTS)) {
         try {
-          Services.prefs.setStringPref(f.pref, f.default);
+          Services.prefs.setStringPref(pref, val);
         } catch {
         }
       }
@@ -1449,16 +1624,17 @@ body {
             Services.prefs.clearUserPref(spaceColorPref(i, sc.key));
           } catch {
           }
-      status(st, "Barvy resetov\xE1ny na v\xFDchoz\xED", "ok");
+      status(st, "Barvy resetov\xE1ny", "ok");
     });
     el.appendChild(resetColorsBtn);
+    buildSectionHeading(doc, el, "Reset ve\u0161ker\xFDch nastaven\xED");
     const resetAllBtn = doc.createElement("button");
     resetAllBtn.className = "ao-nav-btn danger";
     resetAllBtn.style.cssText = "width:100%;";
     resetAllBtn.textContent = "\u27F3  Reset VE\u0160KER\xDDCH nastaven\xED Aurora";
     resetAllBtn.addEventListener("click", () => {
-      if (!confirm("Opravdu resetovat ve\u0161ker\xE1 nastaven\xED Aurora? Tuto akci nelze vr\xE1tit.")) return;
-      for (const p of [...ALL_STRING_PREFS, ...ALL_BOOL_PREFS]) {
+      if (!confirm("Opravdu resetovat ve\u0161ker\xE1 nastaven\xED Aurora?")) return;
+      for (const p of [...ALL_STRING_PREFS, ...ALL_BOOL_PREFS, ...Object.keys(AURORA_COLOR_DEFAULTS)]) {
         try {
           Services.prefs.clearUserPref(p);
         } catch {
@@ -1475,24 +1651,26 @@ body {
     el.appendChild(resetAllBtn);
   }
   var NAV_ITEMS = [
+    { id: "quick", icon: "\u{1F31F}", label: "Rychl\xE9" },
     { id: "colors", icon: "\u{1F3A8}", label: "Barvy" },
     { id: "spaces", icon: "\u{1F30C}", label: "Spaces" },
-    { id: "dynamic", icon: "\u{1F305}", label: "Dynamika" },
     { id: "background", icon: "\u{1F5BC}\uFE0F", label: "Pozad\xED" },
     { id: "layout", icon: "\u{1F4D0}", label: "Rozm\u011Bry" },
     { id: "effects", icon: "\u2728", label: "Efekty" },
-    { id: "typography", icon: "\u{1F524}", label: "P\xEDsmo & Zvuky" },
+    { id: "fonttext", icon: "\u{1F524}", label: "P\xEDsmo & Text" },
+    { id: "access", icon: "\u267F", label: "P\u0159\xEDstupnost" },
     { id: "presets", icon: "\u{1F4BE}", label: "Presety" },
     { id: "about", icon: "\u2139\uFE0F", label: "O m\xF3du" }
   ];
   var SECTION_BUILDERS = {
+    quick: buildQuick,
     colors: buildColors,
     spaces: buildSpaces,
-    dynamic: buildDynamic,
     background: buildBackground,
     layout: buildLayout,
     effects: buildEffects,
-    typography: buildFontSounds,
+    fonttext: buildFontText,
+    access: buildAccessibility,
     presets: buildPresets,
     about: buildAbout
   };
@@ -1511,17 +1689,17 @@ body {
     nav.appendChild(logo);
     const header = doc.createElement("div");
     header.className = "ao-header";
-    const headerTitle = doc.createElement("div");
-    headerTitle.className = "ao-header-title";
-    const headerSub = doc.createElement("span");
-    headerSub.className = "ao-header-sub";
-    headerTitle.appendChild(doc.createTextNode("\u2726 Aurora"));
-    headerTitle.appendChild(headerSub);
+    const hTitle = doc.createElement("div");
+    hTitle.className = "ao-header-title";
+    const hSub = doc.createElement("span");
+    hSub.className = "ao-header-sub";
+    hTitle.appendChild(doc.createTextNode("\u2726 Aurora"));
+    hTitle.appendChild(hSub);
     const closeBtn = doc.createElement("button");
     closeBtn.className = "ao-header-close";
     closeBtn.textContent = "\u2715 Zav\u0159\xEDt  (Esc)";
     closeBtn.addEventListener("click", () => window.close());
-    header.appendChild(headerTitle);
+    header.appendChild(hTitle);
     header.appendChild(closeBtn);
     const content = doc.createElement("div");
     content.className = "ao-content";
@@ -1535,7 +1713,7 @@ body {
     doc.body.appendChild(main);
     const sections = {};
     const navEls = [];
-    let activeId = "colors";
+    let activeId = "quick";
     function showSection(id) {
       sections[activeId]?.classList.remove("active");
       navEls.find((n) => n.dataset.id === activeId)?.classList.remove("active");
@@ -1551,25 +1729,25 @@ body {
       navEls.find((n) => n.dataset.id === id)?.classList.add("active");
       activeId = id;
       const item = NAV_ITEMS.find((n) => n.id === id);
-      if (item) headerSub.textContent = `\u2014 ${item.label}`;
+      if (item) hSub.textContent = `\u2014 ${item.label}`;
       content.scrollTop = 0;
     }
     for (const item of NAV_ITEMS) {
-      const navItem = doc.createElement("div");
-      navItem.className = "ao-nav-item";
-      navItem.dataset.id = item.id;
-      const icon = doc.createElement("span");
-      icon.className = "ao-nav-icon";
-      icon.textContent = item.icon;
-      const lbl = doc.createElement("span");
-      lbl.textContent = item.label;
-      navItem.appendChild(icon);
-      navItem.appendChild(lbl);
-      navItem.addEventListener("click", () => showSection(item.id));
-      nav.appendChild(navItem);
-      navEls.push(navItem);
+      const ni = doc.createElement("div");
+      ni.className = "ao-nav-item";
+      ni.dataset.id = item.id;
+      const ic = doc.createElement("span");
+      ic.className = "ao-nav-icon";
+      ic.textContent = item.icon;
+      const lb = doc.createElement("span");
+      lb.textContent = item.label;
+      ni.appendChild(ic);
+      ni.appendChild(lb);
+      ni.addEventListener("click", () => showSection(item.id));
+      nav.appendChild(ni);
+      navEls.push(ni);
     }
-    showSection("colors");
+    showSection("quick");
     doc.addEventListener("keydown", (e) => {
       if (e.key === "Escape") window.close();
     });

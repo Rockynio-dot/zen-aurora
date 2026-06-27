@@ -1,14 +1,10 @@
 import { loadTheme } from "./core/state.ts";
 import { applyTheme } from "./core/cssEngine.ts";
 import { initEvents } from "./core/events.ts";
-import { initSounds, stopSounds } from "./features/sounds.ts";
-import { initDynamicTheme, stopDynamicTheme } from "./features/dynamicTheme.ts";
 import { initSpaces, refreshSpaces } from "./features/spaces.ts";
 import { initOverlay } from "./ui/overlay.ts";
 import { captureZenColorsOnFirstRun, initZenSync } from "./core/zenSync.ts";
 
-let soundsRunning  = false;
-let dynamicRunning = false;
 let stopSpaces:  (() => void) | null = null;
 let stopOverlay: (() => void) | null = null;
 let stopZenSync: (() => void) | null = null;
@@ -18,26 +14,14 @@ function scheduleApply(doc: Document): void {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     debounceTimer = null;
-    applyAll(doc).catch((e) => dump(`[Aurora] ${e}\n`));
+    applyAll(doc);
   }, 80);
 }
 
-async function applyAll(doc: Document): Promise<void> {
+function applyAll(doc: Document): void {
   const theme = loadTheme();
   applyTheme(theme, doc);
   refreshSpaces(doc);
-
-  if (theme.sounds.enabled && !soundsRunning) {
-    soundsRunning = true; await initSounds(theme);
-  } else if (!theme.sounds.enabled && soundsRunning) {
-    stopSounds(); soundsRunning = false;
-  }
-
-  if (theme.dynamicMode !== "off" && !dynamicRunning) {
-    dynamicRunning = true; initDynamicTheme(doc);
-  } else if (theme.dynamicMode === "off" && dynamicRunning) {
-    stopDynamicTheme(); dynamicRunning = false;
-  }
 }
 
 async function init(): Promise<void> {
@@ -69,7 +53,6 @@ async function init(): Promise<void> {
     doc.defaultView?.addEventListener("beforeunload", () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       Services.prefs.removeObserver("mod.aurora.", observer);
-      stopSounds(); stopDynamicTheme();
       stopSpaces?.(); stopOverlay?.(); stopZenSync?.();
     }, { once: true });
 

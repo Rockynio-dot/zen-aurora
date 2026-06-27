@@ -1,16 +1,21 @@
 import type { AuroraTheme } from "./state.ts";
 
 const STYLE_ID = "aurora-dynamic-styles";
-
-// Material Design ease — smooth and natural
-const MD_EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
+const MD_EASE  = "cubic-bezier(0.4, 0, 0.2, 1)";
 
 const ANIM_SPEED: Record<string, string> = {
-  none:   "0s",
-  slow:   "0.45s",
-  normal: "0.18s",
-  fast:   "0.08s",
+  none: "0s", slow: "0.45s", normal: "0.18s", fast: "0.08s",
 };
+
+function colorBlindFilter(mode: string): string {
+  const filters: Record<string, string> = {
+    protanopia:    "saturate(0.7) hue-rotate(20deg)",
+    deuteranopia:  "saturate(0.75) hue-rotate(-20deg)",
+    tritanopia:    "hue-rotate(180deg) saturate(0.65)",
+    achromatopsia: "grayscale(100%)",
+  };
+  return filters[mode] ?? "";
+}
 
 export function generateCSS(t: AuroraTheme): string {
   const dur    = ANIM_SPEED[t.animations.speed] ?? "0.18s";
@@ -18,15 +23,19 @@ export function generateCSS(t: AuroraTheme): string {
   const noAnim = t.animations.speed === "none";
   const trans  = `${dur} ${ease}`;
 
-  const bgImage    = t.images.browserBg ? `url("${t.images.browserBg}")` : "none";
-  const panelRgba  = hexToRgba(t.colors.panelBg,   t.effects.panelOpacity);
-  const toolRgba   = hexToRgba(t.colors.toolbarBg,  t.effects.panelOpacity);
-  const sideRgba   = hexToRgba(t.colors.sidebarBg,  t.effects.panelOpacity);
-  const blur       = t.effects.panelBlur !== "0px" ? `blur(${t.effects.panelBlur})` : "";
-  const tabShadow  = t.effects.tabShadow  ? `0 2px 8px ${t.colors.accent}55` : "none";
-  const accentGlow = t.effects.accentGlow ? `0 0 10px ${t.colors.accent}66, 0 0 22px ${t.colors.accent}33` : "";
+  const bgImage   = t.images.browserBg ? `url("${t.images.browserBg}")` : "none";
+  const panelRgba = hexToRgba(t.colors.panelBg,   t.effects.panelOpacity);
+  const toolRgba  = hexToRgba(t.colors.toolbarBg,  t.effects.panelOpacity);
+  const sideRgba  = hexToRgba(t.colors.sidebarBg,  t.effects.panelOpacity);
+  const blur      = t.effects.panelBlur !== "0px" ? `blur(${t.effects.panelBlur})` : "";
+  const tabShadow = t.effects.tabShadow  ? `0 2px 8px ${t.colors.accent}55` : "none";
+  const accentGlow= t.effects.accentGlow ? `0 0 10px ${t.colors.accent}66, 0 0 22px ${t.colors.accent}33` : "";
 
-  const T = (props: string) => noAnim ? "" : `transition: ${props.split(",").map(p => `${p.trim()} ${trans}`).join(", ")} !important;`;
+  const T = (props: string) => noAnim ? "" :
+    `transition: ${props.split(",").map(p => `${p.trim()} ${trans}`).join(", ")} !important;`;
+
+  // Shorthands for style flags
+  const S = t.style;
 
   return `
 /* ══ Aurora CSS Variables ══ */
@@ -35,17 +44,17 @@ export function generateCSS(t: AuroraTheme): string {
   --aurora-toolbar-bg:        ${toolRgba};
   --aurora-sidebar-bg:        ${sideRgba};
   --aurora-panel-text:        ${t.colors.panelText};
+  --aurora-tab-text:          ${t.colors.tabText};
+  --aurora-urlbar-text:       ${t.colors.urlbarText};
   --aurora-border:            ${t.colors.border};
   --aurora-border-w:          ${t.layout.borderWidth};
   --aurora-border-s:          ${t.effects.panelBorderStyle};
   --aurora-accent:            ${t.colors.accent};
   --aurora-tab-active:        ${t.colors.tabActiveBg};
   --aurora-tab-inactive:      ${t.colors.tabInactiveBg};
-  --aurora-tab-text:          ${t.colors.tabText};
   --aurora-tab-close-hover:   ${t.colors.tabCloseHover};
   --aurora-tab-hover:         ${t.colors.tabHoverBg};
   --aurora-urlbar-bg:         ${t.colors.urlbarBg};
-  --aurora-urlbar-text:       ${t.colors.urlbarText};
   --aurora-urlbar-border:     ${t.colors.urlbarBorder};
   --aurora-urlbar-focus:      ${t.colors.urlbarFocus};
   --aurora-browser-bg:        ${t.colors.browserBg};
@@ -53,10 +62,10 @@ export function generateCSS(t: AuroraTheme): string {
   --aurora-scrollbar:         ${t.colors.scrollbar};
   --aurora-btn-bg:            ${t.colors.buttonBg};
   --aurora-btn-hover:         ${t.colors.buttonHover};
-  --aurora-workspace-strip-bg:     ${t.colors.workspaceStripBg};
-  --aurora-workspace-dot:          ${t.colors.workspaceDot};
-  --aurora-workspace-dot-active:   ${t.colors.workspaceDotActive};
-  --aurora-workspace-strip-w:      ${t.layout.workspaceStripWidth};
+  --aurora-workspace-strip-bg:   ${t.colors.workspaceStripBg};
+  --aurora-workspace-dot:        ${t.colors.workspaceDot};
+  --aurora-workspace-dot-active: ${t.colors.workspaceDotActive};
+  --aurora-workspace-strip-w:    ${t.layout.workspaceStripWidth};
   --aurora-tab-h:             ${t.layout.tabHeight};
   --aurora-tab-r:             ${t.layout.tabBorderRadius};
   --aurora-panel-r:           ${t.layout.panelBorderRadius};
@@ -79,17 +88,16 @@ export function generateCSS(t: AuroraTheme): string {
 }
 
 /* ══ Zen native sync ══ */
-${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root { --zen-primary-color: ${t.colors.accent} !important; }` : ""}
+:root { --zen-primary-color: ${t.colors.accent} !important; }
 
-/* ══ Toolbox / Top Bar ══ */
+/* ══ Toolbar (navigator-toolbox) ══ */
+${S.toolbar ? `
 #navigator-toolbox {
   background: var(--aurora-toolbar-bg) !important;
   border-bottom: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
   ${T("background-color")}
 }
-
-/* ══ Panels (tab bar, nav bar, bookmarks) ══ */
 #TabsToolbar,
 #PersonalToolbar,
 #nav-bar {
@@ -100,8 +108,10 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   font-size: var(--aurora-font-sz) !important;
   ${T("background-color, color")}
 }
+` : ""}
 
-/* ══ Zen sidebar ══ */
+/* ══ Sidebar ══ */
+${S.sidebar ? `
 #sidebar-box,
 #zen-sidebar-top-buttons,
 #zen-sidebar-top-buttons-customization-target,
@@ -111,14 +121,15 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
   ${T("background-color")}
 }
-
 #sidebar-box {
   min-width: var(--aurora-sidebar-w) !important;
   max-width: var(--aurora-sidebar-w) !important;
   border-right: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
 }
+` : ""}
 
-/* ══ Zen workspace strip (leftmost narrow panel) ══ */
+/* ══ Workspace strip ══ */
+${S.workspaceStrip ? `
 #zen-appcontent-navbar {
   background: var(--aurora-workspace-strip-bg) !important;
   min-width: var(--aurora-workspace-strip-w) !important;
@@ -127,14 +138,12 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
   ${T("background-color, min-width, max-width")}
 }
-
 .zen-workspace-dot,
 .zen-workspace-button {
   background: var(--aurora-workspace-dot) !important;
   border-color: transparent !important;
   ${T("background-color, box-shadow")}
 }
-
 .zen-workspace-dot[selected],
 .zen-workspace-dot[active],
 .zen-workspace-button[selected],
@@ -142,36 +151,37 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   background: var(--aurora-workspace-dot-active) !important;
   box-shadow: 0 0 6px var(--aurora-workspace-dot-active) !important;
 }
+` : ""}
 
 /* ══ Tabs ══ */
+${S.tabs ? `
 .tabbrowser-tab .tab-background {
   background: var(--aurora-tab-inactive) !important;
   border-radius: var(--aurora-tab-r) !important;
   border: var(--aurora-border-w) var(--aurora-border-s) transparent !important;
   ${T("background-color, border-color, box-shadow")}
 }
-
 .tabbrowser-tab[selected] .tab-background {
   background: var(--aurora-tab-active) !important;
   border-color: var(--aurora-border) !important;
   box-shadow: var(--aurora-tab-shadow) !important;
 }
-
 .tabbrowser-tab:hover:not([selected]) .tab-background {
   background: var(--aurora-tab-hover) !important;
 }
-
 .tab-label, .tab-text {
   color: var(--aurora-tab-text) !important;
   font-family: var(--aurora-font) !important;
   font-size: var(--aurora-font-sz) !important;
   font-weight: var(--aurora-font-w) !important;
 }
-
 .tab-close-button:hover { color: var(--aurora-tab-close-hover) !important; }
 .tabbrowser-tab { min-height: var(--aurora-tab-h) !important; max-height: var(--aurora-tab-h) !important; }
+${t.effects.accentGlow ? `.tabbrowser-tab[selected] .tab-background { box-shadow: var(--aurora-tab-shadow), var(--aurora-glow) !important; }` : ""}
+` : ""}
 
 /* ══ URL Bar ══ */
+${S.urlbar ? `
 #urlbar,
 #urlbar-background {
   background: var(--aurora-urlbar-bg) !important;
@@ -180,18 +190,16 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   border-radius: var(--aurora-panel-r) !important;
   ${T("background-color, border-color, box-shadow")}
 }
-
 #urlbar[focused] #urlbar-background,
 #urlbar:focus-within #urlbar-background {
   border-color: var(--aurora-urlbar-focus) !important;
   box-shadow: 0 0 0 2px ${t.colors.urlbarFocus}30 !important;
 }
-
 #urlbar-input { color: var(--aurora-urlbar-text) !important; font-family: var(--aurora-font) !important; }
+` : ""}
 
-/* ══ Browser content area ══ */
+/* ══ Browser background ══ */
 #browser { background: var(--aurora-browser-bg) !important; }
-
 #browser::before {
   content: "";
   position: fixed; inset: 0; pointer-events: none; z-index: -1;
@@ -204,6 +212,7 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
 }
 
 /* ══ Toolbar buttons ══ */
+${S.toolbar ? `
 toolbarbutton,
 .toolbarbutton-1,
 .zen-sidebar-action-button {
@@ -212,18 +221,18 @@ toolbarbutton,
   color: var(--aurora-panel-text) !important;
   ${T("background-color, box-shadow, opacity")}
 }
-
 toolbarbutton:hover,
 .toolbarbutton-1:hover,
 .zen-sidebar-action-button:hover {
   background: var(--aurora-btn-hover) !important;
   ${t.effects.accentGlow ? "box-shadow: var(--aurora-glow) !important;" : ""}
 }
-
 toolbarbutton[checked="true"],
 toolbarbutton[open="true"] { background: var(--aurora-btn-bg) !important; }
+` : ""}
 
 /* ══ Popup menus ══ */
+${S.menus ? `
 menupopup,
 .panel-arrowcontainer,
 .panel-arrowcontent,
@@ -236,7 +245,6 @@ menupopup,
   font-size: 11.5px !important;
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
 }
-
 menuitem, menu {
   color: var(--aurora-panel-text) !important;
   border-radius: var(--aurora-btn-r) !important;
@@ -246,20 +254,78 @@ menuitem, menu {
   font-size: 11.5px !important;
   ${T("background-color")}
 }
-
 menuitem:hover, menu:hover { background: var(--aurora-btn-hover) !important; }
-
 menuseparator { margin-block: 2px !important; }
+` : ""}
 
-/* ══ Selection ══ */
+/* ══ Selection & scrollbar ══ */
 ::selection { background: var(--aurora-selection) !important; }
-
-/* ══ Scrollbar ══ */
 scrollbar, scrollbarbutton, slider { background: transparent !important; }
 thumb { background: var(--aurora-scrollbar) !important; border-radius: 999px !important; }
 
-/* ══ Accent glow on active tab ══ */
-${t.effects.accentGlow ? `.tabbrowser-tab[selected] .tab-background { box-shadow: var(--aurora-tab-shadow), var(--aurora-glow) !important; }` : ""}
+/* ══ No Gap Mod ══ */
+${t.layout.noGapMod ? `
+:root { --zen-element-separation: 0px !important; }
+#browser, #appcontent { gap: 0 !important; }
+#tabbrowser-tabpanels, #appcontent-animation-container {
+  background: ${t.layout.noGapBg} !important;
+  border-radius: 0 !important;
+}
+` : ""}
+
+/* ══ Toolbar mode ══ */
+${t.layout.toolbarMode === "single" ? `
+#PersonalToolbar { display: none !important; }
+` : ""}
+${t.layout.toolbarMode === "collapsed" ? `
+#navigator-toolbox { transform: translateY(-100%); transition: transform 0.2s ease !important; }
+#navigator-toolbox:hover,
+#navigator-toolbox:focus-within { transform: translateY(0) !important; }
+` : ""}
+
+/* ══ Top bar hitbox (larger hover zone when toolbar is hidden) ══ */
+${t.layout.hitboxHeight !== "4px" ? `
+#zen-appcontent-navbar::before,
+#tabbrowser-tabpanels::before {
+  content: "" !important;
+  display: block !important;
+  height: ${t.layout.hitboxHeight} !important;
+  position: fixed !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  background: transparent !important;
+  pointer-events: all !important;
+  z-index: 9999 !important;
+}
+` : ""}
+
+/* ══ Accessibility ══ */
+${t.accessibility.colorBlindMode !== "off" ? `
+html { filter: ${colorBlindFilter(t.accessibility.colorBlindMode)} !important; }
+` : ""}
+${t.accessibility.webContrast === "high-dark" ? `
+:root {
+  --aurora-panel-bg:   #000000 !important;
+  --aurora-toolbar-bg: #000000 !important;
+  --aurora-sidebar-bg: #0a0a0a !important;
+  --aurora-panel-text: #ffffff !important;
+  --aurora-tab-text:   #ffffff !important;
+  --aurora-urlbar-text:#ffffff !important;
+  --aurora-border:     #ffffff !important;
+  --aurora-browser-bg: #000000 !important;
+}
+` : ""}
+${t.accessibility.webContrast === "high-light" ? `
+:root {
+  --aurora-panel-bg:   #ffffff !important;
+  --aurora-toolbar-bg: #f0f0f0 !important;
+  --aurora-sidebar-bg: #f5f5f5 !important;
+  --aurora-panel-text: #000000 !important;
+  --aurora-tab-text:   #000000 !important;
+  --aurora-urlbar-text:#000000 !important;
+  --aurora-border:     #000000 !important;
+  --aurora-browser-bg: #ffffff !important;
+}
+` : ""}
 
 /* ══ Kill all animations ══ */
 ${noAnim ? "*, *::before, *::after { transition: none !important; animation: none !important; }" : ""}
@@ -291,7 +357,6 @@ export function removeTheme(targetDoc: Document = document): void {
   targetDoc.getElementById(STYLE_ID)?.remove();
 }
 
-// Inject arbitrary CSS string — used by spaces.ts for per-space overrides
 export function injectStyles(css: string, id: string, targetDoc: Document = document): void {
   let el = targetDoc.getElementById(id) as HTMLStyleElement | null;
   if (!el) {

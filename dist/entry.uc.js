@@ -16,21 +16,22 @@
     }
   }
   function loadTheme() {
+    const useIndividual = b("mod.aurora.style.individual_text_colors", false);
     return {
       colors: {
         panelBg: s("mod.aurora.color.panel_bg", "#1a1a2e"),
         toolbarBg: s("mod.aurora.color.toolbar_bg", "#16162a"),
         sidebarBg: s("mod.aurora.color.sidebar_bg", "#12122a"),
         panelText: s("mod.aurora.color.panel_text", "#e0e0ff"),
+        tabText: useIndividual ? s("mod.aurora.color.tab_text", "#c0c0e0") : s("mod.aurora.color.panel_text", "#e0e0ff"),
+        urlbarText: useIndividual ? s("mod.aurora.color.urlbar_text", "#e0e0ff") : s("mod.aurora.color.panel_text", "#e0e0ff"),
         border: s("mod.aurora.color.border", "#3a3a5c"),
         accent: s("mod.aurora.color.accent", "#7c6af7"),
         tabActiveBg: s("mod.aurora.color.tab_active_bg", "#2a2a4e"),
         tabInactiveBg: s("mod.aurora.color.tab_inactive_bg", "#1a1a2e"),
-        tabText: s("mod.aurora.color.tab_text", "#c0c0e0"),
         tabCloseHover: s("mod.aurora.color.tab_close_hover", "#ff6b6b"),
         tabHoverBg: s("mod.aurora.color.tab_hover_bg", "#252550"),
         urlbarBg: s("mod.aurora.color.urlbar_bg", "#1e1e3a"),
-        urlbarText: s("mod.aurora.color.urlbar_text", "#e0e0ff"),
         urlbarBorder: s("mod.aurora.color.urlbar_border", "#3a3a6c"),
         urlbarFocus: s("mod.aurora.color.urlbar_focus", "#7c6af7"),
         browserBg: s("mod.aurora.color.browser_bg", "#0f0f1a"),
@@ -62,7 +63,11 @@
         sidebarWidth: s("mod.aurora.layout.sidebar_width", "200px"),
         workspaceStripWidth: s("mod.aurora.layout.workspace_strip_width", "36px"),
         toolbarHeight: s("mod.aurora.layout.toolbar_height", "40px"),
-        borderWidth: s("mod.aurora.layout.border_width", "1px")
+        borderWidth: s("mod.aurora.layout.border_width", "1px"),
+        noGapMod: b("mod.aurora.layout.no_gap_mod", false),
+        noGapBg: s("mod.aurora.layout.no_gap_bg", "#000000"),
+        hitboxHeight: s("mod.aurora.layout.hitbox_height", "4px"),
+        toolbarMode: s("mod.aurora.layout.toolbar_mode", "multi")
       },
       effects: {
         panelOpacity: s("mod.aurora.effect.panel_opacity", "1.0"),
@@ -71,14 +76,24 @@
         accentGlow: b("mod.aurora.effect.accent_glow", false),
         panelBorderStyle: s("mod.aurora.effect.panel_border_style", "solid")
       },
-      sounds: {
-        enabled: b("mod.aurora.sounds_enabled", false)
+      style: {
+        tabs: b("mod.aurora.style.tabs", true),
+        urlbar: b("mod.aurora.style.urlbar", true),
+        sidebar: b("mod.aurora.style.sidebar", true),
+        toolbar: b("mod.aurora.style.toolbar", true),
+        workspaceStrip: b("mod.aurora.style.workspace_strip", true),
+        menus: b("mod.aurora.style.menus", true),
+        individualTextColors: b("mod.aurora.style.individual_text_colors", false)
       },
       animations: {
         speed: s("mod.aurora.animation_speed", "normal"),
         easing: s("mod.aurora.animation.easing", "ease")
       },
-      dynamicMode: s("mod.aurora.dynamic_mode", "off")
+      accessibility: {
+        colorScheme: s("mod.aurora.accessibility.color_scheme", "auto"),
+        colorBlindMode: s("mod.aurora.accessibility.color_blind_mode", "off"),
+        webContrast: s("mod.aurora.accessibility.web_contrast", "off")
+      }
     };
   }
 
@@ -91,6 +106,15 @@
     normal: "0.18s",
     fast: "0.08s"
   };
+  function colorBlindFilter(mode) {
+    const filters = {
+      protanopia: "saturate(0.7) hue-rotate(20deg)",
+      deuteranopia: "saturate(0.75) hue-rotate(-20deg)",
+      tritanopia: "hue-rotate(180deg) saturate(0.65)",
+      achromatopsia: "grayscale(100%)"
+    };
+    return filters[mode] ?? "";
+  }
   function generateCSS(t) {
     const dur = ANIM_SPEED[t.animations.speed] ?? "0.18s";
     const ease = t.animations.easing === "ease" ? MD_EASE : t.animations.easing;
@@ -104,6 +128,7 @@
     const tabShadow = t.effects.tabShadow ? `0 2px 8px ${t.colors.accent}55` : "none";
     const accentGlow = t.effects.accentGlow ? `0 0 10px ${t.colors.accent}66, 0 0 22px ${t.colors.accent}33` : "";
     const T = (props) => noAnim ? "" : `transition: ${props.split(",").map((p) => `${p.trim()} ${trans}`).join(", ")} !important;`;
+    const S = t.style;
     return `
 /* \u2550\u2550 Aurora CSS Variables \u2550\u2550 */
 :root {
@@ -111,17 +136,17 @@
   --aurora-toolbar-bg:        ${toolRgba};
   --aurora-sidebar-bg:        ${sideRgba};
   --aurora-panel-text:        ${t.colors.panelText};
+  --aurora-tab-text:          ${t.colors.tabText};
+  --aurora-urlbar-text:       ${t.colors.urlbarText};
   --aurora-border:            ${t.colors.border};
   --aurora-border-w:          ${t.layout.borderWidth};
   --aurora-border-s:          ${t.effects.panelBorderStyle};
   --aurora-accent:            ${t.colors.accent};
   --aurora-tab-active:        ${t.colors.tabActiveBg};
   --aurora-tab-inactive:      ${t.colors.tabInactiveBg};
-  --aurora-tab-text:          ${t.colors.tabText};
   --aurora-tab-close-hover:   ${t.colors.tabCloseHover};
   --aurora-tab-hover:         ${t.colors.tabHoverBg};
   --aurora-urlbar-bg:         ${t.colors.urlbarBg};
-  --aurora-urlbar-text:       ${t.colors.urlbarText};
   --aurora-urlbar-border:     ${t.colors.urlbarBorder};
   --aurora-urlbar-focus:      ${t.colors.urlbarFocus};
   --aurora-browser-bg:        ${t.colors.browserBg};
@@ -129,10 +154,10 @@
   --aurora-scrollbar:         ${t.colors.scrollbar};
   --aurora-btn-bg:            ${t.colors.buttonBg};
   --aurora-btn-hover:         ${t.colors.buttonHover};
-  --aurora-workspace-strip-bg:     ${t.colors.workspaceStripBg};
-  --aurora-workspace-dot:          ${t.colors.workspaceDot};
-  --aurora-workspace-dot-active:   ${t.colors.workspaceDotActive};
-  --aurora-workspace-strip-w:      ${t.layout.workspaceStripWidth};
+  --aurora-workspace-strip-bg:   ${t.colors.workspaceStripBg};
+  --aurora-workspace-dot:        ${t.colors.workspaceDot};
+  --aurora-workspace-dot-active: ${t.colors.workspaceDotActive};
+  --aurora-workspace-strip-w:    ${t.layout.workspaceStripWidth};
   --aurora-tab-h:             ${t.layout.tabHeight};
   --aurora-tab-r:             ${t.layout.tabBorderRadius};
   --aurora-panel-r:           ${t.layout.panelBorderRadius};
@@ -155,17 +180,16 @@
 }
 
 /* \u2550\u2550 Zen native sync \u2550\u2550 */
-${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root { --zen-primary-color: ${t.colors.accent} !important; }` : ""}
+:root { --zen-primary-color: ${t.colors.accent} !important; }
 
-/* \u2550\u2550 Toolbox / Top Bar \u2550\u2550 */
+/* \u2550\u2550 Toolbar (navigator-toolbox) \u2550\u2550 */
+${S.toolbar ? `
 #navigator-toolbox {
   background: var(--aurora-toolbar-bg) !important;
   border-bottom: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
   ${T("background-color")}
 }
-
-/* \u2550\u2550 Panels (tab bar, nav bar, bookmarks) \u2550\u2550 */
 #TabsToolbar,
 #PersonalToolbar,
 #nav-bar {
@@ -176,8 +200,10 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   font-size: var(--aurora-font-sz) !important;
   ${T("background-color, color")}
 }
+` : ""}
 
-/* \u2550\u2550 Zen sidebar \u2550\u2550 */
+/* \u2550\u2550 Sidebar \u2550\u2550 */
+${S.sidebar ? `
 #sidebar-box,
 #zen-sidebar-top-buttons,
 #zen-sidebar-top-buttons-customization-target,
@@ -187,14 +213,15 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
   ${T("background-color")}
 }
-
 #sidebar-box {
   min-width: var(--aurora-sidebar-w) !important;
   max-width: var(--aurora-sidebar-w) !important;
   border-right: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
 }
+` : ""}
 
-/* \u2550\u2550 Zen workspace strip (leftmost narrow panel) \u2550\u2550 */
+/* \u2550\u2550 Workspace strip \u2550\u2550 */
+${S.workspaceStrip ? `
 #zen-appcontent-navbar {
   background: var(--aurora-workspace-strip-bg) !important;
   min-width: var(--aurora-workspace-strip-w) !important;
@@ -203,14 +230,12 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
   ${T("background-color, min-width, max-width")}
 }
-
 .zen-workspace-dot,
 .zen-workspace-button {
   background: var(--aurora-workspace-dot) !important;
   border-color: transparent !important;
   ${T("background-color, box-shadow")}
 }
-
 .zen-workspace-dot[selected],
 .zen-workspace-dot[active],
 .zen-workspace-button[selected],
@@ -218,36 +243,37 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   background: var(--aurora-workspace-dot-active) !important;
   box-shadow: 0 0 6px var(--aurora-workspace-dot-active) !important;
 }
+` : ""}
 
 /* \u2550\u2550 Tabs \u2550\u2550 */
+${S.tabs ? `
 .tabbrowser-tab .tab-background {
   background: var(--aurora-tab-inactive) !important;
   border-radius: var(--aurora-tab-r) !important;
   border: var(--aurora-border-w) var(--aurora-border-s) transparent !important;
   ${T("background-color, border-color, box-shadow")}
 }
-
 .tabbrowser-tab[selected] .tab-background {
   background: var(--aurora-tab-active) !important;
   border-color: var(--aurora-border) !important;
   box-shadow: var(--aurora-tab-shadow) !important;
 }
-
 .tabbrowser-tab:hover:not([selected]) .tab-background {
   background: var(--aurora-tab-hover) !important;
 }
-
 .tab-label, .tab-text {
   color: var(--aurora-tab-text) !important;
   font-family: var(--aurora-font) !important;
   font-size: var(--aurora-font-sz) !important;
   font-weight: var(--aurora-font-w) !important;
 }
-
 .tab-close-button:hover { color: var(--aurora-tab-close-hover) !important; }
 .tabbrowser-tab { min-height: var(--aurora-tab-h) !important; max-height: var(--aurora-tab-h) !important; }
+${t.effects.accentGlow ? `.tabbrowser-tab[selected] .tab-background { box-shadow: var(--aurora-tab-shadow), var(--aurora-glow) !important; }` : ""}
+` : ""}
 
 /* \u2550\u2550 URL Bar \u2550\u2550 */
+${S.urlbar ? `
 #urlbar,
 #urlbar-background {
   background: var(--aurora-urlbar-bg) !important;
@@ -256,18 +282,16 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   border-radius: var(--aurora-panel-r) !important;
   ${T("background-color, border-color, box-shadow")}
 }
-
 #urlbar[focused] #urlbar-background,
 #urlbar:focus-within #urlbar-background {
   border-color: var(--aurora-urlbar-focus) !important;
   box-shadow: 0 0 0 2px ${t.colors.urlbarFocus}30 !important;
 }
-
 #urlbar-input { color: var(--aurora-urlbar-text) !important; font-family: var(--aurora-font) !important; }
+` : ""}
 
-/* \u2550\u2550 Browser content area \u2550\u2550 */
+/* \u2550\u2550 Browser background \u2550\u2550 */
 #browser { background: var(--aurora-browser-bg) !important; }
-
 #browser::before {
   content: "";
   position: fixed; inset: 0; pointer-events: none; z-index: -1;
@@ -280,6 +304,7 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
 }
 
 /* \u2550\u2550 Toolbar buttons \u2550\u2550 */
+${S.toolbar ? `
 toolbarbutton,
 .toolbarbutton-1,
 .zen-sidebar-action-button {
@@ -288,18 +313,18 @@ toolbarbutton,
   color: var(--aurora-panel-text) !important;
   ${T("background-color, box-shadow, opacity")}
 }
-
 toolbarbutton:hover,
 .toolbarbutton-1:hover,
 .zen-sidebar-action-button:hover {
   background: var(--aurora-btn-hover) !important;
   ${t.effects.accentGlow ? "box-shadow: var(--aurora-glow) !important;" : ""}
 }
-
 toolbarbutton[checked="true"],
 toolbarbutton[open="true"] { background: var(--aurora-btn-bg) !important; }
+` : ""}
 
 /* \u2550\u2550 Popup menus \u2550\u2550 */
+${S.menus ? `
 menupopup,
 .panel-arrowcontainer,
 .panel-arrowcontent,
@@ -312,7 +337,6 @@ menupopup,
   font-size: 11.5px !important;
   ${blur ? `backdrop-filter: ${blur} !important;` : ""}
 }
-
 menuitem, menu {
   color: var(--aurora-panel-text) !important;
   border-radius: var(--aurora-btn-r) !important;
@@ -322,20 +346,78 @@ menuitem, menu {
   font-size: 11.5px !important;
   ${T("background-color")}
 }
-
 menuitem:hover, menu:hover { background: var(--aurora-btn-hover) !important; }
-
 menuseparator { margin-block: 2px !important; }
+` : ""}
 
-/* \u2550\u2550 Selection \u2550\u2550 */
+/* \u2550\u2550 Selection & scrollbar \u2550\u2550 */
 ::selection { background: var(--aurora-selection) !important; }
-
-/* \u2550\u2550 Scrollbar \u2550\u2550 */
 scrollbar, scrollbarbutton, slider { background: transparent !important; }
 thumb { background: var(--aurora-scrollbar) !important; border-radius: 999px !important; }
 
-/* \u2550\u2550 Accent glow on active tab \u2550\u2550 */
-${t.effects.accentGlow ? `.tabbrowser-tab[selected] .tab-background { box-shadow: var(--aurora-tab-shadow), var(--aurora-glow) !important; }` : ""}
+/* \u2550\u2550 No Gap Mod \u2550\u2550 */
+${t.layout.noGapMod ? `
+:root { --zen-element-separation: 0px !important; }
+#browser, #appcontent { gap: 0 !important; }
+#tabbrowser-tabpanels, #appcontent-animation-container {
+  background: ${t.layout.noGapBg} !important;
+  border-radius: 0 !important;
+}
+` : ""}
+
+/* \u2550\u2550 Toolbar mode \u2550\u2550 */
+${t.layout.toolbarMode === "single" ? `
+#PersonalToolbar { display: none !important; }
+` : ""}
+${t.layout.toolbarMode === "collapsed" ? `
+#navigator-toolbox { transform: translateY(-100%); transition: transform 0.2s ease !important; }
+#navigator-toolbox:hover,
+#navigator-toolbox:focus-within { transform: translateY(0) !important; }
+` : ""}
+
+/* \u2550\u2550 Top bar hitbox (larger hover zone when toolbar is hidden) \u2550\u2550 */
+${t.layout.hitboxHeight !== "4px" ? `
+#zen-appcontent-navbar::before,
+#tabbrowser-tabpanels::before {
+  content: "" !important;
+  display: block !important;
+  height: ${t.layout.hitboxHeight} !important;
+  position: fixed !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  background: transparent !important;
+  pointer-events: all !important;
+  z-index: 9999 !important;
+}
+` : ""}
+
+/* \u2550\u2550 Accessibility \u2550\u2550 */
+${t.accessibility.colorBlindMode !== "off" ? `
+html { filter: ${colorBlindFilter(t.accessibility.colorBlindMode)} !important; }
+` : ""}
+${t.accessibility.webContrast === "high-dark" ? `
+:root {
+  --aurora-panel-bg:   #000000 !important;
+  --aurora-toolbar-bg: #000000 !important;
+  --aurora-sidebar-bg: #0a0a0a !important;
+  --aurora-panel-text: #ffffff !important;
+  --aurora-tab-text:   #ffffff !important;
+  --aurora-urlbar-text:#ffffff !important;
+  --aurora-border:     #ffffff !important;
+  --aurora-browser-bg: #000000 !important;
+}
+` : ""}
+${t.accessibility.webContrast === "high-light" ? `
+:root {
+  --aurora-panel-bg:   #ffffff !important;
+  --aurora-toolbar-bg: #f0f0f0 !important;
+  --aurora-sidebar-bg: #f5f5f5 !important;
+  --aurora-panel-text: #000000 !important;
+  --aurora-tab-text:   #000000 !important;
+  --aurora-urlbar-text:#000000 !important;
+  --aurora-border:     #000000 !important;
+  --aurora-browser-bg: #ffffff !important;
+}
+` : ""}
 
 /* \u2550\u2550 Kill all animations \u2550\u2550 */
 ${noAnim ? "*, *::before, *::after { transition: none !important; animation: none !important; }" : ""}
@@ -372,10 +454,6 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
 
   // src/core/events.ts
   var listeners = /* @__PURE__ */ new Set();
-  function onAuroraEvent(fn) {
-    listeners.add(fn);
-    return () => listeners.delete(fn);
-  }
   function emit(type) {
     for (const fn of listeners) fn(type);
   }
@@ -393,421 +471,6 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     }
     chromeDoc.addEventListener("popupshowing", () => emit("panel-show"), { capture: true, passive: true });
     chromeDoc.addEventListener("popuphiding", () => emit("panel-hide"), { capture: true, passive: true });
-  }
-
-  // src/features/sounds.ts
-  var audioCtx = null;
-  var buffers = /* @__PURE__ */ new Map();
-  var roundRobinIdx = /* @__PURE__ */ new Map();
-  var cleanup = null;
-  var DEFAULT_PACK = {
-    keydown: [],
-    tabOpen: [],
-    tabClose: [],
-    tabClick: [],
-    panelShow: [],
-    panelHide: []
-  };
-  async function loadBuffer(ctx, base64) {
-    const binary = atob(base64.replace(/^data:[^;]+;base64,/, ""));
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return ctx.decodeAudioData(bytes.buffer);
-  }
-  async function loadPack(pack) {
-    if (!audioCtx) audioCtx = new AudioContext();
-    buffers.clear();
-    roundRobinIdx.clear();
-    const entries = Object.entries(pack);
-    await Promise.all(
-      entries.map(async ([key, srcs]) => {
-        if (!srcs.length) return;
-        const loaded = await Promise.all(srcs.map((s2) => loadBuffer(audioCtx, s2)));
-        buffers.set(key, loaded);
-        roundRobinIdx.set(key, 0);
-      })
-    );
-  }
-  function play(key) {
-    if (!audioCtx || !buffers.has(key)) return;
-    const bufs = buffers.get(key);
-    if (!bufs.length) return;
-    const idx = roundRobinIdx.get(key) ?? 0;
-    roundRobinIdx.set(key, (idx + 1) % bufs.length);
-    const source = audioCtx.createBufferSource();
-    source.buffer = bufs[idx];
-    source.connect(audioCtx.destination);
-    source.start();
-  }
-  var lastKeyTime = 0;
-  var KEY_THROTTLE_MS = 30;
-  async function initSounds(theme) {
-    stopSounds();
-    if (!theme.sounds.enabled) return;
-    const pack = theme.sounds.customPack ? theme.sounds.customPack : DEFAULT_PACK;
-    await loadPack(pack);
-    const unsub = onAuroraEvent((type) => {
-      switch (type) {
-        case "keydown": {
-          const now = Date.now();
-          if (now - lastKeyTime < KEY_THROTTLE_MS) return;
-          lastKeyTime = now;
-          play("keydown");
-          break;
-        }
-        case "tab-open":
-          play("tabOpen");
-          break;
-        case "tab-close":
-          play("tabClose");
-          break;
-        case "tab-click":
-          play("tabClick");
-          break;
-        case "panel-show":
-          play("panelShow");
-          break;
-        case "panel-hide":
-          play("panelHide");
-          break;
-      }
-    });
-    cleanup = unsub;
-  }
-  function stopSounds() {
-    cleanup?.();
-    cleanup = null;
-    audioCtx?.close();
-    audioCtx = null;
-    buffers.clear();
-  }
-
-  // src/features/palette.ts
-  function rgbToHex(r, g, b2) {
-    return "#" + [r, g, b2].map((v) => v.toString(16).padStart(2, "0")).join("");
-  }
-  function hexToRgb(hex) {
-    const n = parseInt(hex.slice(1), 16);
-    return [n >> 16 & 255, n >> 8 & 255, n & 255];
-  }
-  function luminance(r, g, b2) {
-    const sRGB = [r, g, b2].map((c) => {
-      const s2 = c / 255;
-      return s2 <= 0.03928 ? s2 / 12.92 : Math.pow((s2 + 0.055) / 1.055, 2.4);
-    });
-    return 0.2126 * sRGB[0] + 0.7152 * sRGB[1] + 0.0722 * sRGB[2];
-  }
-  function darken(hex, factor) {
-    const [r, g, b2] = hexToRgb(hex);
-    return rgbToHex(
-      Math.round(r * (1 - factor)),
-      Math.round(g * (1 - factor)),
-      Math.round(b2 * (1 - factor))
-    );
-  }
-  function lighten(hex, factor) {
-    const [r, g, b2] = hexToRgb(hex);
-    return rgbToHex(
-      Math.min(255, Math.round(r + (255 - r) * factor)),
-      Math.min(255, Math.round(g + (255 - g) * factor)),
-      Math.min(255, Math.round(b2 + (255 - b2) * factor))
-    );
-  }
-  async function extractPalette(base64Image) {
-    const img = new Image();
-    await new Promise((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = reject;
-      img.src = base64Image;
-    });
-    const SIZE = 64;
-    const canvas = new OffscreenCanvas(SIZE, SIZE);
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, SIZE, SIZE);
-    const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
-    const pixels = [];
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i + 1], b2 = data[i + 2];
-      const lum2 = luminance(r, g, b2);
-      if (lum2 > 0.05 && lum2 < 0.95) pixels.push([r, g, b2]);
-    }
-    if (!pixels.length) {
-      return {
-        dominant: "#7c6af7",
-        primary: "#9d8fff",
-        secondary: "#6a58e0",
-        surface: "#1a1a2e",
-        onSurface: "#e0e0ff"
-      };
-    }
-    const dominant = medianCut(pixels, 1)[0];
-    const dominantHex = rgbToHex(...dominant);
-    const lum = luminance(...dominant);
-    const isDark = lum < 0.3;
-    return {
-      dominant: dominantHex,
-      primary: isDark ? lighten(dominantHex, 0.3) : darken(dominantHex, 0.2),
-      secondary: isDark ? lighten(dominantHex, 0.15) : darken(dominantHex, 0.35),
-      surface: isDark ? darken(dominantHex, 0.7) : lighten(dominantHex, 0.85),
-      onSurface: isDark ? lighten(dominantHex, 0.9) : darken(dominantHex, 0.8)
-    };
-  }
-  function medianCut(pixels, depth) {
-    if (depth === 0 || pixels.length === 0) {
-      const avg = pixels.reduce(
-        ([ar, ag, ab], [r, g, b2]) => [ar + r, ag + g, ab + b2],
-        [0, 0, 0]
-      ).map((v) => Math.round(v / pixels.length));
-      return [avg];
-    }
-    const ranges = [0, 1, 2].map((ch) => {
-      const vals = pixels.map((p) => p[ch]);
-      return Math.max(...vals) - Math.min(...vals);
-    });
-    const channel = ranges.indexOf(Math.max(...ranges));
-    pixels.sort((a, b2) => a[channel] - b2[channel]);
-    const mid = Math.floor(pixels.length / 2);
-    return [
-      ...medianCut(pixels.slice(0, mid), depth - 1),
-      ...medianCut(pixels.slice(mid), depth - 1)
-    ];
-  }
-
-  // src/features/dynamicTheme.ts
-  var dynamicTimer = null;
-  var faviconObserverCleanup = null;
-  function sp(key, def) {
-    try {
-      return Services.prefs.getStringPref(key, def) || def;
-    } catch {
-      return def;
-    }
-  }
-  function np(key, def) {
-    const v = parseFloat(sp(key, String(def)));
-    return isNaN(v) ? def : v;
-  }
-  function lerp(a, b2, t) {
-    return Math.round(a + (b2 - a) * t);
-  }
-  function hexToRgb2(hex) {
-    const c = hex.replace("#", "");
-    return [
-      parseInt(c.slice(0, 2), 16),
-      parseInt(c.slice(2, 4), 16),
-      parseInt(c.slice(4, 6), 16)
-    ];
-  }
-  function rgbToHex2(r, g, b2) {
-    return "#" + [r, g, b2].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
-  }
-  function lerpHex(a, b2, t) {
-    const [ar, ag, ab] = hexToRgb2(a);
-    const [br, bg, bb] = hexToRgb2(b2);
-    return rgbToHex2(lerp(ar, br, t), lerp(ag, bg, t), lerp(ab, bb, t));
-  }
-  function boostSaturation(hex, factor) {
-    const [r, g, b2] = hexToRgb2(hex).map((v) => v / 255);
-    const max = Math.max(r, g, b2), min = Math.min(r, g, b2);
-    const l = (max + min) / 2;
-    if (max === min) return hex;
-    let s2 = l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
-    s2 = Math.min(1, s2 * factor);
-    const c = (1 - Math.abs(2 * l - 1)) * s2;
-    const x = c * (1 - Math.abs((max === r ? (g - b2) / (max - min) % 6 : max === g ? (b2 - r) / (max - min) + 2 : (r - g) / (max - min) + 4) % 6 - 1));
-    const m = l - c / 2;
-    let rr = 0, gg = 0, bb2 = 0;
-    const hh = max === r ? ((g - b2) / (max - min) * 60 + 360) % 360 : max === g ? (b2 - r) / (max - min) * 60 + 120 : (r - g) / (max - min) * 60 + 240;
-    if (hh < 60) {
-      rr = c;
-      gg = x;
-    } else if (hh < 120) {
-      rr = x;
-      gg = c;
-    } else if (hh < 180) {
-      gg = c;
-      bb2 = x;
-    } else if (hh < 240) {
-      gg = x;
-      bb2 = c;
-    } else if (hh < 300) {
-      rr = x;
-      bb2 = c;
-    } else {
-      rr = c;
-      bb2 = x;
-    }
-    return rgbToHex2((rr + m) * 255, (gg + m) * 255, (bb2 + m) * 255);
-  }
-  function darken2(hex, factor) {
-    const [r, g, b2] = hexToRgb2(hex);
-    return rgbToHex2(r * factor, g * factor, b2 * factor);
-  }
-  function getDayNightFactor() {
-    const dayH = np("mod.aurora.dynamic.day_hour", 7);
-    const nightH = np("mod.aurora.dynamic.night_hour", 20);
-    const transM = np("mod.aurora.dynamic.transition_minutes", 60);
-    const transH = transM / 60;
-    const now = /* @__PURE__ */ new Date();
-    const h = now.getHours() + now.getMinutes() / 60;
-    const dayEnd = dayH + transH;
-    const nightEnd = nightH + transH;
-    if (h >= dayEnd && h < nightH) return 0;
-    if (h >= nightEnd || h < dayH) return 1;
-    if (h >= dayH && h < dayEnd) return 1 - (h - dayH) / transH;
-    if (h >= nightH && h < nightEnd) return (h - nightH) / transH;
-    return 0;
-  }
-  function applyDayNight(doc) {
-    const t = getDayNightFactor();
-    const dayAccent = sp("mod.aurora.dynamic.day_accent", "#4a90d9");
-    const dayBg = sp("mod.aurora.dynamic.day_bg", "#1a2035");
-    const dayText = sp("mod.aurora.dynamic.day_text", "#dde8ff");
-    const nightAccent = sp("mod.aurora.dynamic.night_accent", "#e07840");
-    const nightBg = sp("mod.aurora.dynamic.night_bg", "#1f1510");
-    const nightText = sp("mod.aurora.dynamic.night_text", "#ffe0cc");
-    const theme = loadTheme();
-    const merged = {
-      ...theme,
-      colors: {
-        ...theme.colors,
-        accent: lerpHex(dayAccent, nightAccent, t),
-        panelBg: lerpHex(dayBg, nightBg, t),
-        toolbarBg: lerpHex(darken2(dayBg, 0.85), darken2(nightBg, 0.85), t),
-        sidebarBg: lerpHex(darken2(dayBg, 0.75), darken2(nightBg, 0.75), t),
-        panelText: lerpHex(dayText, nightText, t),
-        browserBg: lerpHex(darken2(dayBg, 0.6), darken2(nightBg, 0.6), t),
-        urlbarFocus: lerpHex(dayAccent, nightAccent, t),
-        tabActiveBg: lerpHex(darken2(dayBg, 1.5), darken2(nightBg, 1.5), t)
-      }
-    };
-    applyTheme(merged, doc);
-  }
-  async function applyMaterialTheme(doc) {
-    const theme = loadTheme();
-    if (!theme.images.browserBg) return;
-    const palette = await extractPalette(theme.images.browserBg);
-    const intensity = np("mod.aurora.dynamic.material_intensity", 0.75);
-    function blend(dynamic, original) {
-      return lerpHex(original, dynamic, intensity);
-    }
-    const merged = {
-      ...theme,
-      colors: {
-        ...theme.colors,
-        accent: blend(palette.primary, theme.colors.accent),
-        panelBg: blend(palette.surface, theme.colors.panelBg),
-        toolbarBg: blend(darken2(palette.surface, 0.85), theme.colors.toolbarBg),
-        sidebarBg: blend(darken2(palette.surface, 0.75), theme.colors.sidebarBg),
-        panelText: blend(palette.onSurface, theme.colors.panelText),
-        border: blend(palette.secondary, theme.colors.border),
-        browserBg: blend(darken2(palette.surface, 0.6), theme.colors.browserBg),
-        tabActiveBg: blend(darken2(palette.surface, 1.5), theme.colors.tabActiveBg),
-        urlbarFocus: blend(palette.primary, theme.colors.urlbarFocus)
-      }
-    };
-    applyTheme(merged, doc);
-  }
-  async function extractFaviconColor() {
-    try {
-      const tab = window.gBrowser?.selectedTab;
-      if (!tab) return null;
-      const uri = tab.linkedBrowser?.currentURI?.spec;
-      if (!uri || uri.startsWith("about:") || uri.startsWith("moz-extension:")) return null;
-      const faviconURL = await new Promise((resolve) => {
-        try {
-          const svc = ChromeUtils.import("resource://gre/modules/PlacesUtils.sys.mjs");
-          const PlacesUtils = svc.PlacesUtils;
-          if (!PlacesUtils?.favicons) {
-            resolve(null);
-            return;
-          }
-          const pageURI = Services.io.newURI(uri);
-          PlacesUtils.favicons.getFaviconURLForPage(pageURI, (faviconUri) => {
-            resolve(faviconUri?.spec ?? null);
-          });
-        } catch {
-          resolve(null);
-        }
-      });
-      if (!faviconURL) return null;
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      await new Promise((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = reject;
-        img.src = faviconURL;
-      });
-      const canvas = new OffscreenCanvas(16, 16);
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, 16, 16);
-      const data = ctx.getImageData(0, 0, 16, 16).data;
-      let r = 0, g = 0, b2 = 0, count = 0;
-      for (let i = 0; i < data.length; i += 4) {
-        if (data[i + 3] < 128) continue;
-        r += data[i];
-        g += data[i + 1];
-        b2 += data[i + 2];
-        count++;
-      }
-      if (count === 0) return null;
-      const satBoost = np("mod.aurora.dynamic.favicon_saturation_boost", 1.2);
-      const raw = rgbToHex2(r / count, g / count, b2 / count);
-      return boostSaturation(raw, satBoost);
-    } catch {
-      return null;
-    }
-  }
-  var lastTabFaviconColor = "";
-  async function applyTabAccent(doc) {
-    const fallback = sp("mod.aurora.dynamic.favicon_fallback", "#7c6af7");
-    const color = await extractFaviconColor() ?? fallback;
-    if (color === lastTabFaviconColor) return;
-    lastTabFaviconColor = color;
-    const theme = loadTheme();
-    const merged = {
-      ...theme,
-      colors: {
-        ...theme.colors,
-        accent: color,
-        urlbarFocus: color,
-        tabActiveBg: darken2(color, 0.3)
-      }
-    };
-    applyTheme(merged, doc);
-  }
-  function initDynamicTheme(doc) {
-    stopDynamicTheme();
-    const theme = loadTheme();
-    if (theme.dynamicMode === "material") {
-      applyMaterialTheme(doc).catch(() => {
-      });
-      dynamicTimer = setInterval(() => applyMaterialTheme(doc).catch(() => {
-      }), 5 * 60 * 1e3);
-    } else if (theme.dynamicMode === "daynight") {
-      applyDayNight(doc);
-      dynamicTimer = setInterval(() => applyDayNight(doc), 60 * 1e3);
-    } else if (theme.dynamicMode === "tab_accent") {
-      applyTabAccent(doc).catch(() => {
-      });
-      const onTab = () => applyTabAccent(doc).catch(() => {
-      });
-      doc.addEventListener("TabSelect", onTab, { capture: true });
-      dynamicTimer = setInterval(() => applyTabAccent(doc).catch(() => {
-      }), 5e3);
-      faviconObserverCleanup = () => {
-        doc.removeEventListener("TabSelect", onTab, true);
-      };
-    }
-  }
-  function stopDynamicTheme() {
-    if (dynamicTimer !== null) {
-      clearInterval(dynamicTimer);
-      dynamicTimer = null;
-    }
-    faviconObserverCleanup?.();
-    faviconObserverCleanup = null;
-    lastTabFaviconColor = "";
   }
 
   // src/features/spaces.ts
@@ -1077,8 +740,6 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
   }
 
   // src/entry.uc.mts
-  var soundsRunning = false;
-  var dynamicRunning = false;
   var stopSpaces = null;
   var stopOverlay = null;
   var stopZenSync = null;
@@ -1087,28 +748,13 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       debounceTimer = null;
-      applyAll(doc).catch((e) => dump(`[Aurora] ${e}
-`));
+      applyAll(doc);
     }, 80);
   }
-  async function applyAll(doc) {
+  function applyAll(doc) {
     const theme = loadTheme();
     applyTheme(theme, doc);
     refreshSpaces(doc);
-    if (theme.sounds.enabled && !soundsRunning) {
-      soundsRunning = true;
-      await initSounds(theme);
-    } else if (!theme.sounds.enabled && soundsRunning) {
-      stopSounds();
-      soundsRunning = false;
-    }
-    if (theme.dynamicMode !== "off" && !dynamicRunning) {
-      dynamicRunning = true;
-      initDynamicTheme(doc);
-    } else if (theme.dynamicMode === "off" && dynamicRunning) {
-      stopDynamicTheme();
-      dynamicRunning = false;
-    }
   }
   async function init() {
     try {
@@ -1136,8 +782,6 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       doc.defaultView?.addEventListener("beforeunload", () => {
         if (debounceTimer) clearTimeout(debounceTimer);
         Services.prefs.removeObserver("mod.aurora.", observer);
-        stopSounds();
-        stopDynamicTheme();
         stopSpaces?.();
         stopOverlay?.();
         stopZenSync?.();
