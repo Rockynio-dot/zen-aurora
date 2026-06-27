@@ -365,6 +365,12 @@ ${t.effects.accentGlow ? `
 }
 ` : ""}
 
+/* \u2500\u2500 Zen Browser native variable sync \u2500\u2500 */
+${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `
+:root {
+  --zen-primary-color: ${t.colors.accent} !important;
+}` : ""}
+
 /* \u2500\u2500 Vypnut\xED animac\xED \u2500\u2500 */
 ${noAnim ? "*, *::before, *::after { transition: none !important; animation: none !important; }" : ""}
 `.trim();
@@ -675,12 +681,122 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     }
   }
 
+  // src/features/spaces.ts
+  function getActiveSpaceIndex() {
+    try {
+      const gZen = window.gZenWorkspaces;
+      const uuid = gZen?.activeWorkspace;
+      if (!uuid) return -1;
+      return (gZen?._workspaceCache ?? []).findIndex((s2) => s2.uuid === uuid);
+    } catch {
+      return -1;
+    }
+  }
+  function spaceColor(idx, suffix, fallback) {
+    try {
+      const val = Services.prefs.getStringPref(
+        `mod.aurora.space.${idx + 1}.${suffix}`,
+        ""
+      );
+      return val || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+  function buildSpaceCSS(spaceIdx, base) {
+    if (spaceIdx < 0) return "";
+    const accent = spaceColor(spaceIdx, "accent", base.colors.accent);
+    const panelBg = spaceColor(spaceIdx, "panel_bg", base.colors.panelBg);
+    const toolbarBg = spaceColor(spaceIdx, "toolbar_bg", base.colors.toolbarBg);
+    const sidebarBg = spaceColor(spaceIdx, "sidebar_bg", base.colors.sidebarBg);
+    const tabActive = spaceColor(spaceIdx, "tab_active_bg", base.colors.tabActiveBg);
+    const urlFocus = spaceColor(spaceIdx, "urlbar_focus", accent);
+    const hasOverrides = [accent, panelBg, toolbarBg, sidebarBg, tabActive].some((v, i) => {
+      const defaults = [
+        base.colors.accent,
+        base.colors.panelBg,
+        base.colors.toolbarBg,
+        base.colors.sidebarBg,
+        base.colors.tabActiveBg
+      ];
+      return v !== defaults[i];
+    });
+    if (!hasOverrides) return "";
+    return `
+/* Aurora \u2014 Space ${spaceIdx + 1} overrides */
+:root {
+  --aurora-accent:       ${accent} !important;
+  --aurora-panel-bg:     ${panelBg} !important;
+  --aurora-toolbar-bg:   ${toolbarBg} !important;
+  --aurora-sidebar-bg:   ${sidebarBg} !important;
+  --aurora-tab-active-bg:${tabActive} !important;
+  --aurora-urlbar-focus: ${urlFocus} !important;
+}`.trim();
+  }
+  function syncZenPrimaryColor(accent) {
+    try {
+      const syncEnabled = Services.prefs.getBoolPref(
+        "mod.aurora.zen.sync_primary_color",
+        true
+      );
+      if (!syncEnabled) return;
+      document.documentElement.style.setProperty("--zen-primary-color", accent);
+    } catch {
+    }
+  }
+  var SPACE_STYLE_ID = "aurora-space-styles";
+  function applySpaceStyles(doc) {
+    const theme = loadTheme();
+    const idx = getActiveSpaceIndex();
+    const spaceCSS = buildSpaceCSS(idx, theme);
+    let el = doc.getElementById(SPACE_STYLE_ID);
+    if (!el) {
+      el = doc.createElement("style");
+      el.id = SPACE_STYLE_ID;
+      (doc.head ?? doc.documentElement).appendChild(el);
+    }
+    el.textContent = spaceCSS;
+    const activeAccent = idx >= 0 ? spaceColor(idx, "accent", theme.colors.accent) : theme.colors.accent;
+    syncZenPrimaryColor(activeAccent);
+  }
+  var lastSpaceIdx = -2;
+  function onPossibleSpaceChange(doc) {
+    const idx = getActiveSpaceIndex();
+    if (idx !== lastSpaceIdx) {
+      lastSpaceIdx = idx;
+      applySpaceStyles(doc);
+    }
+  }
+  function initSpaces(doc) {
+    applySpaceStyles(doc);
+    const styleObserver = new MutationObserver(() => {
+      onPossibleSpaceChange(doc);
+    });
+    styleObserver.observe(doc.documentElement, {
+      attributes: true,
+      attributeFilter: ["style"]
+    });
+    const onTabSelect = () => onPossibleSpaceChange(doc);
+    doc.addEventListener("TabSelect", onTabSelect, { capture: true });
+    return () => {
+      styleObserver.disconnect();
+      doc.removeEventListener("TabSelect", onTabSelect, true);
+      doc.getElementById(SPACE_STYLE_ID)?.remove();
+    };
+  }
+  function refreshSpaces(doc) {
+    lastSpaceIdx = -2;
+    applySpaceStyles(doc);
+  }
+
   // src/entry.uc.mts
   var soundsRunning = false;
   var dynamicRunning = false;
+  var stopSpaces = null;
   async function applyAll(doc) {
     const theme = loadTheme();
     applyTheme(theme, doc);
+    refreshSpaces(doc);
     if (theme.sounds.enabled && !soundsRunning) {
       soundsRunning = true;
       await initSounds(theme);
@@ -700,12 +816,13 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     try {
       const enabled = Services.prefs.getBoolPref("mod.aurora.enabled", true);
       if (!enabled) {
-        dump("[Aurora] Disabled via preferences.\n");
+        dump("[Aurora] Disabled.\n");
         return;
       }
       const doc = document;
       await applyAll(doc);
       initEvents(doc);
+      stopSpaces = initSpaces(doc);
       const observer = {
         observe(_subject, topic, data) {
           if (topic === "nsPref:changed" && data.startsWith("mod.aurora.")) {
@@ -719,6 +836,7 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
         Services.prefs.removeObserver("mod.aurora.", observer);
         stopSounds();
         stopDynamicTheme();
+        stopSpaces?.();
       }, { once: true });
       dump("[Aurora] Loaded successfully.\n");
     } catch (e) {

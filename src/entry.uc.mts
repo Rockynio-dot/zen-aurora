@@ -3,13 +3,20 @@ import { applyTheme } from "./core/cssEngine.ts";
 import { initEvents } from "./core/events.ts";
 import { initSounds, stopSounds } from "./features/sounds.ts";
 import { initDynamicTheme, stopDynamicTheme } from "./features/dynamicTheme.ts";
+import { initSpaces, refreshSpaces } from "./features/spaces.ts";
 
 let soundsRunning = false;
 let dynamicRunning = false;
+let stopSpaces: (() => void) | null = null;
 
 async function applyAll(doc: Document): Promise<void> {
   const theme = loadTheme();
+
+  // Base theme CSS
   applyTheme(theme, doc);
+
+  // Per-space overrides (also re-syncs --zen-primary-color)
+  refreshSpaces(doc);
 
   // Sounds
   if (theme.sounds.enabled && !soundsRunning) {
@@ -34,7 +41,7 @@ async function init(): Promise<void> {
   try {
     const enabled = Services.prefs.getBoolPref("mod.aurora.enabled", true);
     if (!enabled) {
-      dump("[Aurora] Disabled via preferences.\n");
+      dump("[Aurora] Disabled.\n");
       return;
     }
 
@@ -43,7 +50,10 @@ async function init(): Promise<void> {
     await applyAll(doc);
     initEvents(doc);
 
-    // Live preference observer — fires when any mod.aurora.* pref changes
+    // Space watcher (MutationObserver + TabSelect)
+    stopSpaces = initSpaces(doc);
+
+    // Live preference observer
     const observer = {
       observe(_subject: unknown, topic: string, data: string): void {
         if (topic === "nsPref:changed" && (data as string).startsWith("mod.aurora.")) {
@@ -53,11 +63,11 @@ async function init(): Promise<void> {
     };
     Services.prefs.addObserver("mod.aurora.", observer);
 
-    // Clean up observer when window closes
     doc.defaultView?.addEventListener("beforeunload", () => {
       Services.prefs.removeObserver("mod.aurora.", observer);
       stopSounds();
       stopDynamicTheme();
+      stopSpaces?.();
     }, { once: true });
 
     dump("[Aurora] Loaded successfully.\n");

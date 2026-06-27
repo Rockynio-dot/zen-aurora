@@ -496,5 +496,298 @@
       { "label": "Material You (z URL obrázku na pozadí)", "value": "material" },
       { "label": "Denní cyklus (teplejší večer)", "value": "daynight" }
     ]
+  },
+
+  {
+    "type": "separator",
+    "label": "── Zen Browser: Synchronizace ──"
+  },
+  {
+    "property": "mod.aurora.zen.sync_primary_color",
+    "label": "Synchronizovat akcent s --zen-primary-color (gradient sidebaru)",
+    "type": "checkbox",
+    "defaultValue": true
+  },
+
+  {
+    "type": "separator",
+    "label": "── Spaces: Globální výchozí ──"
+  },
+  {
+    "property": "mod.aurora.space.default.note",
+    "label": "Prázdné pole = použije se globální barva. Pořadí odpovídá pořadí spaces v sidebaru.",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "(jen poznámka, nevyplňuj)"
+  },
+
+  {
+    "type": "separator",
+    "label": "── Space 1 ──"
+  },
+  {
+    "property": "mod.aurora.space.1.accent",
+    "label": "Space 1 — Barva akcentu",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#7c6af7  (prázdné = globální)",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.1.panel_bg",
+    "label": "Space 1 — Pozadí panelů",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#1a1a2e  (prázdné = globální)",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.1.toolbar_bg",
+    "label": "Space 1 — Pozadí toolbaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#16162a  (prázdné = globální)",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.1.sidebar_bg",
+    "label": "Space 1 — Pozadí sidebaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#12122a  (prázdné = globální)",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.1.tab_active_bg",
+    "label": "Space 1 — Aktivní záložka",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#2a2a4e  (prázdné = globální)",
+    "border": "value"
+  },
+
+  {
+    "type": "separator",
+    "label": "── Space 2 ──"
+  },
+  {
+    "property": "mod.aurora.space.2.accent",
+    "label": "Space 2 — Barva akcentu",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#f76a6a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.2.panel_bg",
+    "label": "Space 2 — Pozadí panelů",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#2e1a1a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.2.toolbar_bg",
+    "label": "Space 2 — Pozadí toolbaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#2a1616",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.2.sidebar_bg",
+    "label": "Space 2 — Pozadí sidebaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#2a1212",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.2.tab_active_bg",
+    "label": "Space 2 — Aktivní záložka",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#4e2a2a",
+    "border": "value"
+  },
+
+  {
+    "type": "separator",
+    "label": "── Space 3 ──"
+  },
+  {
+    "property": "mod.aurora.space.3.accent",
+    "label": "Space 3 — Barva akcentu",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#6af7a0",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.3.panel_bg",
+    "label": "Space 3 — Pozadí panelů",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#1a2e1a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.3.toolbar_bg",
+    "label": "Space 3 — Pozadí toolbaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#162a16",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.3.sidebar_bg",
+    "label": "Space 3 — Pozadí sidebaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#122a12",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.3.tab_active_bg",
+    "label": "Space 3 — Aktivní záložka",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#2a4e2a",
+    "border": "value"
+  },
+
+  {
+    "type": "separator",
+    "label": "── Space 4 ──"
+  },
+  {
+    "property": "mod.aurora.space.4.accent",
+    "label": "Space 4 — Barva akcentu",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#f7c76a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.4.panel_bg",
+    "label": "Space 4 — Pozadí panelů",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#2e2a1a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.4.toolbar_bg",
+    "label": "Space 4 — Pozadí toolbaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#2a2616",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.4.sidebar_bg",
+    "label": "Space 4 — Pozadí sidebaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#2a2212",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.4.tab_active_bg",
+    "label": "Space 4 — Aktivní záložka",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#4e4a2a",
+    "border": "value"
+  },
+
+  {
+    "type": "separator",
+    "label": "── Space 5 ──"
+  },
+  {
+    "property": "mod.aurora.space.5.accent",
+    "label": "Space 5 — Barva akcentu",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#6ab8f7",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.5.panel_bg",
+    "label": "Space 5 — Pozadí panelů",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#1a222e",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.5.toolbar_bg",
+    "label": "Space 5 — Pozadí toolbaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#161e2a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.5.sidebar_bg",
+    "label": "Space 5 — Pozadí sidebaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#121a2a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.5.tab_active_bg",
+    "label": "Space 5 — Aktivní záložka",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#2a3a4e",
+    "border": "value"
+  },
+
+  {
+    "type": "separator",
+    "label": "── Space 6 ──"
+  },
+  {
+    "property": "mod.aurora.space.6.accent",
+    "label": "Space 6 — Barva akcentu",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#d06af7",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.6.panel_bg",
+    "label": "Space 6 — Pozadí panelů",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#271a2e",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.6.toolbar_bg",
+    "label": "Space 6 — Pozadí toolbaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#23162a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.6.sidebar_bg",
+    "label": "Space 6 — Pozadí sidebaru",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#1f122a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.space.6.tab_active_bg",
+    "label": "Space 6 — Aktivní záložka",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "#422a4e",
+    "border": "value"
   }
 ]

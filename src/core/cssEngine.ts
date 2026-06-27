@@ -248,6 +248,12 @@ ${t.effects.accentGlow ? `
 }
 ` : ""}
 
+/* ── Zen Browser native variable sync ── */
+${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `
+:root {
+  --zen-primary-color: ${t.colors.accent} !important;
+}` : ""}
+
 /* ── Vypnutí animací ── */
 ${noAnim ? "*, *::before, *::after { transition: none !important; animation: none !important; }" : ""}
 `.trim();
