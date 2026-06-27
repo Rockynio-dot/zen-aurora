@@ -1,5 +1,5 @@
 import { extractPalette, type ColorPalette } from "./palette.ts";
-import { mergeTheme, loadTheme } from "../core/state.ts";
+import { loadTheme, saveTheme } from "../core/state.ts";
 import { applyTheme } from "../core/cssEngine.ts";
 
 let dynamicTimer: ReturnType<typeof setInterval> | null = null;
@@ -58,7 +58,9 @@ async function applyMaterialTheme(doc: Document): Promise<void> {
   if (!theme.images.browserBg) return;
 
   const palette = await extractPalette(theme.images.browserBg);
-  const merged = mergeTheme({ colors: paletteToColors(palette) });
+  const dynamicColors = paletteToColors(palette);
+  const merged = { ...theme, colors: { ...theme.colors, ...dynamicColors } };
+  saveTheme(merged);
   applyTheme(merged, doc);
 }
 
@@ -71,7 +73,8 @@ function applyDayNight(doc: Document): void {
     border: lerpHex(DAY_PALETTE.secondary, NIGHT_PALETTE.secondary, t),
     browserBg: lerpHex(DAY_PALETTE.surface, NIGHT_PALETTE.surface, t),
   };
-  const merged = mergeTheme({ colors });
+  const theme = loadTheme();
+  const merged = { ...theme, colors: { ...theme.colors, ...colors } };
   applyTheme(merged, doc);
 }
 

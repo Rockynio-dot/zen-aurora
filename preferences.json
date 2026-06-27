@@ -1,19 +1,47 @@
 [
   {
     "type": "separator",
-    "label": "Barvy"
+    "label": "── Základní ──"
+  },
+  {
+    "property": "mod.aurora.enabled",
+    "label": "Zapnout Aurora mod",
+    "type": "checkbox",
+    "defaultValue": true,
+    "restart": true
+  },
+
+  {
+    "type": "separator",
+    "label": "── Barvy: Panely a lišty ──"
   },
   {
     "property": "mod.aurora.color.panel_bg",
-    "label": "Pozadí panelů",
+    "label": "Pozadí panelů / toolbaru",
     "type": "string",
     "defaultValue": "#1a1a2e",
     "placeholder": "#1a1a2e",
     "border": "value"
   },
   {
+    "property": "mod.aurora.color.toolbar_bg",
+    "label": "Pozadí hlavního toolbaru",
+    "type": "string",
+    "defaultValue": "#16162a",
+    "placeholder": "#16162a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.sidebar_bg",
+    "label": "Pozadí sidebaru",
+    "type": "string",
+    "defaultValue": "#12122a",
+    "placeholder": "#12122a",
+    "border": "value"
+  },
+  {
     "property": "mod.aurora.color.panel_text",
-    "label": "Barva textu",
+    "label": "Barva textu v panelech",
     "type": "string",
     "defaultValue": "#e0e0ff",
     "placeholder": "#e0e0ff",
@@ -21,31 +49,397 @@
   },
   {
     "property": "mod.aurora.color.border",
-    "label": "Ohraničení",
+    "label": "Barva ohraničení",
     "type": "string",
     "defaultValue": "#3a3a5c",
     "placeholder": "#3a3a5c",
     "border": "value"
   },
   {
+    "property": "mod.aurora.color.accent",
+    "label": "Barva akcentu / zvýraznění",
+    "type": "string",
+    "defaultValue": "#7c6af7",
+    "placeholder": "#7c6af7",
+    "border": "value"
+  },
+
+  {
+    "type": "separator",
+    "label": "── Barvy: Záložky ──"
+  },
+  {
+    "property": "mod.aurora.color.tab_active_bg",
+    "label": "Pozadí aktivní záložky",
+    "type": "string",
+    "defaultValue": "#2a2a4e",
+    "placeholder": "#2a2a4e",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.tab_inactive_bg",
+    "label": "Pozadí neaktivní záložky",
+    "type": "string",
+    "defaultValue": "#1a1a2e",
+    "placeholder": "#1a1a2e",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.tab_text",
+    "label": "Barva textu záložek",
+    "type": "string",
+    "defaultValue": "#c0c0e0",
+    "placeholder": "#c0c0e0",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.tab_close_hover",
+    "label": "Barva X při najetí na záložku",
+    "type": "string",
+    "defaultValue": "#ff6b6b",
+    "placeholder": "#ff6b6b",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.tab_hover_bg",
+    "label": "Pozadí záložky při najetí",
+    "type": "string",
+    "defaultValue": "#252550",
+    "placeholder": "#252550",
+    "border": "value"
+  },
+
+  {
+    "type": "separator",
+    "label": "── Barvy: URL lišta ──"
+  },
+  {
+    "property": "mod.aurora.color.urlbar_bg",
+    "label": "Pozadí URL lišty",
+    "type": "string",
+    "defaultValue": "#1e1e3a",
+    "placeholder": "#1e1e3a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.urlbar_text",
+    "label": "Barva textu URL lišty",
+    "type": "string",
+    "defaultValue": "#e0e0ff",
+    "placeholder": "#e0e0ff",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.urlbar_border",
+    "label": "Ohraničení URL lišty (klidový stav)",
+    "type": "string",
+    "defaultValue": "#3a3a6c",
+    "placeholder": "#3a3a6c",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.urlbar_focus",
+    "label": "Ohraničení URL lišty (fokus)",
+    "type": "string",
+    "defaultValue": "#7c6af7",
+    "placeholder": "#7c6af7",
+    "border": "value"
+  },
+
+  {
+    "type": "separator",
+    "label": "── Barvy: Obsah a výběr ──"
+  },
+  {
     "property": "mod.aurora.color.browser_bg",
-    "label": "Pozadí prohlížeče",
+    "label": "Pozadí prohlížeče (za stránkami)",
     "type": "string",
     "defaultValue": "#0f0f1a",
     "placeholder": "#0f0f1a",
     "border": "value"
   },
   {
-    "property": "mod.aurora.color.accent",
-    "label": "Barva akcentu",
+    "property": "mod.aurora.color.selection_bg",
+    "label": "Barva výběru textu",
     "type": "string",
-    "defaultValue": "#7c6af7",
-    "placeholder": "#7c6af7",
+    "defaultValue": "#7c6af740",
+    "placeholder": "#7c6af740",
     "border": "value"
   },
   {
+    "property": "mod.aurora.color.scrollbar",
+    "label": "Barva scrollbaru",
+    "type": "string",
+    "defaultValue": "#3a3a6c",
+    "placeholder": "#3a3a6c",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.button_bg",
+    "label": "Pozadí tlačítek",
+    "type": "string",
+    "defaultValue": "#2a2a4e",
+    "placeholder": "#2a2a4e",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.button_hover",
+    "label": "Pozadí tlačítek při najetí",
+    "type": "string",
+    "defaultValue": "#3a3a6e",
+    "placeholder": "#3a3a6e",
+    "border": "value"
+  },
+
+  {
     "type": "separator",
-    "label": "Animace"
+    "label": "── Pozadí prohlížeče ──"
+  },
+  {
+    "property": "mod.aurora.image.browser_bg",
+    "label": "URL obrázku na pozadí (https://...)",
+    "type": "string",
+    "defaultValue": "",
+    "placeholder": "https://example.com/wallpaper.jpg"
+  },
+  {
+    "property": "mod.aurora.image.bg_size",
+    "label": "Velikost obrázku na pozadí",
+    "type": "dropdown",
+    "defaultValue": "cover",
+    "placeholder": false,
+    "options": [
+      { "label": "Vyplnit (cover)", "value": "cover" },
+      { "label": "Vejít se (contain)", "value": "contain" },
+      { "label": "Originální velikost (auto)", "value": "auto" },
+      { "label": "Roztáhnout (100% 100%)", "value": "100% 100%" }
+    ]
+  },
+  {
+    "property": "mod.aurora.image.bg_position",
+    "label": "Pozice obrázku",
+    "type": "dropdown",
+    "defaultValue": "center",
+    "placeholder": false,
+    "options": [
+      { "label": "Střed", "value": "center" },
+      { "label": "Nahoře", "value": "top" },
+      { "label": "Dole", "value": "bottom" },
+      { "label": "Vlevo", "value": "left" },
+      { "label": "Vpravo", "value": "right" }
+    ]
+  },
+  {
+    "property": "mod.aurora.image.bg_blur",
+    "label": "Rozostření pozadí",
+    "type": "dropdown",
+    "defaultValue": "0px",
+    "placeholder": false,
+    "options": [
+      { "label": "Žádné", "value": "0px" },
+      { "label": "Jemné (4px)", "value": "4px" },
+      { "label": "Střední (8px)", "value": "8px" },
+      { "label": "Silné (16px)", "value": "16px" },
+      { "label": "Extrémní (32px)", "value": "32px" }
+    ]
+  },
+  {
+    "property": "mod.aurora.image.bg_opacity",
+    "label": "Průhlednost pozadí (0.0–1.0)",
+    "type": "string",
+    "defaultValue": "1.0",
+    "placeholder": "1.0"
+  },
+
+  {
+    "type": "separator",
+    "label": "── Typografie ──"
+  },
+  {
+    "property": "mod.aurora.font.family",
+    "label": "Font UI (název fontu nebo 'inherit')",
+    "type": "string",
+    "defaultValue": "inherit",
+    "placeholder": "Inter, Segoe UI, inherit"
+  },
+  {
+    "property": "mod.aurora.font.size",
+    "label": "Velikost fontu UI",
+    "type": "dropdown",
+    "defaultValue": "13px",
+    "placeholder": false,
+    "options": [
+      { "label": "Malý (11px)", "value": "11px" },
+      { "label": "Normální (13px)", "value": "13px" },
+      { "label": "Velký (15px)", "value": "15px" },
+      { "label": "Extra velký (17px)", "value": "17px" }
+    ]
+  },
+  {
+    "property": "mod.aurora.font.weight",
+    "label": "Tučnost textu",
+    "type": "dropdown",
+    "defaultValue": "400",
+    "placeholder": false,
+    "options": [
+      { "label": "Tenký (300)", "value": "300" },
+      { "label": "Normální (400)", "value": "400" },
+      { "label": "Střední (500)", "value": "500" },
+      { "label": "Tučný (700)", "value": "700" }
+    ]
+  },
+
+  {
+    "type": "separator",
+    "label": "── Rozměry a layout ──"
+  },
+  {
+    "property": "mod.aurora.layout.tab_height",
+    "label": "Výška záložky",
+    "type": "dropdown",
+    "defaultValue": "36px",
+    "placeholder": false,
+    "options": [
+      { "label": "Kompaktní (28px)", "value": "28px" },
+      { "label": "Malá (32px)", "value": "32px" },
+      { "label": "Normální (36px)", "value": "36px" },
+      { "label": "Velká (42px)", "value": "42px" },
+      { "label": "Extra velká (48px)", "value": "48px" }
+    ]
+  },
+  {
+    "property": "mod.aurora.layout.tab_border_radius",
+    "label": "Zaoblení záložek",
+    "type": "dropdown",
+    "defaultValue": "8px",
+    "placeholder": false,
+    "options": [
+      { "label": "Žádné (0px)", "value": "0px" },
+      { "label": "Jemné (4px)", "value": "4px" },
+      { "label": "Střední (8px)", "value": "8px" },
+      { "label": "Velké (12px)", "value": "12px" },
+      { "label": "Pilulka (999px)", "value": "999px" }
+    ]
+  },
+  {
+    "property": "mod.aurora.layout.panel_border_radius",
+    "label": "Zaoblení panelů",
+    "type": "dropdown",
+    "defaultValue": "8px",
+    "placeholder": false,
+    "options": [
+      { "label": "Žádné (0px)", "value": "0px" },
+      { "label": "Jemné (4px)", "value": "4px" },
+      { "label": "Střední (8px)", "value": "8px" },
+      { "label": "Velké (16px)", "value": "16px" }
+    ]
+  },
+  {
+    "property": "mod.aurora.layout.button_border_radius",
+    "label": "Zaoblení tlačítek",
+    "type": "dropdown",
+    "defaultValue": "6px",
+    "placeholder": false,
+    "options": [
+      { "label": "Žádné (0px)", "value": "0px" },
+      { "label": "Jemné (4px)", "value": "4px" },
+      { "label": "Střední (6px)", "value": "6px" },
+      { "label": "Velké (10px)", "value": "10px" },
+      { "label": "Pilulka (999px)", "value": "999px" }
+    ]
+  },
+  {
+    "property": "mod.aurora.layout.sidebar_width",
+    "label": "Šířka sidebaru",
+    "type": "dropdown",
+    "defaultValue": "200px",
+    "placeholder": false,
+    "options": [
+      { "label": "Úzký (160px)", "value": "160px" },
+      { "label": "Normální (200px)", "value": "200px" },
+      { "label": "Široký (260px)", "value": "260px" },
+      { "label": "Extra široký (320px)", "value": "320px" }
+    ]
+  },
+  {
+    "property": "mod.aurora.layout.toolbar_height",
+    "label": "Výška toolbaru",
+    "type": "dropdown",
+    "defaultValue": "40px",
+    "placeholder": false,
+    "options": [
+      { "label": "Kompaktní (32px)", "value": "32px" },
+      { "label": "Normální (40px)", "value": "40px" },
+      { "label": "Velký (48px)", "value": "48px" }
+    ]
+  },
+  {
+    "property": "mod.aurora.layout.border_width",
+    "label": "Tloušťka ohraničení",
+    "type": "dropdown",
+    "defaultValue": "1px",
+    "placeholder": false,
+    "options": [
+      { "label": "Žádné (0px)", "value": "0px" },
+      { "label": "Tenké (1px)", "value": "1px" },
+      { "label": "Střední (2px)", "value": "2px" },
+      { "label": "Tlusté (3px)", "value": "3px" }
+    ]
+  },
+
+  {
+    "type": "separator",
+    "label": "── Efekty ──"
+  },
+  {
+    "property": "mod.aurora.effect.panel_opacity",
+    "label": "Průhlednost panelů (0.0–1.0)",
+    "type": "string",
+    "defaultValue": "1.0",
+    "placeholder": "1.0"
+  },
+  {
+    "property": "mod.aurora.effect.panel_blur",
+    "label": "Blur / matné sklo panelů",
+    "type": "dropdown",
+    "defaultValue": "0px",
+    "placeholder": false,
+    "options": [
+      { "label": "Žádný", "value": "0px" },
+      { "label": "Jemný (4px)", "value": "4px" },
+      { "label": "Střední (10px)", "value": "10px" },
+      { "label": "Silný (20px)", "value": "20px" }
+    ]
+  },
+  {
+    "property": "mod.aurora.effect.tab_shadow",
+    "label": "Stín aktivní záložky",
+    "type": "checkbox",
+    "defaultValue": false
+  },
+  {
+    "property": "mod.aurora.effect.accent_glow",
+    "label": "Záře akcentu (glow efekt)",
+    "type": "checkbox",
+    "defaultValue": false
+  },
+  {
+    "property": "mod.aurora.effect.panel_border_style",
+    "label": "Styl ohraničení panelů",
+    "type": "dropdown",
+    "defaultValue": "solid",
+    "placeholder": false,
+    "options": [
+      { "label": "Plné (solid)", "value": "solid" },
+      { "label": "Tečkované (dotted)", "value": "dotted" },
+      { "label": "Přerušované (dashed)", "value": "dashed" },
+      { "label": "Žádné (none)", "value": "none" }
+    ]
+  },
+
+  {
+    "type": "separator",
+    "label": "── Animace ──"
   },
   {
     "property": "mod.aurora.animation_speed",
@@ -54,25 +448,42 @@
     "defaultValue": "normal",
     "placeholder": false,
     "options": [
-      { "label": "Vypnuté", "value": "none" },
+      { "label": "Vypnuté (0s)", "value": "none" },
       { "label": "Pomalé (0.5s)", "value": "slow" },
       { "label": "Normální (0.2s)", "value": "normal" },
       { "label": "Rychlé (0.08s)", "value": "fast" }
     ]
   },
   {
+    "property": "mod.aurora.animation.easing",
+    "label": "Typ animační křivky",
+    "type": "dropdown",
+    "defaultValue": "ease",
+    "placeholder": false,
+    "options": [
+      { "label": "Ease", "value": "ease" },
+      { "label": "Lineární", "value": "linear" },
+      { "label": "Ease In", "value": "ease-in" },
+      { "label": "Ease Out", "value": "ease-out" },
+      { "label": "Pružina (cubic-bezier)", "value": "cubic-bezier(0.34,1.56,0.64,1)" }
+    ]
+  },
+
+  {
     "type": "separator",
-    "label": "Zvukové efekty"
+    "label": "── Zvukové efekty ──"
   },
   {
     "property": "mod.aurora.sounds_enabled",
     "label": "Zapnout zvukové efekty",
     "type": "checkbox",
-    "defaultValue": false
+    "defaultValue": false,
+    "restart": true
   },
+
   {
     "type": "separator",
-    "label": "Dynamický motiv"
+    "label": "── Dynamický motiv ──"
   },
   {
     "property": "mod.aurora.dynamic_mode",
@@ -82,7 +493,7 @@
     "placeholder": false,
     "options": [
       { "label": "Vypnuto", "value": "off" },
-      { "label": "Material You (z obrázku na pozadí)", "value": "material" },
+      { "label": "Material You (z URL obrázku na pozadí)", "value": "material" },
       { "label": "Denní cyklus (teplejší večer)", "value": "daynight" }
     ]
   }
