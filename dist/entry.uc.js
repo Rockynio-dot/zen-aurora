@@ -824,6 +824,398 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     return `mod.aurora.space.${spaceIdx + 1}.${key}`;
   }
 
+  // src/ui/colorPicker.ts
+  var PICKER_ID = "aurora-cp-popup";
+  var PRESETS = [
+    "#ffffff",
+    "#d4d4d4",
+    "#a0a0a0",
+    "#6e6e6e",
+    "#3c3c3c",
+    "#1a1a1a",
+    "#0a0a0a",
+    "#000000",
+    "#7c6af7",
+    "#a78bfa",
+    "#4d96ff",
+    "#60c6f7",
+    "#6bcb77",
+    "#ffd93d",
+    "#ff9f40",
+    "#ff6b6b",
+    "#f472b6",
+    "#e879f9",
+    "#0f0f1a",
+    "#1a1a2e",
+    "#12122a",
+    "#16162a",
+    "#1e1e3a",
+    "#2a2a4e"
+  ];
+  var PICKER_CSS = `
+#aurora-cp-popup {
+  position: fixed;
+  z-index: 2147483647;
+  width: 232px;
+  background: #0f0f22;
+  border: 1px solid #3a3a6c;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px #00000099;
+  padding: 12px;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  user-select: none;
+}
+#aurora-cp-popup.open { display: flex; }
+
+.aurora-cp-square {
+  width: 208px;
+  height: 164px;
+  border-radius: 8px;
+  position: relative;
+  cursor: crosshair;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.aurora-cp-sq-color {
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, #fff, var(--acp-hue-color));
+}
+.aurora-cp-sq-dark {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent, #000);
+}
+.aurora-cp-cursor {
+  position: absolute;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #0008;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.aurora-cp-hue-wrap {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: linear-gradient(to right,
+    hsl(0,100%,50%), hsl(30,100%,50%), hsl(60,100%,50%), hsl(90,100%,50%),
+    hsl(120,100%,50%), hsl(150,100%,50%), hsl(180,100%,50%), hsl(210,100%,50%),
+    hsl(240,100%,50%), hsl(270,100%,50%), hsl(300,100%,50%), hsl(330,100%,50%),
+    hsl(360,100%,50%));
+  cursor: pointer;
+}
+.aurora-cp-hue-thumb {
+  position: absolute;
+  top: 50%; transform: translate(-50%,-50%);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #0008, 0 2px 6px #0008;
+  pointer-events: none;
+  background: var(--acp-hue-color);
+}
+
+.aurora-cp-presets {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+.aurora-cp-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+}
+.aurora-cp-swatch:hover { transform: scale(1.2); }
+.aurora-cp-swatch.selected { border-color: #fff; }
+
+.aurora-cp-hex-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.aurora-cp-preview {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid #3a3a6c;
+  flex-shrink: 0;
+}
+.aurora-cp-hex-input {
+  flex: 1;
+  background: #1a1a32;
+  border: 1px solid #2d2d5c;
+  border-radius: 6px;
+  color: #c0b4ff;
+  font-size: 12px;
+  font-family: monospace;
+  padding: 5px 8px;
+  text-align: center;
+}
+.aurora-cp-hex-input:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
+.aurora-cp-ok {
+  padding: 5px 12px;
+  background: #7c6af7;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s;
+}
+.aurora-cp-ok:hover { background: #9080ff; }
+`;
+  function hsvToHex(h, s2, v) {
+    const c = v * s2;
+    const x = c * (1 - Math.abs(h / 60 % 2 - 1));
+    const m = v - c;
+    let r = 0, g = 0, b2 = 0;
+    if (h < 60) {
+      r = c;
+      g = x;
+    } else if (h < 120) {
+      r = x;
+      g = c;
+    } else if (h < 180) {
+      g = c;
+      b2 = x;
+    } else if (h < 240) {
+      g = x;
+      b2 = c;
+    } else if (h < 300) {
+      r = x;
+      b2 = c;
+    } else {
+      r = c;
+      b2 = x;
+    }
+    return "#" + [r + m, g + m, b2 + m].map((n) => Math.round(n * 255).toString(16).padStart(2, "0")).join("");
+  }
+  function hexToHsv(hex) {
+    const clean = hex.replace("#", "").slice(0, 6);
+    if (clean.length < 6) return [0, 0, 0.5];
+    const r = parseInt(clean.slice(0, 2), 16) / 255;
+    const g = parseInt(clean.slice(2, 4), 16) / 255;
+    const b2 = parseInt(clean.slice(4, 6), 16) / 255;
+    const max = Math.max(r, g, b2);
+    const min = Math.min(r, g, b2);
+    const d = max - min;
+    let h = 0;
+    if (d > 0) {
+      if (max === r) h = (g - b2) / d % 6;
+      else if (max === g) h = (b2 - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h = Math.round(h * 60);
+      if (h < 0) h += 360;
+    }
+    return [h, max > 0 ? d / max : 0, max];
+  }
+  function hueColor(h) {
+    return `hsl(${h}, 100%, 50%)`;
+  }
+  function clamp(n, lo, hi) {
+    return Math.max(lo, Math.min(hi, n));
+  }
+  var pickerH = 220;
+  var pickerS = 0.7;
+  var pickerV = 0.9;
+  var onChangeCb = null;
+  var squareDragging = false;
+  var hueDragging = false;
+  var squareEl = null;
+  var cursorEl = null;
+  var hueWrapEl = null;
+  var hueThumbEl = null;
+  var hexInputEl = null;
+  var previewEl = null;
+  var popupEl = null;
+  function updateUI() {
+    if (!squareEl || !cursorEl || !hueThumbEl || !hexInputEl || !previewEl) return;
+    const hex = hsvToHex(pickerH, pickerS, pickerV);
+    const hCol = hueColor(pickerH);
+    squareEl.style.setProperty("--acp-hue-color", hCol);
+    cursorEl.style.left = `${pickerS * 100}%`;
+    cursorEl.style.top = `${(1 - pickerV) * 100}%`;
+    hueWrapEl.style.setProperty("--acp-hue-color", hCol);
+    hueThumbEl.style.left = `${pickerH / 360 * 100}%`;
+    hueThumbEl.style.setProperty("--acp-hue-color", hCol);
+    hexInputEl.value = hex;
+    previewEl.style.background = hex;
+    popupEl?.querySelectorAll(".aurora-cp-swatch").forEach((sw) => {
+      sw.classList.toggle("selected", sw.dataset.color === hex);
+    });
+  }
+  function emit2() {
+    const hex = hsvToHex(pickerH, pickerS, pickerV);
+    onChangeCb?.(hex);
+  }
+  function onSquarePointerDown(e) {
+    squareDragging = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateFromSquare(e);
+  }
+  function onSquarePointerMove(e) {
+    if (!squareDragging || !squareEl) return;
+    updateFromSquare(e);
+  }
+  function onSquarePointerUp() {
+    squareDragging = false;
+  }
+  function updateFromSquare(e) {
+    if (!squareEl) return;
+    const rect = squareEl.getBoundingClientRect();
+    pickerS = clamp((e.clientX - rect.left) / rect.width, 0, 1);
+    pickerV = clamp(1 - (e.clientY - rect.top) / rect.height, 0, 1);
+    updateUI();
+    emit2();
+  }
+  function onHuePointerDown(e) {
+    hueDragging = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateFromHue(e);
+  }
+  function onHuePointerMove(e) {
+    if (!hueDragging || !hueWrapEl) return;
+    updateFromHue(e);
+  }
+  function onHuePointerUp() {
+    hueDragging = false;
+  }
+  function updateFromHue(e) {
+    if (!hueWrapEl) return;
+    const rect = hueWrapEl.getBoundingClientRect();
+    pickerH = Math.round(clamp((e.clientX - rect.left) / rect.width, 0, 1) * 360);
+    updateUI();
+    emit2();
+  }
+  function onHexChange() {
+    if (!hexInputEl) return;
+    const raw = hexInputEl.value.trim().replace(/^#/, "");
+    if (/^[0-9a-f]{6}$/i.test(raw)) {
+      const [h, s2, v] = hexToHsv(`#${raw}`);
+      pickerH = h;
+      pickerS = s2;
+      pickerV = v;
+      updateUI();
+      emit2();
+    }
+  }
+  function initColorPicker(doc) {
+    if (doc.getElementById(PICKER_ID)) return;
+    const styleId = "aurora-cp-styles";
+    if (!doc.getElementById(styleId)) {
+      const s2 = doc.createElement("style");
+      s2.id = styleId;
+      s2.textContent = PICKER_CSS;
+      (doc.head ?? doc.documentElement).appendChild(s2);
+    }
+    popupEl = doc.createElement("div");
+    popupEl.id = PICKER_ID;
+    const square = doc.createElement("div");
+    square.className = "aurora-cp-square";
+    const sqColor = doc.createElement("div");
+    sqColor.className = "aurora-cp-sq-color";
+    const sqDark = doc.createElement("div");
+    sqDark.className = "aurora-cp-sq-dark";
+    const cursor = doc.createElement("div");
+    cursor.className = "aurora-cp-cursor";
+    square.appendChild(sqColor);
+    square.appendChild(sqDark);
+    square.appendChild(cursor);
+    squareEl = square;
+    cursorEl = cursor;
+    square.addEventListener("pointerdown", onSquarePointerDown);
+    square.addEventListener("pointermove", onSquarePointerMove);
+    square.addEventListener("pointerup", onSquarePointerUp);
+    const hueWrap = doc.createElement("div");
+    hueWrap.className = "aurora-cp-hue-wrap";
+    const hueThumb = doc.createElement("div");
+    hueThumb.className = "aurora-cp-hue-thumb";
+    hueWrap.appendChild(hueThumb);
+    hueWrapEl = hueWrap;
+    hueThumbEl = hueThumb;
+    hueWrap.addEventListener("pointerdown", onHuePointerDown);
+    hueWrap.addEventListener("pointermove", onHuePointerMove);
+    hueWrap.addEventListener("pointerup", onHuePointerUp);
+    const presetsGrid = doc.createElement("div");
+    presetsGrid.className = "aurora-cp-presets";
+    for (const col of PRESETS) {
+      const sw = doc.createElement("div");
+      sw.className = "aurora-cp-swatch";
+      sw.dataset.color = col;
+      sw.style.background = col;
+      sw.title = col;
+      sw.addEventListener("click", () => {
+        const [h, s2, v] = hexToHsv(col);
+        pickerH = h;
+        pickerS = s2;
+        pickerV = v;
+        updateUI();
+        emit2();
+      });
+      presetsGrid.appendChild(sw);
+    }
+    const hexRow = doc.createElement("div");
+    hexRow.className = "aurora-cp-hex-row";
+    const preview = doc.createElement("div");
+    preview.className = "aurora-cp-preview";
+    const hexIn = doc.createElement("input");
+    hexIn.type = "text";
+    hexIn.className = "aurora-cp-hex-input";
+    hexIn.maxLength = 7;
+    hexIn.placeholder = "#rrggbb";
+    hexIn.addEventListener("change", onHexChange);
+    hexIn.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") onHexChange();
+    });
+    const okBtn = doc.createElement("button");
+    okBtn.textContent = "OK";
+    okBtn.className = "aurora-cp-ok";
+    okBtn.addEventListener("click", () => closeColorPicker());
+    hexRow.appendChild(preview);
+    hexRow.appendChild(hexIn);
+    hexRow.appendChild(okBtn);
+    previewEl = preview;
+    hexInputEl = hexIn;
+    popupEl.appendChild(square);
+    popupEl.appendChild(hueWrap);
+    popupEl.appendChild(presetsGrid);
+    popupEl.appendChild(hexRow);
+    doc.documentElement.appendChild(popupEl);
+    doc.addEventListener("pointerdown", (e) => {
+      if (!popupEl?.classList.contains("open")) return;
+      if (!popupEl.contains(e.target)) closeColorPicker();
+    }, { capture: true });
+  }
+  function openColorPicker(anchorEl, currentHex, onChange) {
+    if (!popupEl) return;
+    onChangeCb = onChange;
+    const [h, s2, v] = hexToHsv(currentHex || "#7c6af7");
+    pickerH = h;
+    pickerS = s2;
+    pickerV = v;
+    updateUI();
+    const rect = anchorEl.getBoundingClientRect();
+    let top = rect.bottom + 6;
+    let left = rect.left;
+    if (left + 240 > window.innerWidth) left = window.innerWidth - 244;
+    if (top + 320 > window.innerHeight) top = rect.top - 324;
+    if (left < 4) left = 4;
+    if (top < 4) top = 4;
+    popupEl.style.top = `${top}px`;
+    popupEl.style.left = `${left}px`;
+    popupEl.classList.add("open");
+  }
+  function closeColorPicker() {
+    popupEl?.classList.remove("open");
+  }
+
   // src/ui/panel.ts
   var PANEL_ID = "aurora-ui-panel";
   var BTN_ID = "aurora-ui-fab";
@@ -833,9 +1225,8 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
   position: fixed;
   bottom: 16px;
   right: 16px;
-  z-index: 2147483647;
-  width: 40px;
-  height: 40px;
+  z-index: 2147483640;
+  width: 40px; height: 40px;
   border-radius: 50%;
   background: #7c6af7;
   color: #fff;
@@ -843,199 +1234,125 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 16px #7c6af766;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  user-select: none;
 }
-#aurora-ui-fab:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px #7c6af799;
-}
+#aurora-ui-fab:hover { transform: scale(1.1); box-shadow: 0 6px 20px #7c6af799; }
 
 #aurora-ui-panel {
   position: fixed;
-  top: 0;
-  right: -440px;
-  width: 420px;
-  height: 100vh;
-  z-index: 2147483646;
+  top: 0; right: -440px;
+  width: 420px; height: 100vh;
+  z-index: 2147483639;
   background: #13132a;
   border-left: 1px solid #2d2d5c;
   box-shadow: -8px 0 32px #00000088;
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   font-family: system-ui, sans-serif;
-  font-size: 13px;
-  color: #e0e0ff;
+  font-size: 13px; color: #e0e0ff;
   transition: right 0.25s cubic-bezier(0.4,0,0.2,1);
   overflow: hidden;
 }
-#aurora-ui-panel.aurora-open {
-  right: 0;
-}
+#aurora-ui-panel.aurora-open { right: 0; }
 
-.aurora-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.aurora-ph {
+  display: flex; align-items: center; justify-content: space-between;
   padding: 14px 16px;
   background: #0f0f22;
   border-bottom: 1px solid #2d2d5c;
   flex-shrink: 0;
 }
-.aurora-panel-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #c0b4ff;
-  letter-spacing: 0.5px;
+.aurora-ph-title { font-size: 15px; font-weight: 700; color: #c0b4ff; letter-spacing: 0.5px; }
+.aurora-ph-close {
+  background: transparent; border: none; color: #8880cc;
+  font-size: 18px; cursor: pointer; padding: 2px 6px; border-radius: 4px; line-height: 1;
 }
-.aurora-panel-close {
-  background: transparent;
-  border: none;
-  color: #8880cc;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  line-height: 1;
-}
-.aurora-panel-close:hover { background: #2a2a4e; color: #e0e0ff; }
+.aurora-ph-close:hover { background: #2a2a4e; color: #e0e0ff; }
 
-.aurora-panel-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  padding: 12px 16px;
-  border-bottom: 1px solid #2d2d5c;
-  flex-shrink: 0;
+.aurora-actions {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; padding: 12px 16px;
+  border-bottom: 1px solid #2d2d5c; flex-shrink: 0;
 }
-.aurora-action-btn {
+.aurora-abtn {
   padding: 7px 6px;
-  border: 1px solid #3a3a6c;
-  border-radius: 8px;
-  background: #1e1e3a;
-  color: #c0b4ff;
-  font-size: 11px;
-  cursor: pointer;
-  text-align: center;
-  transition: background 0.12s;
-  font-family: inherit;
+  border: 1px solid #3a3a6c; border-radius: 8px;
+  background: #1e1e3a; color: #c0b4ff;
+  font-size: 11px; cursor: pointer; text-align: center;
+  transition: background 0.12s; font-family: inherit;
 }
-.aurora-action-btn:hover { background: #2a2a5a; border-color: #7c6af7; }
-.aurora-action-btn.danger { border-color: #6c2a2a; color: #ff9090; }
-.aurora-action-btn.danger:hover { background: #3a1a1a; border-color: #ff6060; }
+.aurora-abtn:hover { background: #2a2a5a; border-color: #7c6af7; }
+.aurora-abtn.danger { border-color: #6c2a2a; color: #ff9090; }
+.aurora-abtn.danger:hover { background: #3a1a1a; border-color: #ff6060; }
 
 .aurora-tab-bar {
-  display: flex;
-  gap: 2px;
-  padding: 10px 16px 0;
-  border-bottom: 1px solid #2d2d5c;
-  flex-shrink: 0;
-  overflow-x: auto;
+  display: flex; gap: 2px; padding: 10px 16px 0;
+  border-bottom: 1px solid #2d2d5c; flex-shrink: 0; overflow-x: auto;
 }
 .aurora-tab {
-  padding: 6px 12px;
-  border-radius: 6px 6px 0 0;
-  border: 1px solid transparent;
-  border-bottom: none;
-  background: transparent;
-  color: #8880cc;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  font-family: inherit;
+  padding: 6px 12px; border-radius: 6px 6px 0 0;
+  border: 1px solid transparent; border-bottom: none;
+  background: transparent; color: #8880cc; font-size: 12px;
+  cursor: pointer; white-space: nowrap; font-family: inherit;
   transition: color 0.12s, background 0.12s;
 }
 .aurora-tab:hover { color: #c0b4ff; background: #1e1e3a; }
 .aurora-tab.active {
-  background: #13132a;
-  color: #c0b4ff;
-  border-color: #2d2d5c;
-  border-bottom-color: #13132a;
+  background: #13132a; color: #c0b4ff;
+  border-color: #2d2d5c; border-bottom-color: #13132a;
   margin-bottom: -1px;
 }
 
-.aurora-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 16px 20px;
+.aurora-pc {
+  flex: 1; overflow-y: auto; padding: 12px 16px 20px;
 }
-.aurora-panel-content::-webkit-scrollbar { width: 4px; }
-.aurora-panel-content::-webkit-scrollbar-track { background: transparent; }
-.aurora-panel-content::-webkit-scrollbar-thumb { background: #3a3a6c; border-radius: 99px; }
+.aurora-pc::-webkit-scrollbar { width: 4px; }
+.aurora-pc::-webkit-scrollbar-track { background: transparent; }
+.aurora-pc::-webkit-scrollbar-thumb { background: #3a3a6c; border-radius: 99px; }
 
 .aurora-tab-content { display: none; }
 .aurora-tab-content.active { display: block; }
 
-.aurora-section-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #5550aa;
-  padding: 8px 0 4px;
-  margin-top: 8px;
+.aurora-sec-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: #5550aa; padding: 10px 0 4px; margin-top: 4px;
 }
-.aurora-section-label:first-child { margin-top: 0; }
+.aurora-sec-label:first-child { margin-top: 0; padding-top: 4px; }
 
-.aurora-color-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 0;
-  border-bottom: 1px solid #1e1e3a;
+/* Color row */
+.aurora-cr {
+  display: flex; align-items: center;
+  padding: 5px 0; border-bottom: 1px solid #1e1e3a; gap: 8px;
 }
-.aurora-color-row:last-child { border-bottom: none; }
-.aurora-color-label {
-  font-size: 12px;
-  color: #b0b0d0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.aurora-cr:last-child { border-bottom: none; }
+.aurora-cr-label {
+  flex: 1; font-size: 12px; color: #b0b0d0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
 }
-.aurora-color-picker {
-  width: 28px;
-  height: 28px;
-  border: 2px solid #3a3a6c;
-  border-radius: 6px;
-  padding: 0;
-  cursor: pointer;
-  background: none;
-  flex-shrink: 0;
+.aurora-cr-swatch {
+  width: 26px; height: 26px; border-radius: 6px;
+  border: 2px solid #3a3a6c; cursor: pointer; flex-shrink: 0;
+  transition: border-color 0.12s, transform 0.12s;
 }
-.aurora-color-picker::-webkit-color-swatch-wrapper { padding: 0; }
-.aurora-color-picker::-webkit-color-swatch { border: none; border-radius: 4px; }
-.aurora-color-hex {
-  width: 72px;
-  background: #1a1a32;
-  border: 1px solid #2d2d5c;
-  border-radius: 5px;
-  color: #c0b4ff;
-  font-size: 11px;
-  font-family: monospace;
-  padding: 4px 5px;
-  text-align: center;
+.aurora-cr-swatch:hover { border-color: #7c6af7; transform: scale(1.1); }
+.aurora-cr-hex {
+  width: 70px; background: #1a1a32;
+  border: 1px solid #2d2d5c; border-radius: 5px;
+  color: #c0b4ff; font-size: 11px; font-family: monospace;
+  padding: 4px 5px; text-align: center; flex-shrink: 0;
 }
-.aurora-color-hex:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
+.aurora-cr-hex:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
+
+.aurora-status {
+  text-align: center; font-size: 11px; color: #6060a0;
+  padding: 4px 0 0; min-height: 18px;
+}
+.aurora-status.ok  { color: #60c060; }
+.aurora-status.err { color: #c06060; }
 
 .aurora-space-note {
-  font-size: 11px;
-  color: #6060a0;
-  padding: 6px 0 10px;
-  line-height: 1.5;
+  font-size: 11px; color: #6060a0; padding: 4px 0 8px; line-height: 1.5;
 }
-.aurora-status-bar {
-  text-align: center;
-  font-size: 11px;
-  color: #6060a0;
-  padding: 4px 0 0;
-  min-height: 18px;
-}
-.aurora-status-bar.ok   { color: #60c060; }
-.aurora-status-bar.err  { color: #c06060; }
 `;
   function getPref(pref, def = "") {
     try {
@@ -1050,139 +1367,61 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     } catch {
     }
   }
-  function toHex6(v) {
-    const s2 = v.trim().replace(/^#/, "");
-    if (/^[0-9a-f]{6}$/i.test(s2)) return `#${s2.toLowerCase()}`;
-    if (/^[0-9a-f]{3}$/i.test(s2)) {
-      const [a, b2, c] = s2.split("");
-      return `#${a}${a}${b2}${b2}${c}${c}`.toLowerCase();
-    }
-    return v;
-  }
-  function toPickerHex(v) {
-    const cleaned = toHex6(v);
-    if (/^#[0-9a-f]{6}$/i.test(cleaned)) return cleaned;
-    return "#000000";
-  }
-  function buildColorRow(label, pref, defaultVal, container, status) {
-    const row = container.ownerDocument.createElement("div");
-    row.className = "aurora-color-row";
-    const lbl = container.ownerDocument.createElement("span");
-    lbl.className = "aurora-color-label";
-    lbl.textContent = label;
-    const current = getPref(pref, defaultVal);
-    const picker = container.ownerDocument.createElement("input");
-    picker.type = "color";
-    picker.className = "aurora-color-picker";
-    picker.value = toPickerHex(current);
-    const hex = container.ownerDocument.createElement("input");
-    hex.type = "text";
-    hex.className = "aurora-color-hex";
-    hex.value = current || defaultVal;
-    hex.maxLength = 9;
-    hex.placeholder = defaultVal || "#000000";
-    picker.addEventListener("input", () => {
-      hex.value = picker.value;
-      setPref(pref, picker.value);
-      showStatus(status, "Ulo\u017Eeno", "ok");
-    });
-    hex.addEventListener("change", () => {
-      const val = hex.value.trim();
-      const norm = toHex6(val);
-      hex.value = norm;
-      picker.value = toPickerHex(norm);
-      setPref(pref, norm);
-      showStatus(status, "Ulo\u017Eeno", "ok");
-    });
-    row.appendChild(lbl);
-    row.appendChild(picker);
-    row.appendChild(hex);
-    container.appendChild(row);
-  }
   function showStatus(el, msg, cls) {
     el.textContent = msg;
-    el.className = `aurora-status-bar ${cls}`;
-    if (cls) {
-      setTimeout(() => {
-        el.textContent = "";
-        el.className = "aurora-status-bar";
-      }, 2e3);
-    }
+    el.className = `aurora-status ${cls}`;
+    if (cls) setTimeout(() => {
+      el.textContent = "";
+      el.className = "aurora-status";
+    }, 2200);
   }
-  function buildPanel(doc) {
-    const panel = doc.createElement("div");
-    panel.id = PANEL_ID;
-    const header = doc.createElement("div");
-    header.className = "aurora-panel-header";
-    const title = doc.createElement("span");
-    title.className = "aurora-panel-title";
-    title.textContent = "\u2726 Aurora \u2014 Nastaven\xED barev";
-    const closeBtn = doc.createElement("button");
-    closeBtn.className = "aurora-panel-close";
-    closeBtn.textContent = "\u2715";
-    closeBtn.title = "Zav\u0159\xEDt";
-    closeBtn.addEventListener("click", () => togglePanel(doc));
-    header.appendChild(title);
-    header.appendChild(closeBtn);
-    panel.appendChild(header);
-    const actions = doc.createElement("div");
-    actions.className = "aurora-panel-actions";
-    const statusBar = doc.createElement("div");
-    statusBar.className = "aurora-status-bar";
-    const resetBtn = doc.createElement("button");
-    resetBtn.className = "aurora-action-btn danger";
-    resetBtn.textContent = "\u27F3  Reset na v\xFDchoz\xED";
-    resetBtn.addEventListener("click", () => resetColors(doc, statusBar));
-    const importBtn = doc.createElement("button");
-    importBtn.className = "aurora-action-btn";
-    importBtn.textContent = "\u{1F4C2}  Na\u010D\xEDst .txt";
-    importBtn.addEventListener("click", () => importFromTxt(doc, panel, statusBar));
-    const exportBtn = doc.createElement("button");
-    exportBtn.className = "aurora-action-btn";
-    exportBtn.textContent = "\u{1F4BE}  Ulo\u017Eit .txt";
-    exportBtn.addEventListener("click", () => exportToTxt(doc, statusBar));
-    actions.appendChild(resetBtn);
-    actions.appendChild(importBtn);
-    actions.appendChild(exportBtn);
-    panel.appendChild(actions);
-    const tabBar = doc.createElement("div");
-    tabBar.className = "aurora-tab-bar";
-    panel.appendChild(tabBar);
-    const content = doc.createElement("div");
-    content.className = "aurora-panel-content";
-    content.appendChild(statusBar);
-    panel.appendChild(content);
-    const globalTab = makeTab(doc, tabBar, "Glob\xE1ln\xED barvy", true);
-    const globalContent = makeTabContent(doc, content, true);
-    buildGlobalColors(doc, globalContent, statusBar);
-    for (let i = 0; i < SPACE_COUNT; i++) {
-      const spaceTab = makeTab(doc, tabBar, `Space ${i + 1}`, false);
-      const spaceContent = makeTabContent(doc, content, false);
-      buildSpaceColors(doc, spaceContent, i, statusBar);
-    }
-    const tabs = tabBar.querySelectorAll(".aurora-tab");
-    const contents = content.querySelectorAll(".aurora-tab-content");
-    tabBar.addEventListener("click", (e) => {
-      const clicked = e.target.closest(".aurora-tab");
-      if (!clicked) return;
-      const idx = Array.from(tabs).indexOf(clicked);
-      tabs.forEach((t, ti) => t.classList.toggle("active", ti === idx));
-      contents.forEach((c, ci) => c.classList.toggle("active", ci === idx));
+  function buildColorRow(label, pref, defaultVal, container, status) {
+    const doc = container.ownerDocument;
+    const current = getPref(pref, defaultVal);
+    const row = doc.createElement("div");
+    row.className = "aurora-cr";
+    const lbl = doc.createElement("span");
+    lbl.className = "aurora-cr-label";
+    lbl.textContent = label;
+    const swatch = doc.createElement("div");
+    swatch.className = "aurora-cr-swatch";
+    swatch.style.background = current || defaultVal || "#000";
+    swatch.title = "Klikni pro v\xFDb\u011Br barvy";
+    const hexIn = doc.createElement("input");
+    hexIn.type = "text";
+    hexIn.className = "aurora-cr-hex";
+    hexIn.value = current || defaultVal;
+    hexIn.maxLength = 9;
+    hexIn.placeholder = defaultVal || "#000000";
+    const syncFromHex = (val) => {
+      swatch.style.background = val;
+      setPref(pref, val);
+      showStatus(status, "Ulo\u017Eeno", "ok");
+    };
+    swatch.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openColorPicker(swatch, hexIn.value || defaultVal || "#7c6af7", (hex) => {
+        hexIn.value = hex;
+        syncFromHex(hex);
+      });
     });
-    return panel;
+    hexIn.addEventListener("change", () => {
+      const v = hexIn.value.trim();
+      const norm = v.startsWith("#") ? v : `#${v}`;
+      hexIn.value = norm;
+      swatch.style.background = norm;
+      syncFromHex(norm);
+    });
+    row.appendChild(lbl);
+    row.appendChild(swatch);
+    row.appendChild(hexIn);
+    container.appendChild(row);
   }
-  function makeTab(doc, bar, label, active) {
-    const btn = doc.createElement("button");
-    btn.className = "aurora-tab" + (active ? " active" : "");
-    btn.textContent = label;
-    bar.appendChild(btn);
-    return btn;
-  }
-  function makeTabContent(doc, container, active) {
-    const div = doc.createElement("div");
-    div.className = "aurora-tab-content" + (active ? " active" : "");
-    container.appendChild(div);
-    return div;
+  function secLabel(doc, container, text) {
+    const el = doc.createElement("div");
+    el.className = "aurora-sec-label";
+    el.textContent = text;
+    container.appendChild(el);
   }
   function buildGlobalColors(doc, container, status) {
     const sections = [
@@ -1191,32 +1430,27 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       ["URL li\u0161ta", ["urlbar_bg", "urlbar_text", "urlbar_border", "urlbar_focus"]],
       ["Obsah & Ostatn\xED", ["browser_bg", "selection_bg", "scrollbar", "button_bg", "button_hover"]]
     ];
-    for (const [sectionLabel, keys] of sections) {
-      const lbl = doc.createElement("div");
-      lbl.className = "aurora-section-label";
-      lbl.textContent = sectionLabel;
-      container.appendChild(lbl);
+    for (const [sec, keys] of sections) {
+      secLabel(doc, container, sec);
       for (const key of keys) {
         const field = GLOBAL_COLORS.find((c) => c.pref.endsWith(`.${key}`));
-        if (!field) continue;
-        buildColorRow(field.label, field.pref, field.default, container, status);
+        if (field) buildColorRow(field.label, field.pref, field.default, container, status);
       }
     }
   }
-  function buildSpaceColors(doc, container, spaceIdx, status) {
+  function buildSpaceColors(doc, container, idx, status) {
     const note = doc.createElement("div");
     note.className = "aurora-space-note";
-    note.textContent = `Barvy pro Space ${spaceIdx + 1}. Pr\xE1zdn\xE9 pole = pou\u017Eije se glob\xE1ln\xED barva. Po\u0159ad\xED odpov\xEDd\xE1 po\u0159ad\xED spaces v sidebaru.`;
+    note.textContent = `Barvy pro Space ${idx + 1}. Pr\xE1zdn\xE9 = pou\u017Eije se glob\xE1ln\xED barva.`;
     container.appendChild(note);
     for (const sc of SPACE_COLORS) {
-      const pref = spaceColorPref(spaceIdx, sc.key);
-      buildColorRow(sc.label, pref, sc.default, container, status);
+      buildColorRow(sc.label, spaceColorPref(idx, sc.key), sc.default, container, status);
     }
   }
-  function resetColors(doc, status) {
-    for (const field of GLOBAL_COLORS) {
+  function resetColors(doc, panel, status) {
+    for (const f of GLOBAL_COLORS) {
       try {
-        Services.prefs.setStringPref(field.pref, field.default);
+        Services.prefs.setStringPref(f.pref, f.default);
       } catch {
       }
     }
@@ -1228,45 +1462,32 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
         }
       }
     }
-    const panel = doc.getElementById(PANEL_ID);
-    if (panel) {
-      panel.querySelectorAll(".aurora-color-picker").forEach((picker) => {
-        const row = picker.closest(".aurora-color-row");
-        if (!row) return;
-        const hexInput = row.querySelector(".aurora-color-hex");
-        if (!hexInput) return;
-        const label = row.querySelector(".aurora-color-label")?.textContent ?? "";
-        const field = GLOBAL_COLORS.find((f) => f.label === label);
-        const def = field?.default ?? "#000000";
-        picker.value = toPickerHex(def);
-        hexInput.value = def;
-      });
-    }
+    panel.querySelectorAll(".aurora-cr").forEach((row) => {
+      const labelEl = row.querySelector(".aurora-cr-label");
+      const swatch = row.querySelector(".aurora-cr-swatch");
+      const hexInput = row.querySelector(".aurora-cr-hex");
+      if (!labelEl || !swatch || !hexInput) return;
+      const field = GLOBAL_COLORS.find((f) => f.label === labelEl.textContent);
+      if (!field) return;
+      swatch.style.background = field.default;
+      hexInput.value = field.default;
+    });
     showStatus(status, "Resetov\xE1no na v\xFDchoz\xED hodnoty", "ok");
   }
   function exportToTxt(doc, status) {
-    const lines = [
-      "# Aurora Theme Export",
-      `# Vytvo\u0159eno: ${(/* @__PURE__ */ new Date()).toLocaleString("cs-CZ")}`,
-      "",
-      "# == Glob\xE1ln\xED barvy =="
-    ];
-    for (const field of GLOBAL_COLORS) {
-      const val = getPref(field.pref, field.default);
-      lines.push(`${field.pref}=${val}`);
-    }
-    lines.push("", "# == Barvy Spaces ==");
+    const lines = [`# Aurora Theme Export`, `# ${(/* @__PURE__ */ new Date()).toLocaleString("cs-CZ")}`, ""];
+    lines.push("# == Glob\xE1ln\xED barvy ==");
+    for (const f of GLOBAL_COLORS) lines.push(`${f.pref}=${getPref(f.pref, f.default)}`);
+    lines.push("", "# == Spaces ==");
     for (let i = 0; i < SPACE_COUNT; i++) {
       lines.push(`# Space ${i + 1}`);
       for (const sc of SPACE_COLORS) {
-        const pref = spaceColorPref(i, sc.key);
-        const val = getPref(pref, "");
-        lines.push(`${pref}=${val}`);
+        const p = spaceColorPref(i, sc.key);
+        lines.push(`${p}=${getPref(p, "")}`);
       }
     }
-    const text = lines.join("\n");
     try {
-      const blob = new Blob([text], { type: "text/plain" });
+      const blob = new Blob([lines.join("\n")], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = doc.createElement("a");
       a.href = url;
@@ -1277,7 +1498,7 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       URL.revokeObjectURL(url);
       showStatus(status, "Soubor sta\u017Een", "ok");
     } catch (e) {
-      showStatus(status, `Chyba exportu: ${e}`, "err");
+      showStatus(status, `Chyba: ${e}`, "err");
     }
   }
   function importFromTxt(doc, panel, status) {
@@ -1290,9 +1511,8 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
+        let applied = 0, errors = 0;
         const text = e.target?.result;
-        let applied = 0;
-        let errors = 0;
         for (const rawLine of text.split(/\r?\n/)) {
           const line = rawLine.trim();
           if (!line || line.startsWith("#")) continue;
@@ -1311,20 +1531,22 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
             errors++;
           }
         }
-        panel.querySelectorAll(".aurora-color-hex").forEach((hexIn) => {
-          const row = hexIn.closest(".aurora-color-row");
-          if (!row) return;
-          const picker = row.querySelector(".aurora-color-picker");
-          const labelEl = row.querySelector(".aurora-color-label");
-          if (!picker || !labelEl) return;
+        panel.querySelectorAll(".aurora-cr").forEach((row) => {
+          const labelEl = row.querySelector(".aurora-cr-label");
+          const swatch = row.querySelector(".aurora-cr-swatch");
+          const hexInput = row.querySelector(".aurora-cr-hex");
+          if (!labelEl || !swatch || !hexInput) return;
           const field = GLOBAL_COLORS.find((f) => f.label === labelEl.textContent);
           if (!field) return;
           const newVal = getPref(field.pref, field.default);
-          hexIn.value = newVal;
-          picker.value = toPickerHex(newVal);
+          swatch.style.background = newVal;
+          hexInput.value = newVal;
         });
-        const msg = errors > 0 ? `Na\u010Dteno ${applied} hodnot, ${errors} p\u0159esko\u010Deno` : `Na\u010Dteno ${applied} hodnot`;
-        showStatus(status, msg, applied > 0 ? "ok" : "err");
+        showStatus(
+          status,
+          errors > 0 ? `Na\u010Dteno ${applied}, p\u0159esko\u010Deno ${errors}` : `Na\u010Dteno ${applied} hodnot`,
+          applied > 0 ? "ok" : "err"
+        );
       };
       reader.readAsText(file);
     });
@@ -1332,10 +1554,82 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     input.click();
     setTimeout(() => input.remove(), 3e4);
   }
+  function buildPanel(doc) {
+    const panel = doc.createElement("div");
+    panel.id = PANEL_ID;
+    const hdr = doc.createElement("div");
+    hdr.className = "aurora-ph";
+    const title = doc.createElement("span");
+    title.className = "aurora-ph-title";
+    title.textContent = "\u2726 Aurora \u2014 Barvy";
+    const closeBtn = doc.createElement("button");
+    closeBtn.className = "aurora-ph-close";
+    closeBtn.textContent = "\u2715";
+    closeBtn.title = "Zav\u0159\xEDt";
+    closeBtn.addEventListener("click", () => togglePanel(doc));
+    hdr.appendChild(title);
+    hdr.appendChild(closeBtn);
+    panel.appendChild(hdr);
+    const status = doc.createElement("div");
+    status.className = "aurora-status";
+    const acts = doc.createElement("div");
+    acts.className = "aurora-actions";
+    const resetBtn = doc.createElement("button");
+    resetBtn.className = "aurora-abtn danger";
+    resetBtn.textContent = "\u27F3  Reset";
+    const importBtn = doc.createElement("button");
+    importBtn.className = "aurora-abtn";
+    importBtn.textContent = "\u{1F4C2}  Na\u010D\xEDst .txt";
+    const exportBtn = doc.createElement("button");
+    exportBtn.className = "aurora-abtn";
+    exportBtn.textContent = "\u{1F4BE}  Ulo\u017Eit .txt";
+    acts.appendChild(resetBtn);
+    acts.appendChild(importBtn);
+    acts.appendChild(exportBtn);
+    panel.appendChild(acts);
+    panel.appendChild(status);
+    const tabBar = doc.createElement("div");
+    tabBar.className = "aurora-tab-bar";
+    panel.appendChild(tabBar);
+    const pc = doc.createElement("div");
+    pc.className = "aurora-pc";
+    panel.appendChild(pc);
+    makeTab(doc, tabBar, "Glob\xE1ln\xED barvy", true);
+    const globalContent = makeTabContent(doc, pc, true);
+    buildGlobalColors(doc, globalContent, status);
+    for (let i = 0; i < SPACE_COUNT; i++) {
+      makeTab(doc, tabBar, `Space ${i + 1}`, false);
+      const sc = makeTabContent(doc, pc, false);
+      buildSpaceColors(doc, sc, i, status);
+    }
+    const tabs = tabBar.querySelectorAll(".aurora-tab");
+    const contents = pc.querySelectorAll(".aurora-tab-content");
+    tabBar.addEventListener("click", (e) => {
+      const t = e.target.closest(".aurora-tab");
+      if (!t) return;
+      const idx = Array.from(tabs).indexOf(t);
+      tabs.forEach((tb, ti) => tb.classList.toggle("active", ti === idx));
+      contents.forEach((ct, ci) => ct.classList.toggle("active", ci === idx));
+    });
+    resetBtn.addEventListener("click", () => resetColors(doc, panel, status));
+    importBtn.addEventListener("click", () => importFromTxt(doc, panel, status));
+    exportBtn.addEventListener("click", () => exportToTxt(doc, status));
+    return panel;
+  }
+  function makeTab(doc, bar, label, active) {
+    const btn = doc.createElement("button");
+    btn.className = "aurora-tab" + (active ? " active" : "");
+    btn.textContent = label;
+    bar.appendChild(btn);
+  }
+  function makeTabContent(doc, container, active) {
+    const div = doc.createElement("div");
+    div.className = "aurora-tab-content" + (active ? " active" : "");
+    container.appendChild(div);
+    return div;
+  }
   function togglePanel(doc) {
-    const panel = doc.getElementById(PANEL_ID);
-    if (!panel) return;
-    panel.classList.toggle("aurora-open");
+    doc.getElementById(PANEL_ID)?.classList.toggle("aurora-open");
   }
   function initPanel(doc) {
     let styleEl = doc.getElementById(STYLES_ID);
@@ -1345,6 +1639,7 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       (doc.head ?? doc.documentElement).appendChild(styleEl);
     }
     styleEl.textContent = PANEL_CSS;
+    initColorPicker(doc);
     let fab = doc.getElementById(BTN_ID);
     if (!fab) {
       fab = doc.createElement("button");
@@ -1354,10 +1649,8 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       fab.addEventListener("click", () => togglePanel(doc));
       doc.documentElement.appendChild(fab);
     }
-    let panel = doc.getElementById(PANEL_ID);
-    if (!panel) {
-      panel = buildPanel(doc);
-      doc.documentElement.appendChild(panel);
+    if (!doc.getElementById(PANEL_ID)) {
+      doc.documentElement.appendChild(buildPanel(doc));
     }
     const onKey = (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === "A") {
@@ -1370,6 +1663,8 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       doc.getElementById(PANEL_ID)?.remove();
       doc.getElementById(BTN_ID)?.remove();
       doc.getElementById(STYLES_ID)?.remove();
+      doc.getElementById("aurora-cp-popup")?.remove();
+      doc.getElementById("aurora-cp-styles")?.remove();
       doc.removeEventListener("keydown", onKey, true);
     };
   }
