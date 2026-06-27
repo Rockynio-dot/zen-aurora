@@ -410,24 +410,32 @@ function stopDynamicTheme() {
 
 // src/entry.uc.mts
 async function init() {
-  const enabled = Services.prefs.getBoolPref("mod.aurora.enabled", true);
-  if (!enabled) {
-    dump("[Aurora] Disabled via preferences.\n");
-    return;
-  }
-  const theme = loadTheme();
-  const doc = document;
-  applyTheme(theme, doc);
-  initEvents(doc);
-  if (theme.sounds.enabled) {
-    await initSounds(theme);
-  }
-  if (theme.dynamicMode !== "off") {
-    initDynamicTheme(doc);
-  }
-  dump("[Aurora] Loaded successfully.\n");
-}
-UC_API.Runtime.startupFinished().then(() => init()).catch((e) => {
-  dump(`[Aurora] Startup error: ${e}
+  try {
+    const enabled = Services.prefs.getBoolPref("mod.aurora.enabled", true);
+    if (!enabled) {
+      dump("[Aurora] Disabled via preferences.\n");
+      return;
+    }
+    const theme = loadTheme();
+    applyTheme(theme, document);
+    initEvents(document);
+    if (theme.sounds.enabled) {
+      await initSounds(theme);
+    }
+    if (theme.dynamicMode !== "off") {
+      initDynamicTheme(document);
+    }
+    dump("[Aurora] Loaded successfully.\n");
+  } catch (e) {
+    dump(`[Aurora] Error during init: ${e}
 `);
-});
+    console.error("[Aurora] Error during init:", e);
+  }
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    init();
+  }, { once: true });
+} else {
+  init();
+}
