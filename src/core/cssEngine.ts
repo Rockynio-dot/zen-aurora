@@ -87,8 +87,13 @@ export function generateCSS(t: AuroraTheme): string {
   --aurora-glow:              ${accentGlow};
 }
 
-/* ══ Zen native sync ══ */
-:root { --zen-primary-color: ${t.colors.accent} !important; }
+/* ══ Zen native variables ══ */
+:root {
+  --zen-primary-color:                   ${t.colors.accent}   !important;
+  --zen-main-browser-background-toolbar: ${t.colors.toolbarBg} !important;
+  --zen-appcontent-border:               ${t.colors.border}    !important;
+  --zen-colors-tertiary:                 ${t.colors.panelBg}   !important;
+}
 
 /* ══ Toolbar (navigator-toolbox) ══ */
 ${S.toolbar ? `
@@ -466,9 +471,13 @@ export function applyTheme(theme: AuroraTheme, targetDoc: Document = document): 
   }
   el.textContent = generateCSS(theme);
 
-  // Zen sets --zen-primary-color as an inline style on documentElement which
-  // overrides any stylesheet rule (even !important). Force-set it inline too.
-  targetDoc.documentElement.style.setProperty("--zen-primary-color", theme.colors.accent);
+  // Zen sets these as inline styles on documentElement — inline overrides
+  // any stylesheet rule including !important, so we force-set them inline too.
+  const root = targetDoc.documentElement;
+  root.style.setProperty("--zen-primary-color",                   theme.colors.accent);
+  root.style.setProperty("--zen-main-browser-background-toolbar", theme.colors.toolbarBg);
+  root.style.setProperty("--zen-appcontent-border",               theme.colors.border);
+  root.style.setProperty("--zen-colors-tertiary",                 theme.colors.panelBg);
 }
 
 export function removeTheme(targetDoc: Document = document): void {

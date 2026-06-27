@@ -182,8 +182,13 @@
   --aurora-glow:              ${accentGlow};
 }
 
-/* \u2550\u2550 Zen native sync \u2550\u2550 */
-:root { --zen-primary-color: ${t.colors.accent} !important; }
+/* \u2550\u2550 Zen native variables \u2550\u2550 */
+:root {
+  --zen-primary-color:                   ${t.colors.accent}   !important;
+  --zen-main-browser-background-toolbar: ${t.colors.toolbarBg} !important;
+  --zen-appcontent-border:               ${t.colors.border}    !important;
+  --zen-colors-tertiary:                 ${t.colors.panelBg}   !important;
+}
 
 /* \u2550\u2550 Toolbar (navigator-toolbox) \u2550\u2550 */
 ${S.toolbar ? `
@@ -558,7 +563,11 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       (targetDoc.head ?? targetDoc.documentElement).appendChild(el);
     }
     el.textContent = generateCSS(theme);
-    targetDoc.documentElement.style.setProperty("--zen-primary-color", theme.colors.accent);
+    const root = targetDoc.documentElement;
+    root.style.setProperty("--zen-primary-color", theme.colors.accent);
+    root.style.setProperty("--zen-main-browser-background-toolbar", theme.colors.toolbarBg);
+    root.style.setProperty("--zen-appcontent-border", theme.colors.border);
+    root.style.setProperty("--zen-colors-tertiary", theme.colors.panelBg);
   }
   function injectStyles(css, id, targetDoc = document) {
     let el = targetDoc.getElementById(id);
