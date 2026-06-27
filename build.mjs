@@ -16,12 +16,10 @@ const externalGeckoPlugin = {
 
 const baseConfig = {
   bundle: true,
-  format: "esm",
+  format: "iife",
   platform: "browser",
   target: "firefox128",
-  outExtension: { ".js": ".mjs" },
   plugins: [externalGeckoPlugin],
-  external: ["@material/material-color-utilities"],
 };
 
 const configs = [
@@ -29,17 +27,6 @@ const configs = [
     ...baseConfig,
     entryPoints: ["src/entry.uc.mts"],
     outdir: "dist",
-    banner: {
-      js: [
-        "// ==UserScript==",
-        "// @name           Aurora",
-        "// @description    Complete UI overhaul for Zen Browser",
-        "// @author         Rockynio-dot",
-        "// @version        0.1.0",
-        "// @include        main",
-        "// ==/UserScript==",
-      ].join("\n"),
-    },
   },
 ];
 

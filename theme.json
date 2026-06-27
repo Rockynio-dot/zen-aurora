@@ -6,5 +6,9 @@
   "homepage": "https://github.com/Rockynio-dot/zen-aurora",
   "preferences": "preferences.json",
   "style": "dist/aurora.uc.css",
-  "js": "dist/entry.uc.mjs"
+  "scripts": {
+    "dist/entry.uc.js": {
+      "include": ["chrome://browser/content/browser.xhtml"]
+    }
+  }
 }
