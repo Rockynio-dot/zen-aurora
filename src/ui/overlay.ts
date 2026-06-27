@@ -10,7 +10,6 @@ import {
 
 const OVERLAY_ID  = "aurora-overlay";
 const BACKDROP_ID = "aurora-backdrop";
-const BTN_ID      = "aurora-settings-btn";
 const STYLES_ID   = "aurora-overlay-styles";
 
 // ── CSS ───────────────────────────────────────────────────────────────────────
@@ -321,24 +320,6 @@ const CSS = `
   transition: background 0.1s, color 0.1s;
 }
 .ao-about-link:hover { background: #1a1a38; color: #c0b4ff; }
-
-/* Sidebar button */
-#aurora-settings-btn {
-  display: flex !important;
-  align-items: center !important; justify-content: center !important;
-  width: 32px !important; height: 32px !important;
-  border-radius: 8px !important;
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer !important;
-  color: var(--aurora-panel-text, #c0b4ff) !important;
-  font-size: 16px !important;
-  opacity: 0.7 !important;
-  transition: opacity 0.12s, background 0.12s !important;
-  margin: 2px auto !important;
-}
-#aurora-settings-btn:hover { opacity: 1 !important; background: var(--aurora-btn-hover, #2a2a4e) !important; }
-#aurora-settings-btn.open { opacity: 1 !important; background: var(--aurora-accent, #7c6af7) !important; color: #fff !important; }
 
 /* Status message */
 .ao-status {
@@ -932,71 +913,16 @@ function buildOverlay(doc: Document): { backdrop: HTMLElement; overlay: HTMLElem
 export function openOverlay(doc: Document): void {
   doc.getElementById(BACKDROP_ID)?.classList.add("open");
   doc.getElementById(OVERLAY_ID)?.classList.add("open");
-  doc.getElementById(BTN_ID)?.classList.add("open");
 }
 
 export function closeOverlay(doc: Document): void {
   doc.getElementById(BACKDROP_ID)?.classList.remove("open");
   doc.getElementById(OVERLAY_ID)?.classList.remove("open");
-  doc.getElementById(BTN_ID)?.classList.remove("open");
 }
 
 export function toggleOverlay(doc: Document): void {
   const isOpen = doc.getElementById(OVERLAY_ID)?.classList.contains("open");
   isOpen ? closeOverlay(doc) : openOverlay(doc);
-}
-
-// ── Sidebar button ────────────────────────────────────────────────────────────
-
-const SIDEBAR_TARGETS = [
-  "#zen-sidebar-top-buttons-customization-target",
-  "#zen-sidebar-top-buttons",
-  "#zen-appcontent-navbar",
-  "#TabsToolbar",
-  "#nav-bar",
-];
-
-function injectButton(doc: Document): () => void {
-  if (doc.getElementById(BTN_ID)) return () => {};
-
-  const btn = doc.createElement("button") as HTMLButtonElement;
-  btn.id = BTN_ID; btn.title = "Aurora — nastavení  (Ctrl+Shift+A)";
-  btn.textContent = "✦";
-  btn.addEventListener("click", () => toggleOverlay(doc));
-
-  const tryInject = (): boolean => {
-    for (const sel of SIDEBAR_TARGETS) {
-      const target = doc.querySelector(sel);
-      if (target) {
-        target.insertBefore(btn, target.firstChild);
-        dump(`[Aurora] Button → ${sel}\n`);
-        return true;
-      }
-    }
-    return false;
-  };
-
-  if (tryInject()) return () => btn.remove();
-
-  let ok = false;
-  const obs = new MutationObserver(() => {
-    if (ok || doc.getElementById(BTN_ID)) return;
-    if (tryInject()) { ok = true; obs.disconnect(); clearTimeout(timer); }
-  });
-  obs.observe(doc.documentElement, { childList: true, subtree: true });
-
-  const timer = setTimeout(() => {
-    if (ok) return;
-    obs.disconnect();
-    btn.style.cssText = "position:fixed!important;bottom:14px!important;right:14px!important;" +
-      "z-index:2147483638!important;width:36px!important;height:36px!important;" +
-      "border-radius:50%!important;border:none!important;cursor:pointer!important;" +
-      "background:#7c6af7!important;color:#fff!important;font-size:16px!important;" +
-      "box-shadow:0 3px 12px #7c6af755!important;";
-    doc.documentElement.appendChild(btn);
-  }, 4000);
-
-  return () => { obs.disconnect(); clearTimeout(timer); btn.remove(); };
 }
 
 // ── Toolbar offset ────────────────────────────────────────────────────────────
@@ -1046,23 +972,17 @@ export function initOverlay(doc: Document): () => void {
   const toolbox = doc.getElementById("navigator-toolbox");
   if (toolbox) resizeObs.observe(toolbox);
 
-  // Sidebar button
-  const cleanupBtn = injectButton(doc);
-
-  // Keyboard: Esc to close, Ctrl+Shift+A to toggle
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key === "Escape") closeOverlay(doc);
-    if (e.ctrlKey && e.shiftKey && e.key === "A") { e.preventDefault(); toggleOverlay(doc); }
-  };
+  // Escape to close
+  const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeOverlay(doc); };
   doc.addEventListener("keydown", onKey, { capture: true });
 
-  // Sine settings checkbox trigger
+  // Sine settings checkbox trigger — opens overlay when checkbox ticked
   const prefObs = {
     observe(_s: unknown, topic: string, data: string): void {
       if (topic !== "nsPref:changed" || data !== "mod.aurora.ui.open_panel") return;
       try {
         if (Services.prefs.getBoolPref("mod.aurora.ui.open_panel", false)) {
-          toggleOverlay(doc);
+          openOverlay(doc);
           Services.prefs.setBoolPref("mod.aurora.ui.open_panel", false);
         }
       } catch {}
@@ -1076,7 +996,6 @@ export function initOverlay(doc: Document): () => void {
     doc.getElementById(STYLES_ID)?.remove();
     doc.getElementById("aurora-cp-popup")?.remove();
     doc.getElementById("aurora-cp-styles")?.remove();
-    cleanupBtn();
     resizeObs.disconnect();
     if (resizeTimer) clearTimeout(resizeTimer);
     doc.removeEventListener("keydown", onKey, true);

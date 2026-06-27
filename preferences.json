@@ -11,8 +11,10 @@
     "restart": true
   },
   {
-    "type": "separator",
-    "label": "Nastavení: klikni na ✦ v sidebaru nebo stiskni Ctrl+Shift+A"
+    "property": "mod.aurora.ui.open_panel",
+    "label": "✦ Otevřít nastavení Aurora",
+    "type": "checkbox",
+    "defaultValue": false
   },
   {
     "type": "separator",

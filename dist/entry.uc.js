@@ -1462,7 +1462,6 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
   // src/ui/overlay.ts
   var OVERLAY_ID = "aurora-overlay";
   var BACKDROP_ID = "aurora-backdrop";
-  var BTN_ID = "aurora-settings-btn";
   var STYLES_ID = "aurora-overlay-styles";
   var CSS = `
 /* Backdrop */
@@ -1770,24 +1769,6 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
   transition: background 0.1s, color 0.1s;
 }
 .ao-about-link:hover { background: #1a1a38; color: #c0b4ff; }
-
-/* Sidebar button */
-#aurora-settings-btn {
-  display: flex !important;
-  align-items: center !important; justify-content: center !important;
-  width: 32px !important; height: 32px !important;
-  border-radius: 8px !important;
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer !important;
-  color: var(--aurora-panel-text, #c0b4ff) !important;
-  font-size: 16px !important;
-  opacity: 0.7 !important;
-  transition: opacity 0.12s, background 0.12s !important;
-  margin: 2px auto !important;
-}
-#aurora-settings-btn:hover { opacity: 1 !important; background: var(--aurora-btn-hover, #2a2a4e) !important; }
-#aurora-settings-btn.open { opacity: 1 !important; background: var(--aurora-accent, #7c6af7) !important; color: #fff !important; }
 
 /* Status message */
 .ao-status {
@@ -2466,66 +2447,10 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
   function openOverlay(doc) {
     doc.getElementById(BACKDROP_ID)?.classList.add("open");
     doc.getElementById(OVERLAY_ID)?.classList.add("open");
-    doc.getElementById(BTN_ID)?.classList.add("open");
   }
   function closeOverlay(doc) {
     doc.getElementById(BACKDROP_ID)?.classList.remove("open");
     doc.getElementById(OVERLAY_ID)?.classList.remove("open");
-    doc.getElementById(BTN_ID)?.classList.remove("open");
-  }
-  function toggleOverlay(doc) {
-    const isOpen = doc.getElementById(OVERLAY_ID)?.classList.contains("open");
-    isOpen ? closeOverlay(doc) : openOverlay(doc);
-  }
-  var SIDEBAR_TARGETS = [
-    "#zen-sidebar-top-buttons-customization-target",
-    "#zen-sidebar-top-buttons",
-    "#zen-appcontent-navbar",
-    "#TabsToolbar",
-    "#nav-bar"
-  ];
-  function injectButton(doc) {
-    if (doc.getElementById(BTN_ID)) return () => {
-    };
-    const btn = doc.createElement("button");
-    btn.id = BTN_ID;
-    btn.title = "Aurora \u2014 nastaven\xED  (Ctrl+Shift+A)";
-    btn.textContent = "\u2726";
-    btn.addEventListener("click", () => toggleOverlay(doc));
-    const tryInject = () => {
-      for (const sel of SIDEBAR_TARGETS) {
-        const target = doc.querySelector(sel);
-        if (target) {
-          target.insertBefore(btn, target.firstChild);
-          dump(`[Aurora] Button \u2192 ${sel}
-`);
-          return true;
-        }
-      }
-      return false;
-    };
-    if (tryInject()) return () => btn.remove();
-    let ok = false;
-    const obs = new MutationObserver(() => {
-      if (ok || doc.getElementById(BTN_ID)) return;
-      if (tryInject()) {
-        ok = true;
-        obs.disconnect();
-        clearTimeout(timer);
-      }
-    });
-    obs.observe(doc.documentElement, { childList: true, subtree: true });
-    const timer = setTimeout(() => {
-      if (ok) return;
-      obs.disconnect();
-      btn.style.cssText = "position:fixed!important;bottom:14px!important;right:14px!important;z-index:2147483638!important;width:36px!important;height:36px!important;border-radius:50%!important;border:none!important;cursor:pointer!important;background:#7c6af7!important;color:#fff!important;font-size:16px!important;box-shadow:0 3px 12px #7c6af755!important;";
-      doc.documentElement.appendChild(btn);
-    }, 4e3);
-    return () => {
-      obs.disconnect();
-      clearTimeout(timer);
-      btn.remove();
-    };
   }
   function updateOverlayTop(doc) {
     const toolbox = doc.getElementById("navigator-toolbox") ?? doc.querySelector("#nav-bar");
@@ -2564,13 +2489,8 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     });
     const toolbox = doc.getElementById("navigator-toolbox");
     if (toolbox) resizeObs.observe(toolbox);
-    const cleanupBtn = injectButton(doc);
     const onKey = (e) => {
       if (e.key === "Escape") closeOverlay(doc);
-      if (e.ctrlKey && e.shiftKey && e.key === "A") {
-        e.preventDefault();
-        toggleOverlay(doc);
-      }
     };
     doc.addEventListener("keydown", onKey, { capture: true });
     const prefObs = {
@@ -2578,7 +2498,7 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
         if (topic !== "nsPref:changed" || data !== "mod.aurora.ui.open_panel") return;
         try {
           if (Services.prefs.getBoolPref("mod.aurora.ui.open_panel", false)) {
-            toggleOverlay(doc);
+            openOverlay(doc);
             Services.prefs.setBoolPref("mod.aurora.ui.open_panel", false);
           }
         } catch {
@@ -2592,7 +2512,6 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       doc.getElementById(STYLES_ID)?.remove();
       doc.getElementById("aurora-cp-popup")?.remove();
       doc.getElementById("aurora-cp-styles")?.remove();
-      cleanupBtn();
       resizeObs.disconnect();
       if (resizeTimer) clearTimeout(resizeTimer);
       doc.removeEventListener("keydown", onKey, true);
