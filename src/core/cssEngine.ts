@@ -465,6 +465,10 @@ export function applyTheme(theme: AuroraTheme, targetDoc: Document = document): 
     (targetDoc.head ?? targetDoc.documentElement).appendChild(el);
   }
   el.textContent = generateCSS(theme);
+
+  // Zen sets --zen-primary-color as an inline style on documentElement which
+  // overrides any stylesheet rule (even !important). Force-set it inline too.
+  targetDoc.documentElement.style.setProperty("--zen-primary-color", theme.colors.accent);
 }
 
 export function removeTheme(targetDoc: Document = document): void {

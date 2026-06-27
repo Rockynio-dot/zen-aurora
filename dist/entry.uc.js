@@ -558,6 +558,7 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
       (targetDoc.head ?? targetDoc.documentElement).appendChild(el);
     }
     el.textContent = generateCSS(theme);
+    targetDoc.documentElement.style.setProperty("--zen-primary-color", theme.colors.accent);
   }
   function injectStyles(css, id, targetDoc = document) {
     let el = targetDoc.getElementById(id);
