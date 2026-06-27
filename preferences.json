@@ -1,38 +1,89 @@
 [
   {
-    "property": "mod.aurora.enabled",
-    "label": "Zapnout Aurora overhaul",
-    "type": "checkbox",
-    "defaultValue": true
+    "type": "separator",
+    "label": "Barvy"
   },
   {
-    "property": "mod.aurora.dynamic_mode",
-    "label": "Režim dynamického motivu",
-    "type": "dropdown",
-    "defaultValue": "off",
-    "placeholder": "Vyber režim",
-    "options": [
-      { "label": "Vypnuto", "value": "off" },
-      { "label": "Material You z obrázku", "value": "material" },
-      { "label": "Podle denní doby", "value": "daynight" }
-    ]
+    "property": "mod.aurora.color.panel_bg",
+    "label": "Pozadí panelů",
+    "type": "string",
+    "defaultValue": "#1a1a2e",
+    "placeholder": "#1a1a2e",
+    "border": "value"
   },
   {
-    "property": "mod.aurora.sounds_enabled",
-    "label": "Zvukové efekty",
-    "type": "checkbox",
-    "defaultValue": false
+    "property": "mod.aurora.color.panel_text",
+    "label": "Barva textu",
+    "type": "string",
+    "defaultValue": "#e0e0ff",
+    "placeholder": "#e0e0ff",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.border",
+    "label": "Ohraničení",
+    "type": "string",
+    "defaultValue": "#3a3a5c",
+    "placeholder": "#3a3a5c",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.browser_bg",
+    "label": "Pozadí prohlížeče",
+    "type": "string",
+    "defaultValue": "#0f0f1a",
+    "placeholder": "#0f0f1a",
+    "border": "value"
+  },
+  {
+    "property": "mod.aurora.color.accent",
+    "label": "Barva akcentu",
+    "type": "string",
+    "defaultValue": "#7c6af7",
+    "placeholder": "#7c6af7",
+    "border": "value"
+  },
+  {
+    "type": "separator",
+    "label": "Animace"
   },
   {
     "property": "mod.aurora.animation_speed",
     "label": "Rychlost animací UI",
     "type": "dropdown",
     "defaultValue": "normal",
+    "placeholder": false,
     "options": [
       { "label": "Vypnuté", "value": "none" },
-      { "label": "Pomalé", "value": "slow" },
-      { "label": "Normální", "value": "normal" },
-      { "label": "Rychlé", "value": "fast" }
+      { "label": "Pomalé (0.5s)", "value": "slow" },
+      { "label": "Normální (0.2s)", "value": "normal" },
+      { "label": "Rychlé (0.08s)", "value": "fast" }
+    ]
+  },
+  {
+    "type": "separator",
+    "label": "Zvukové efekty"
+  },
+  {
+    "property": "mod.aurora.sounds_enabled",
+    "label": "Zapnout zvukové efekty",
+    "type": "checkbox",
+    "defaultValue": false
+  },
+  {
+    "type": "separator",
+    "label": "Dynamický motiv"
+  },
+  {
+    "property": "mod.aurora.dynamic_mode",
+    "label": "Režim dynamického motivu",
+    "type": "dropdown",
+    "defaultValue": "off",
+    "placeholder": false,
+    "options": [
+      { "label": "Vypnuto", "value": "off" },
+      { "label": "Material You (z obrázku na pozadí)", "value": "material" },
+      { "label": "Denní cyklus (teplejší večer)", "value": "daynight" }
     ]
   }
 ]
