@@ -43,7 +43,8 @@
       "Bash(npm run *)",
       "Bash(\"/c/Program Files/nodejs/npm.cmd\" run build)",
       "Bash(ls \"/c/Program Files/nodejs/\")",
-      "Bash(PATH='/c/Program Files/nodejs:__TRACKED_VAR__' node build.mjs)"
+      "Bash(PATH='/c/Program Files/nodejs:__TRACKED_VAR__' node build.mjs)",
+      "Bash(find \"/c/Users/pthew/AppData/Roaming/zen/Profiles\" -name \"*.js\" -path \"*/sine*\" -o -name \"*.js\" -path \"*/Sine*\" 2>/dev/null | head -20)"
     ]
   }
 }

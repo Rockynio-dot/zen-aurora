@@ -23,10 +23,17 @@ const baseConfig = {
 };
 
 const configs = [
+  // Browser chrome entry — injected into browser.xhtml by Sine
   {
     ...baseConfig,
     entryPoints: ["src/entry.uc.mts"],
     outdir: "dist",
+  },
+  // Settings window — loaded as chrome://aurora/content/settings.js
+  {
+    ...baseConfig,
+    entryPoints: ["src/ui/settingsPage.ts"],
+    outfile: "content/settings.js",
   },
 ];
 

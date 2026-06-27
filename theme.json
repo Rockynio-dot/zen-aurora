@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "homepage": "https://github.com/Rockynio-dot/zen-aurora",
   "preferences": "preferences.json",
+  "chromeManifest": "chrome.manifest",
   "style": "dist/aurora.uc.css",
   "scripts": {
     "dist/entry.uc.js": {
