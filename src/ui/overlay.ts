@@ -387,6 +387,7 @@ function buildColorRow(
 function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
   const groups: [string, string[]][] = [
     ["Panely & Sidebar", ["panel_bg","toolbar_bg","sidebar_bg","panel_text","border","accent"]],
+    ["Workspace strip", ["workspace_strip_bg","workspace_dot","workspace_dot_active"]],
     ["Záložky", ["tab_active_bg","tab_inactive_bg","tab_text","tab_close_hover","tab_hover_bg"]],
     ["URL lišta", ["urlbar_bg","urlbar_text","urlbar_border","urlbar_focus"]],
     ["Obsah & Ostatní", ["browser_bg","selection_bg","scrollbar","button_bg","button_hover"]],
@@ -517,7 +518,8 @@ function buildLayout(doc: Document, el: HTMLElement, _st: HTMLElement): void {
 
   buildSectionHeading(doc, el, "Panely");
   buildSlider(doc, el, "Výška toolbaru",         "mod.aurora.layout.toolbar_height",     32, 64, 1, "px", 40);
-  buildSlider(doc, el, "Šířka sidebaru",          "mod.aurora.layout.sidebar_width",     120, 400, 4, "px", 200);
+  buildSlider(doc, el, "Šířka sidebaru",          "mod.aurora.layout.sidebar_width",           120, 400,  4, "px", 200);
+  buildSlider(doc, el, "Šířka workspace stripu", "mod.aurora.layout.workspace_strip_width",    20,  80,  2, "px",  36);
   buildSlider(doc, el, "Zaoblení panelů",         "mod.aurora.layout.panel_border_radius", 0, 24, 1, "px", 8);
 
   buildSectionHeading(doc, el, "Ostatní");
@@ -579,7 +581,8 @@ const ALL_STRING_PREFS = [
   "mod.aurora.font.family","mod.aurora.font.size","mod.aurora.font.weight",
   "mod.aurora.layout.tab_height","mod.aurora.layout.tab_border_radius",
   "mod.aurora.layout.panel_border_radius","mod.aurora.layout.button_border_radius",
-  "mod.aurora.layout.sidebar_width","mod.aurora.layout.toolbar_height","mod.aurora.layout.border_width",
+  "mod.aurora.layout.sidebar_width","mod.aurora.layout.workspace_strip_width",
+  "mod.aurora.layout.toolbar_height","mod.aurora.layout.border_width",
   "mod.aurora.animation_speed","mod.aurora.animation.easing","mod.aurora.dynamic_mode",
 ];
 const ALL_BOOL_PREFS = ["mod.aurora.effect.tab_shadow","mod.aurora.effect.accent_glow","mod.aurora.sounds_enabled"];

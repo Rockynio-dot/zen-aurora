@@ -53,6 +53,10 @@ export function generateCSS(t: AuroraTheme): string {
   --aurora-scrollbar:         ${t.colors.scrollbar};
   --aurora-btn-bg:            ${t.colors.buttonBg};
   --aurora-btn-hover:         ${t.colors.buttonHover};
+  --aurora-workspace-strip-bg:     ${t.colors.workspaceStripBg};
+  --aurora-workspace-dot:          ${t.colors.workspaceDot};
+  --aurora-workspace-dot-active:   ${t.colors.workspaceDotActive};
+  --aurora-workspace-strip-w:      ${t.layout.workspaceStripWidth};
   --aurora-tab-h:             ${t.layout.tabHeight};
   --aurora-tab-r:             ${t.layout.tabBorderRadius};
   --aurora-panel-r:           ${t.layout.panelBorderRadius};
@@ -101,7 +105,6 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
 #sidebar-box,
 #zen-sidebar-top-buttons,
 #zen-sidebar-top-buttons-customization-target,
-#zen-appcontent-navbar,
 .zen-sidebar-action-button {
   background: var(--aurora-sidebar-bg) !important;
   border-color: var(--aurora-border) !important;
@@ -113,6 +116,31 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   min-width: var(--aurora-sidebar-w) !important;
   max-width: var(--aurora-sidebar-w) !important;
   border-right: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
+}
+
+/* ══ Zen workspace strip (leftmost narrow panel) ══ */
+#zen-appcontent-navbar {
+  background: var(--aurora-workspace-strip-bg) !important;
+  min-width: var(--aurora-workspace-strip-w) !important;
+  max-width: var(--aurora-workspace-strip-w) !important;
+  border-right: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
+  ${blur ? `backdrop-filter: ${blur} !important;` : ""}
+  ${T("background-color, min-width, max-width")}
+}
+
+.zen-workspace-dot,
+.zen-workspace-button {
+  background: var(--aurora-workspace-dot) !important;
+  border-color: transparent !important;
+  ${T("background-color, box-shadow")}
+}
+
+.zen-workspace-dot[selected],
+.zen-workspace-dot[active],
+.zen-workspace-button[selected],
+.zen-workspace-button[active] {
+  background: var(--aurora-workspace-dot-active) !important;
+  box-shadow: 0 0 6px var(--aurora-workspace-dot-active) !important;
 }
 
 /* ══ Tabs ══ */

@@ -29,8 +29,11 @@ export const GLOBAL_COLORS: ColorField[] = [
   { pref: "mod.aurora.color.browser_bg",     label: "Pozadí prohlížeče",       default: "#0f0f1a" },
   { pref: "mod.aurora.color.selection_bg",   label: "Výběr textu",             default: "#7c6af740" },
   { pref: "mod.aurora.color.scrollbar",      label: "Scrollbar",               default: "#3a3a6c" },
-  { pref: "mod.aurora.color.button_bg",      label: "Tlačítka pozadí",         default: "#2a2a4e" },
-  { pref: "mod.aurora.color.button_hover",   label: "Tlačítka hover",          default: "#3a3a6e" },
+  { pref: "mod.aurora.color.button_bg",           label: "Tlačítka pozadí",              default: "#2a2a4e" },
+  { pref: "mod.aurora.color.button_hover",        label: "Tlačítka hover",               default: "#3a3a6e" },
+  { pref: "mod.aurora.color.workspace_strip_bg",  label: "Workspace strip pozadí",       default: "#0d0d1e" },
+  { pref: "mod.aurora.color.workspace_dot",       label: "Workspace dot",                default: "#3a3a6c" },
+  { pref: "mod.aurora.color.workspace_dot_active",label: "Workspace dot (aktivní)",      default: "#7c6af7" },
 ];
 
 export const SPACE_COLORS: SpaceColorField[] = [

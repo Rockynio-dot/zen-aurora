@@ -37,7 +37,10 @@
         selectionBg: s("mod.aurora.color.selection_bg", "#7c6af740"),
         scrollbar: s("mod.aurora.color.scrollbar", "#3a3a6c"),
         buttonBg: s("mod.aurora.color.button_bg", "#2a2a4e"),
-        buttonHover: s("mod.aurora.color.button_hover", "#3a3a6e")
+        buttonHover: s("mod.aurora.color.button_hover", "#3a3a6e"),
+        workspaceStripBg: s("mod.aurora.color.workspace_strip_bg", "#0d0d1e"),
+        workspaceDot: s("mod.aurora.color.workspace_dot", "#3a3a6c"),
+        workspaceDotActive: s("mod.aurora.color.workspace_dot_active", "#7c6af7")
       },
       images: {
         browserBg: s("mod.aurora.image.browser_bg", "") || null,
@@ -57,6 +60,7 @@
         panelBorderRadius: s("mod.aurora.layout.panel_border_radius", "8px"),
         buttonBorderRadius: s("mod.aurora.layout.button_border_radius", "6px"),
         sidebarWidth: s("mod.aurora.layout.sidebar_width", "200px"),
+        workspaceStripWidth: s("mod.aurora.layout.workspace_strip_width", "36px"),
         toolbarHeight: s("mod.aurora.layout.toolbar_height", "40px"),
         borderWidth: s("mod.aurora.layout.border_width", "1px")
       },
@@ -125,6 +129,10 @@
   --aurora-scrollbar:         ${t.colors.scrollbar};
   --aurora-btn-bg:            ${t.colors.buttonBg};
   --aurora-btn-hover:         ${t.colors.buttonHover};
+  --aurora-workspace-strip-bg:     ${t.colors.workspaceStripBg};
+  --aurora-workspace-dot:          ${t.colors.workspaceDot};
+  --aurora-workspace-dot-active:   ${t.colors.workspaceDotActive};
+  --aurora-workspace-strip-w:      ${t.layout.workspaceStripWidth};
   --aurora-tab-h:             ${t.layout.tabHeight};
   --aurora-tab-r:             ${t.layout.tabBorderRadius};
   --aurora-panel-r:           ${t.layout.panelBorderRadius};
@@ -173,7 +181,6 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
 #sidebar-box,
 #zen-sidebar-top-buttons,
 #zen-sidebar-top-buttons-customization-target,
-#zen-appcontent-navbar,
 .zen-sidebar-action-button {
   background: var(--aurora-sidebar-bg) !important;
   border-color: var(--aurora-border) !important;
@@ -185,6 +192,31 @@ ${Services.prefs.getBoolPref("mod.aurora.zen.sync_primary_color", true) ? `:root
   min-width: var(--aurora-sidebar-w) !important;
   max-width: var(--aurora-sidebar-w) !important;
   border-right: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
+}
+
+/* \u2550\u2550 Zen workspace strip (leftmost narrow panel) \u2550\u2550 */
+#zen-appcontent-navbar {
+  background: var(--aurora-workspace-strip-bg) !important;
+  min-width: var(--aurora-workspace-strip-w) !important;
+  max-width: var(--aurora-workspace-strip-w) !important;
+  border-right: var(--aurora-border-w) var(--aurora-border-s) var(--aurora-border) !important;
+  ${blur ? `backdrop-filter: ${blur} !important;` : ""}
+  ${T("background-color, min-width, max-width")}
+}
+
+.zen-workspace-dot,
+.zen-workspace-button {
+  background: var(--aurora-workspace-dot) !important;
+  border-color: transparent !important;
+  ${T("background-color, box-shadow")}
+}
+
+.zen-workspace-dot[selected],
+.zen-workspace-dot[active],
+.zen-workspace-button[selected],
+.zen-workspace-button[active] {
+  background: var(--aurora-workspace-dot-active) !important;
+  box-shadow: 0 0 6px var(--aurora-workspace-dot-active) !important;
 }
 
 /* \u2550\u2550 Tabs \u2550\u2550 */
@@ -918,7 +950,10 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     { pref: "mod.aurora.color.selection_bg", label: "V\xFDb\u011Br textu", default: "#7c6af740" },
     { pref: "mod.aurora.color.scrollbar", label: "Scrollbar", default: "#3a3a6c" },
     { pref: "mod.aurora.color.button_bg", label: "Tla\u010D\xEDtka pozad\xED", default: "#2a2a4e" },
-    { pref: "mod.aurora.color.button_hover", label: "Tla\u010D\xEDtka hover", default: "#3a3a6e" }
+    { pref: "mod.aurora.color.button_hover", label: "Tla\u010D\xEDtka hover", default: "#3a3a6e" },
+    { pref: "mod.aurora.color.workspace_strip_bg", label: "Workspace strip pozad\xED", default: "#0d0d1e" },
+    { pref: "mod.aurora.color.workspace_dot", label: "Workspace dot", default: "#3a3a6c" },
+    { pref: "mod.aurora.color.workspace_dot_active", label: "Workspace dot (aktivn\xED)", default: "#7c6af7" }
   ];
   var SPACE_COLORS = [
     { key: "accent", label: "Akcent", default: "" },
@@ -1824,6 +1859,7 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
   function buildColors(doc, el, st) {
     const groups = [
       ["Panely & Sidebar", ["panel_bg", "toolbar_bg", "sidebar_bg", "panel_text", "border", "accent"]],
+      ["Workspace strip", ["workspace_strip_bg", "workspace_dot", "workspace_dot_active"]],
       ["Z\xE1lo\u017Eky", ["tab_active_bg", "tab_inactive_bg", "tab_text", "tab_close_hover", "tab_hover_bg"]],
       ["URL li\u0161ta", ["urlbar_bg", "urlbar_text", "urlbar_border", "urlbar_focus"]],
       ["Obsah & Ostatn\xED", ["browser_bg", "selection_bg", "scrollbar", "button_bg", "button_hover"]]
@@ -1974,6 +2010,7 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     buildSectionHeading(doc, el, "Panely");
     buildSlider(doc, el, "V\xFD\u0161ka toolbaru", "mod.aurora.layout.toolbar_height", 32, 64, 1, "px", 40);
     buildSlider(doc, el, "\u0160\xED\u0159ka sidebaru", "mod.aurora.layout.sidebar_width", 120, 400, 4, "px", 200);
+    buildSlider(doc, el, "\u0160\xED\u0159ka workspace stripu", "mod.aurora.layout.workspace_strip_width", 20, 80, 2, "px", 36);
     buildSlider(doc, el, "Zaoblen\xED panel\u016F", "mod.aurora.layout.panel_border_radius", 0, 24, 1, "px", 8);
     buildSectionHeading(doc, el, "Ostatn\xED");
     buildSlider(doc, el, "Zaoblen\xED tla\u010D\xEDtek", "mod.aurora.layout.button_border_radius", 0, 20, 1, "px", 6);
@@ -2049,6 +2086,7 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     "mod.aurora.layout.panel_border_radius",
     "mod.aurora.layout.button_border_radius",
     "mod.aurora.layout.sidebar_width",
+    "mod.aurora.layout.workspace_strip_width",
     "mod.aurora.layout.toolbar_height",
     "mod.aurora.layout.border_width",
     "mod.aurora.animation_speed",

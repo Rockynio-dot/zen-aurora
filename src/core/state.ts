@@ -20,6 +20,9 @@ export interface AuroraTheme {
     scrollbar: string;
     buttonBg: string;
     buttonHover: string;
+    workspaceStripBg: string;
+    workspaceDot: string;
+    workspaceDotActive: string;
   };
   images: {
     browserBg: string | null;
@@ -39,6 +42,7 @@ export interface AuroraTheme {
     panelBorderRadius: string;
     buttonBorderRadius: string;
     sidebarWidth: string;
+    workspaceStripWidth: string;
     toolbarHeight: string;
     borderWidth: string;
   };
@@ -87,8 +91,11 @@ export function loadTheme(): AuroraTheme {
       browserBg:     s("mod.aurora.color.browser_bg",    "#0f0f1a"),
       selectionBg:   s("mod.aurora.color.selection_bg",  "#7c6af740"),
       scrollbar:     s("mod.aurora.color.scrollbar",     "#3a3a6c"),
-      buttonBg:      s("mod.aurora.color.button_bg",     "#2a2a4e"),
-      buttonHover:   s("mod.aurora.color.button_hover",  "#3a3a6e"),
+      buttonBg:            s("mod.aurora.color.button_bg",              "#2a2a4e"),
+      buttonHover:         s("mod.aurora.color.button_hover",           "#3a3a6e"),
+      workspaceStripBg:    s("mod.aurora.color.workspace_strip_bg",     "#0d0d1e"),
+      workspaceDot:        s("mod.aurora.color.workspace_dot",          "#3a3a6c"),
+      workspaceDotActive:  s("mod.aurora.color.workspace_dot_active",   "#7c6af7"),
     },
     images: {
       browserBg:  s("mod.aurora.image.browser_bg", "") || null,
@@ -107,8 +114,9 @@ export function loadTheme(): AuroraTheme {
       tabBorderRadius:    s("mod.aurora.layout.tab_border_radius",    "8px"),
       panelBorderRadius:  s("mod.aurora.layout.panel_border_radius",  "8px"),
       buttonBorderRadius: s("mod.aurora.layout.button_border_radius", "6px"),
-      sidebarWidth:       s("mod.aurora.layout.sidebar_width",        "200px"),
-      toolbarHeight:      s("mod.aurora.layout.toolbar_height",       "40px"),
+      sidebarWidth:         s("mod.aurora.layout.sidebar_width",          "200px"),
+      workspaceStripWidth:  s("mod.aurora.layout.workspace_strip_width",  "36px"),
+      toolbarHeight:        s("mod.aurora.layout.toolbar_height",         "40px"),
       borderWidth:        s("mod.aurora.layout.border_width",         "1px"),
     },
     effects: {
@@ -152,8 +160,11 @@ export function saveTheme(theme: AuroraTheme): void {
   ss("mod.aurora.color.browser_bg",     theme.colors.browserBg);
   ss("mod.aurora.color.selection_bg",   theme.colors.selectionBg);
   ss("mod.aurora.color.scrollbar",      theme.colors.scrollbar);
-  ss("mod.aurora.color.button_bg",      theme.colors.buttonBg);
-  ss("mod.aurora.color.button_hover",   theme.colors.buttonHover);
+  ss("mod.aurora.color.button_bg",              theme.colors.buttonBg);
+  ss("mod.aurora.color.button_hover",           theme.colors.buttonHover);
+  ss("mod.aurora.color.workspace_strip_bg",     theme.colors.workspaceStripBg);
+  ss("mod.aurora.color.workspace_dot",          theme.colors.workspaceDot);
+  ss("mod.aurora.color.workspace_dot_active",   theme.colors.workspaceDotActive);
   ss("mod.aurora.image.bg_size",        theme.images.bgSize);
   ss("mod.aurora.image.bg_position",    theme.images.bgPosition);
   ss("mod.aurora.image.bg_blur",        theme.images.bgBlur);
@@ -165,7 +176,8 @@ export function saveTheme(theme: AuroraTheme): void {
   ss("mod.aurora.layout.tab_border_radius",   theme.layout.tabBorderRadius);
   ss("mod.aurora.layout.panel_border_radius", theme.layout.panelBorderRadius);
   ss("mod.aurora.layout.button_border_radius",theme.layout.buttonBorderRadius);
-  ss("mod.aurora.layout.sidebar_width",       theme.layout.sidebarWidth);
+  ss("mod.aurora.layout.sidebar_width",           theme.layout.sidebarWidth);
+  ss("mod.aurora.layout.workspace_strip_width",   theme.layout.workspaceStripWidth);
   ss("mod.aurora.layout.toolbar_height",      theme.layout.toolbarHeight);
   ss("mod.aurora.layout.border_width",        theme.layout.borderWidth);
   ss("mod.aurora.effect.panel_opacity",       theme.effects.panelOpacity);
