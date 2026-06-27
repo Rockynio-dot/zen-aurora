@@ -867,70 +867,129 @@ body {
     const [h, s] = hexToHsl(accent);
     const sat = Math.min(s, 40);
     return {
-      "mod.aurora.color.accent": accent,
-      "mod.aurora.color.urlbar_focus": accent,
-      "mod.aurora.color.workspace_dot_active": accent,
-      "mod.aurora.color.browser_bg": hslHex(h, Math.min(sat, 20), 7),
-      "mod.aurora.color.workspace_strip_bg": hslHex(h, Math.min(sat, 25), 8),
-      "mod.aurora.color.toolbar_bg": hslHex(h, Math.min(sat, 28), 10),
-      "mod.aurora.color.sidebar_bg": hslHex(h, Math.min(sat, 28), 9),
-      "mod.aurora.color.panel_bg": hslHex(h, Math.min(sat, 28), 12),
-      "mod.aurora.color.tab_inactive_bg": hslHex(h, Math.min(sat, 26), 12),
-      "mod.aurora.color.urlbar_bg": hslHex(h, Math.min(sat, 30), 14),
-      "mod.aurora.color.tab_active_bg": hslHex(h, Math.min(sat, 42), 19),
-      "mod.aurora.color.tab_hover_bg": hslHex(h, Math.min(sat, 35), 16),
-      "mod.aurora.color.button_bg": hslHex(h, Math.min(sat, 42), 18),
-      "mod.aurora.color.button_hover": hslHex(h, Math.min(sat, 38), 22),
-      "mod.aurora.color.border": hslHex(h, Math.min(sat, 42), 24),
-      "mod.aurora.color.urlbar_border": hslHex(h, Math.min(sat, 42), 26),
-      "mod.aurora.color.workspace_dot": hslHex(h, Math.min(sat, 38), 26),
-      "mod.aurora.color.scrollbar": hslHex(h, Math.min(sat, 38), 28),
-      "mod.aurora.color.selection_bg": accent + "40",
-      "mod.aurora.color.panel_text": hslHex(h, 20, 90),
-      "mod.aurora.color.tab_text": hslHex(h, 15, 82),
-      "mod.aurora.color.urlbar_text": hslHex(h, 20, 90),
-      "mod.aurora.color.tab_close_hover": "#ff6b6b"
+      colors: {
+        "mod.aurora.color.accent": accent,
+        "mod.aurora.color.urlbar_focus": accent,
+        "mod.aurora.color.workspace_dot_active": accent,
+        "mod.aurora.color.browser_bg": hslHex(h, Math.min(sat, 20), 7),
+        "mod.aurora.color.workspace_strip_bg": hslHex(h, Math.min(sat, 25), 8),
+        "mod.aurora.color.toolbar_bg": hslHex(h, Math.min(sat, 28), 10),
+        "mod.aurora.color.sidebar_bg": hslHex(h, Math.min(sat, 28), 9),
+        "mod.aurora.color.panel_bg": hslHex(h, Math.min(sat, 28), 12),
+        "mod.aurora.color.tab_inactive_bg": hslHex(h, Math.min(sat, 26), 12),
+        "mod.aurora.color.urlbar_bg": hslHex(h, Math.min(sat, 30), 14),
+        "mod.aurora.color.tab_active_bg": hslHex(h, Math.min(sat, 42), 19),
+        "mod.aurora.color.tab_hover_bg": hslHex(h, Math.min(sat, 35), 16),
+        "mod.aurora.color.button_bg": hslHex(h, Math.min(sat, 42), 18),
+        "mod.aurora.color.button_hover": hslHex(h, Math.min(sat, 38), 22),
+        "mod.aurora.color.border": hslHex(h, Math.min(sat, 42), 24),
+        "mod.aurora.color.urlbar_border": hslHex(h, Math.min(sat, 42), 26),
+        "mod.aurora.color.workspace_dot": hslHex(h, Math.min(sat, 38), 26),
+        "mod.aurora.color.scrollbar": hslHex(h, Math.min(sat, 38), 28),
+        "mod.aurora.color.selection_bg": accent + "40",
+        "mod.aurora.color.panel_text": hslHex(h, 20, 90),
+        "mod.aurora.color.tab_text": hslHex(h, 15, 82),
+        "mod.aurora.color.urlbar_text": hslHex(h, 20, 90),
+        "mod.aurora.color.tab_close_hover": "#ff6b6b"
+      },
+      strings: {
+        "mod.aurora.effect.panel_opacity": "1.0",
+        "mod.aurora.effect.panel_blur": "0px",
+        "mod.aurora.effect.panel_border_style": "solid",
+        "mod.aurora.animation_speed": "normal",
+        "mod.aurora.animation.easing": "ease",
+        "mod.aurora.layout.toolbar_mode": "multi",
+        "mod.aurora.layout.no_gap_bg": hslHex(h, Math.min(sat, 20), 4)
+      },
+      booleans: {
+        "mod.aurora.effect.tab_shadow": false,
+        "mod.aurora.effect.accent_glow": false,
+        "mod.aurora.layout.no_gap_mod": false,
+        "mod.aurora.style.tabs": true,
+        "mod.aurora.style.urlbar": true,
+        "mod.aurora.style.sidebar": true,
+        "mod.aurora.style.toolbar": true,
+        "mod.aurora.style.workspace_strip": true,
+        "mod.aurora.style.menus": true,
+        "mod.aurora.style.individual_text_colors": false
+      }
     };
   }
   function generateLightPalette(accent) {
     const [h, s] = hexToHsl(accent);
-    const sat = Math.min(s, 30);
+    const sat = Math.min(s, 45);
     return {
-      "mod.aurora.color.accent": accent,
-      "mod.aurora.color.urlbar_focus": accent,
-      "mod.aurora.color.workspace_dot_active": accent,
-      "mod.aurora.color.browser_bg": hslHex(h, Math.min(sat, 8), 97),
-      "mod.aurora.color.workspace_strip_bg": hslHex(h, Math.min(sat, 12), 91),
-      "mod.aurora.color.toolbar_bg": hslHex(h, Math.min(sat, 12), 93),
-      "mod.aurora.color.sidebar_bg": hslHex(h, Math.min(sat, 10), 92),
-      "mod.aurora.color.panel_bg": hslHex(h, Math.min(sat, 12), 95),
-      "mod.aurora.color.tab_inactive_bg": hslHex(h, Math.min(sat, 10), 89),
-      "mod.aurora.color.urlbar_bg": hslHex(h, Math.min(sat, 8), 98),
-      "mod.aurora.color.tab_active_bg": hslHex(h, Math.min(sat, 18), 84),
-      "mod.aurora.color.tab_hover_bg": hslHex(h, Math.min(sat, 14), 87),
-      "mod.aurora.color.button_bg": hslHex(h, Math.min(sat, 18), 83),
-      "mod.aurora.color.button_hover": hslHex(h, Math.min(sat, 14), 78),
-      "mod.aurora.color.border": hslHex(h, Math.min(sat, 18), 72),
-      "mod.aurora.color.urlbar_border": hslHex(h, Math.min(sat, 18), 68),
-      "mod.aurora.color.workspace_dot": hslHex(h, Math.min(sat, 25), 62),
-      "mod.aurora.color.scrollbar": hslHex(h, Math.min(sat, 18), 68),
-      "mod.aurora.color.selection_bg": accent + "30",
-      "mod.aurora.color.panel_text": hslHex(h, 10, 12),
-      "mod.aurora.color.tab_text": hslHex(h, 8, 18),
-      "mod.aurora.color.urlbar_text": hslHex(h, 10, 12),
-      "mod.aurora.color.tab_close_hover": "#cc3333"
+      colors: {
+        "mod.aurora.color.accent": accent,
+        "mod.aurora.color.urlbar_focus": accent,
+        "mod.aurora.color.workspace_dot_active": accent,
+        // Backgrounds — výrazně tmavší než dříve pro viditelný gradient
+        "mod.aurora.color.browser_bg": hslHex(h, Math.min(sat, 16), 82),
+        "mod.aurora.color.workspace_strip_bg": hslHex(h, Math.min(sat, 32), 62),
+        "mod.aurora.color.toolbar_bg": hslHex(h, Math.min(sat, 28), 72),
+        "mod.aurora.color.sidebar_bg": hslHex(h, Math.min(sat, 28), 68),
+        "mod.aurora.color.panel_bg": hslHex(h, Math.min(sat, 22), 76),
+        "mod.aurora.color.tab_inactive_bg": hslHex(h, Math.min(sat, 30), 64),
+        "mod.aurora.color.urlbar_bg": hslHex(h, Math.min(sat, 14), 80),
+        "mod.aurora.color.tab_active_bg": hslHex(h, Math.min(sat, 40), 52),
+        "mod.aurora.color.tab_hover_bg": hslHex(h, Math.min(sat, 34), 58),
+        "mod.aurora.color.button_bg": hslHex(h, Math.min(sat, 38), 52),
+        "mod.aurora.color.button_hover": hslHex(h, Math.min(sat, 30), 44),
+        "mod.aurora.color.border": hslHex(h, Math.min(sat, 36), 40),
+        "mod.aurora.color.urlbar_border": hslHex(h, Math.min(sat, 32), 36),
+        "mod.aurora.color.workspace_dot": hslHex(h, Math.min(sat, 42), 34),
+        "mod.aurora.color.scrollbar": hslHex(h, Math.min(sat, 28), 42),
+        "mod.aurora.color.selection_bg": accent + "35",
+        "mod.aurora.color.panel_text": hslHex(h, 12, 6),
+        "mod.aurora.color.tab_text": hslHex(h, 9, 10),
+        "mod.aurora.color.urlbar_text": hslHex(h, 12, 6),
+        "mod.aurora.color.tab_close_hover": "#cc2222"
+      },
+      strings: {
+        "mod.aurora.effect.panel_opacity": "1.0",
+        "mod.aurora.effect.panel_blur": "0px",
+        "mod.aurora.effect.panel_border_style": "solid",
+        "mod.aurora.animation_speed": "normal",
+        "mod.aurora.animation.easing": "ease",
+        "mod.aurora.layout.toolbar_mode": "multi",
+        "mod.aurora.layout.no_gap_bg": hslHex(h, Math.min(sat, 16), 60)
+      },
+      booleans: {
+        "mod.aurora.effect.tab_shadow": false,
+        "mod.aurora.effect.accent_glow": false,
+        "mod.aurora.layout.no_gap_mod": false,
+        "mod.aurora.style.tabs": true,
+        "mod.aurora.style.urlbar": true,
+        "mod.aurora.style.sidebar": true,
+        "mod.aurora.style.toolbar": true,
+        "mod.aurora.style.workspace_strip": true,
+        "mod.aurora.style.menus": true,
+        "mod.aurora.style.individual_text_colors": false
+      }
     };
   }
-  function applyPalette(palette) {
-    for (const [k, v] of Object.entries(palette)) {
+  function applyPalette(data) {
+    for (const [k, v] of Object.entries(data.colors)) {
       try {
         Services.prefs.setStringPref(k, v);
       } catch {
       }
     }
+    for (const [k, v] of Object.entries(data.strings)) {
+      try {
+        Services.prefs.setStringPref(k, v);
+      } catch {
+      }
+    }
+    for (const [k, v] of Object.entries(data.booleans)) {
+      try {
+        Services.prefs.setBoolPref(k, v);
+      } catch {
+      }
+    }
   }
   function buildQuick(doc, el, st) {
-    el.appendChild(note(doc, 'Vyberte jeden akcent a Aurora vygeneruje celou paletu barev \u2014 stejn\u011B jako "Upravit motiv" v Zenu.'));
+    el.appendChild(note(doc, 'Vyberte jeden akcent a Aurora vygeneruje celou paletu \u2014 barvy, efekty, animace, style p\u0159ep\xEDna\u010De. Stejn\u011B jako "Upravit motiv" v Zenu.'));
     buildSectionHeading(doc, el, "Akcent");
     const accentRow = doc.createElement("div");
     accentRow.style.cssText = "display:flex;gap:16px;align-items:center;padding:8px 0;";
@@ -976,12 +1035,20 @@ body {
     el.appendChild(preview);
     const previewKeys = [
       "mod.aurora.color.browser_bg",
+      "mod.aurora.color.workspace_strip_bg",
       "mod.aurora.color.toolbar_bg",
-      "mod.aurora.color.panel_bg",
       "mod.aurora.color.sidebar_bg",
+      "mod.aurora.color.panel_bg",
+      "mod.aurora.color.tab_inactive_bg",
+      "mod.aurora.color.urlbar_bg",
       "mod.aurora.color.tab_active_bg",
+      "mod.aurora.color.button_bg",
       "mod.aurora.color.border",
+      "mod.aurora.color.workspace_dot",
+      "mod.aurora.color.scrollbar",
       "mod.aurora.color.accent",
+      "mod.aurora.color.workspace_dot_active",
+      "mod.aurora.color.selection_bg",
       "mod.aurora.color.panel_text"
     ];
     const dots = [];
@@ -993,10 +1060,15 @@ body {
       preview.appendChild(dot);
       dots.push(dot);
     }
+    const coverNote = note(doc, [
+      "Nastavuje: 23 barev \xB7 pr\u016Fhlednost \xB7 blur \xB7 styl ohrani\u010Den\xED \xB7 animace \xB7",
+      "rozvr\u017Een\xED toolbaru \xB7 stav no-gap \xB7 zapnut\xED v\u0161ech styl\u016F element\u016F (z\xE1lo\u017Eky, urlbar, sidebar\u2026)"
+    ].join(" "));
+    el.appendChild(coverNote);
     function updatePreview(accent) {
-      const palette = modeSelect.value === "light" ? generateLightPalette(accent) : generateDarkPalette(accent);
+      const data = modeSelect.value === "light" ? generateLightPalette(accent) : generateDarkPalette(accent);
       dots.forEach((dot, i) => {
-        dot.style.background = palette[previewKeys[i]] ?? "#333";
+        dot.style.background = data.colors[previewKeys[i]] ?? "#333";
       });
     }
     modeSelect.addEventListener("change", () => updatePreview(accentHex.value));
@@ -1007,9 +1079,9 @@ body {
     applyBtn.textContent = "\u2726 Pou\u017E\xEDt paletu";
     applyBtn.addEventListener("click", () => {
       const v = accentHex.value.trim();
-      const palette = modeSelect.value === "light" ? generateLightPalette(v) : generateDarkPalette(v);
-      applyPalette(palette);
-      status(st, "\u2713 Paleta aplikov\xE1na", "ok");
+      const data = modeSelect.value === "light" ? generateLightPalette(v) : generateDarkPalette(v);
+      applyPalette(data);
+      status(st, "\u2713 Paleta aplikov\xE1na \u2014 barvy, efekty, animace", "ok");
     });
     el.appendChild(applyBtn);
   }

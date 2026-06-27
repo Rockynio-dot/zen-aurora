@@ -248,73 +248,128 @@ function hslHex(h: number, s: number, l: number): string {
   const f = (n: number) => { const k=(n+h/30)%12, c=l-a*Math.max(Math.min(k-3,9-k,1),-1); return Math.round(255*c).toString(16).padStart(2,"0"); };
   return `#${f(0)}${f(8)}${f(4)}`;
 }
-function generateDarkPalette(accent: string): Record<string, string> {
+
+interface PaletteData {
+  colors: Record<string, string>;
+  strings: Record<string, string>;
+  booleans: Record<string, boolean>;
+}
+
+function generateDarkPalette(accent: string): PaletteData {
   const [h, s] = hexToHsl(accent); const sat = Math.min(s, 40);
   return {
-    "mod.aurora.color.accent":              accent,
-    "mod.aurora.color.urlbar_focus":        accent,
-    "mod.aurora.color.workspace_dot_active":accent,
-    "mod.aurora.color.browser_bg":          hslHex(h, Math.min(sat,20), 7),
-    "mod.aurora.color.workspace_strip_bg":  hslHex(h, Math.min(sat,25), 8),
-    "mod.aurora.color.toolbar_bg":          hslHex(h, Math.min(sat,28), 10),
-    "mod.aurora.color.sidebar_bg":          hslHex(h, Math.min(sat,28), 9),
-    "mod.aurora.color.panel_bg":            hslHex(h, Math.min(sat,28), 12),
-    "mod.aurora.color.tab_inactive_bg":     hslHex(h, Math.min(sat,26), 12),
-    "mod.aurora.color.urlbar_bg":           hslHex(h, Math.min(sat,30), 14),
-    "mod.aurora.color.tab_active_bg":       hslHex(h, Math.min(sat,42), 19),
-    "mod.aurora.color.tab_hover_bg":        hslHex(h, Math.min(sat,35), 16),
-    "mod.aurora.color.button_bg":           hslHex(h, Math.min(sat,42), 18),
-    "mod.aurora.color.button_hover":        hslHex(h, Math.min(sat,38), 22),
-    "mod.aurora.color.border":              hslHex(h, Math.min(sat,42), 24),
-    "mod.aurora.color.urlbar_border":       hslHex(h, Math.min(sat,42), 26),
-    "mod.aurora.color.workspace_dot":       hslHex(h, Math.min(sat,38), 26),
-    "mod.aurora.color.scrollbar":           hslHex(h, Math.min(sat,38), 28),
-    "mod.aurora.color.selection_bg":        accent + "40",
-    "mod.aurora.color.panel_text":          hslHex(h, 20, 90),
-    "mod.aurora.color.tab_text":            hslHex(h, 15, 82),
-    "mod.aurora.color.urlbar_text":         hslHex(h, 20, 90),
-    "mod.aurora.color.tab_close_hover":     "#ff6b6b",
-  };
-}
-function generateLightPalette(accent: string): Record<string, string> {
-  const [h, s] = hexToHsl(accent); const sat = Math.min(s, 30);
-  return {
-    "mod.aurora.color.accent":              accent,
-    "mod.aurora.color.urlbar_focus":        accent,
-    "mod.aurora.color.workspace_dot_active":accent,
-    "mod.aurora.color.browser_bg":          hslHex(h, Math.min(sat,8), 97),
-    "mod.aurora.color.workspace_strip_bg":  hslHex(h, Math.min(sat,12), 91),
-    "mod.aurora.color.toolbar_bg":          hslHex(h, Math.min(sat,12), 93),
-    "mod.aurora.color.sidebar_bg":          hslHex(h, Math.min(sat,10), 92),
-    "mod.aurora.color.panel_bg":            hslHex(h, Math.min(sat,12), 95),
-    "mod.aurora.color.tab_inactive_bg":     hslHex(h, Math.min(sat,10), 89),
-    "mod.aurora.color.urlbar_bg":           hslHex(h, Math.min(sat,8), 98),
-    "mod.aurora.color.tab_active_bg":       hslHex(h, Math.min(sat,18), 84),
-    "mod.aurora.color.tab_hover_bg":        hslHex(h, Math.min(sat,14), 87),
-    "mod.aurora.color.button_bg":           hslHex(h, Math.min(sat,18), 83),
-    "mod.aurora.color.button_hover":        hslHex(h, Math.min(sat,14), 78),
-    "mod.aurora.color.border":              hslHex(h, Math.min(sat,18), 72),
-    "mod.aurora.color.urlbar_border":       hslHex(h, Math.min(sat,18), 68),
-    "mod.aurora.color.workspace_dot":       hslHex(h, Math.min(sat,25), 62),
-    "mod.aurora.color.scrollbar":           hslHex(h, Math.min(sat,18), 68),
-    "mod.aurora.color.selection_bg":        accent + "30",
-    "mod.aurora.color.panel_text":          hslHex(h, 10, 12),
-    "mod.aurora.color.tab_text":            hslHex(h, 8, 18),
-    "mod.aurora.color.urlbar_text":         hslHex(h, 10, 12),
-    "mod.aurora.color.tab_close_hover":     "#cc3333",
+    colors: {
+      "mod.aurora.color.accent":               accent,
+      "mod.aurora.color.urlbar_focus":         accent,
+      "mod.aurora.color.workspace_dot_active": accent,
+      "mod.aurora.color.browser_bg":           hslHex(h, Math.min(sat,20),  7),
+      "mod.aurora.color.workspace_strip_bg":   hslHex(h, Math.min(sat,25),  8),
+      "mod.aurora.color.toolbar_bg":           hslHex(h, Math.min(sat,28), 10),
+      "mod.aurora.color.sidebar_bg":           hslHex(h, Math.min(sat,28),  9),
+      "mod.aurora.color.panel_bg":             hslHex(h, Math.min(sat,28), 12),
+      "mod.aurora.color.tab_inactive_bg":      hslHex(h, Math.min(sat,26), 12),
+      "mod.aurora.color.urlbar_bg":            hslHex(h, Math.min(sat,30), 14),
+      "mod.aurora.color.tab_active_bg":        hslHex(h, Math.min(sat,42), 19),
+      "mod.aurora.color.tab_hover_bg":         hslHex(h, Math.min(sat,35), 16),
+      "mod.aurora.color.button_bg":            hslHex(h, Math.min(sat,42), 18),
+      "mod.aurora.color.button_hover":         hslHex(h, Math.min(sat,38), 22),
+      "mod.aurora.color.border":               hslHex(h, Math.min(sat,42), 24),
+      "mod.aurora.color.urlbar_border":        hslHex(h, Math.min(sat,42), 26),
+      "mod.aurora.color.workspace_dot":        hslHex(h, Math.min(sat,38), 26),
+      "mod.aurora.color.scrollbar":            hslHex(h, Math.min(sat,38), 28),
+      "mod.aurora.color.selection_bg":         accent + "40",
+      "mod.aurora.color.panel_text":           hslHex(h, 20, 90),
+      "mod.aurora.color.tab_text":             hslHex(h, 15, 82),
+      "mod.aurora.color.urlbar_text":          hslHex(h, 20, 90),
+      "mod.aurora.color.tab_close_hover":      "#ff6b6b",
+    },
+    strings: {
+      "mod.aurora.effect.panel_opacity":      "1.0",
+      "mod.aurora.effect.panel_blur":         "0px",
+      "mod.aurora.effect.panel_border_style": "solid",
+      "mod.aurora.animation_speed":           "normal",
+      "mod.aurora.animation.easing":          "ease",
+      "mod.aurora.layout.toolbar_mode":       "multi",
+      "mod.aurora.layout.no_gap_bg":          hslHex(h, Math.min(sat,20), 4),
+    },
+    booleans: {
+      "mod.aurora.effect.tab_shadow":              false,
+      "mod.aurora.effect.accent_glow":             false,
+      "mod.aurora.layout.no_gap_mod":              false,
+      "mod.aurora.style.tabs":                     true,
+      "mod.aurora.style.urlbar":                   true,
+      "mod.aurora.style.sidebar":                  true,
+      "mod.aurora.style.toolbar":                  true,
+      "mod.aurora.style.workspace_strip":          true,
+      "mod.aurora.style.menus":                    true,
+      "mod.aurora.style.individual_text_colors":   false,
+    },
   };
 }
 
-function applyPalette(palette: Record<string, string>): void {
-  for (const [k, v] of Object.entries(palette)) {
-    try { Services.prefs.setStringPref(k, v); } catch {}
-  }
+function generateLightPalette(accent: string): PaletteData {
+  const [h, s] = hexToHsl(accent); const sat = Math.min(s, 45);
+  return {
+    colors: {
+      "mod.aurora.color.accent":               accent,
+      "mod.aurora.color.urlbar_focus":         accent,
+      "mod.aurora.color.workspace_dot_active": accent,
+      // Backgrounds — výrazně tmavší než dříve pro viditelný gradient
+      "mod.aurora.color.browser_bg":           hslHex(h, Math.min(sat,16), 82),
+      "mod.aurora.color.workspace_strip_bg":   hslHex(h, Math.min(sat,32), 62),
+      "mod.aurora.color.toolbar_bg":           hslHex(h, Math.min(sat,28), 72),
+      "mod.aurora.color.sidebar_bg":           hslHex(h, Math.min(sat,28), 68),
+      "mod.aurora.color.panel_bg":             hslHex(h, Math.min(sat,22), 76),
+      "mod.aurora.color.tab_inactive_bg":      hslHex(h, Math.min(sat,30), 64),
+      "mod.aurora.color.urlbar_bg":            hslHex(h, Math.min(sat,14), 80),
+      "mod.aurora.color.tab_active_bg":        hslHex(h, Math.min(sat,40), 52),
+      "mod.aurora.color.tab_hover_bg":         hslHex(h, Math.min(sat,34), 58),
+      "mod.aurora.color.button_bg":            hslHex(h, Math.min(sat,38), 52),
+      "mod.aurora.color.button_hover":         hslHex(h, Math.min(sat,30), 44),
+      "mod.aurora.color.border":               hslHex(h, Math.min(sat,36), 40),
+      "mod.aurora.color.urlbar_border":        hslHex(h, Math.min(sat,32), 36),
+      "mod.aurora.color.workspace_dot":        hslHex(h, Math.min(sat,42), 34),
+      "mod.aurora.color.scrollbar":            hslHex(h, Math.min(sat,28), 42),
+      "mod.aurora.color.selection_bg":         accent + "35",
+      "mod.aurora.color.panel_text":           hslHex(h, 12,  6),
+      "mod.aurora.color.tab_text":             hslHex(h,  9, 10),
+      "mod.aurora.color.urlbar_text":          hslHex(h, 12,  6),
+      "mod.aurora.color.tab_close_hover":      "#cc2222",
+    },
+    strings: {
+      "mod.aurora.effect.panel_opacity":      "1.0",
+      "mod.aurora.effect.panel_blur":         "0px",
+      "mod.aurora.effect.panel_border_style": "solid",
+      "mod.aurora.animation_speed":           "normal",
+      "mod.aurora.animation.easing":          "ease",
+      "mod.aurora.layout.toolbar_mode":       "multi",
+      "mod.aurora.layout.no_gap_bg":          hslHex(h, Math.min(sat,16), 60),
+    },
+    booleans: {
+      "mod.aurora.effect.tab_shadow":              false,
+      "mod.aurora.effect.accent_glow":             false,
+      "mod.aurora.layout.no_gap_mod":              false,
+      "mod.aurora.style.tabs":                     true,
+      "mod.aurora.style.urlbar":                   true,
+      "mod.aurora.style.sidebar":                  true,
+      "mod.aurora.style.toolbar":                  true,
+      "mod.aurora.style.workspace_strip":          true,
+      "mod.aurora.style.menus":                    true,
+      "mod.aurora.style.individual_text_colors":   false,
+    },
+  };
+}
+
+function applyPalette(data: PaletteData): void {
+  for (const [k, v] of Object.entries(data.colors))   { try { Services.prefs.setStringPref(k, v); } catch {} }
+  for (const [k, v] of Object.entries(data.strings))  { try { Services.prefs.setStringPref(k, v); } catch {} }
+  for (const [k, v] of Object.entries(data.booleans)) { try { Services.prefs.setBoolPref(k, v);   } catch {} }
 }
 
 // ── 1. Rychlé nastavení ───────────────────────────────────────────────────────
 
 function buildQuick(doc: Document, el: HTMLElement, st: HTMLElement): void {
-  el.appendChild(note(doc, "Vyberte jeden akcent a Aurora vygeneruje celou paletu barev — stejně jako \"Upravit motiv\" v Zenu."));
+  el.appendChild(note(doc, "Vyberte jeden akcent a Aurora vygeneruje celou paletu — barvy, efekty, animace, style přepínače. Stejně jako \"Upravit motiv\" v Zenu."));
 
   buildSectionHeading(doc, el, "Akcent");
   const accentRow = doc.createElement("div"); accentRow.style.cssText = "display:flex;gap:16px;align-items:center;padding:8px 0;";
@@ -336,10 +391,24 @@ function buildQuick(doc: Document, el: HTMLElement, st: HTMLElement): void {
 
   buildSectionHeading(doc, el, "Náhled palety");
   const preview = doc.createElement("div"); preview.className = "ao-quick-preview"; el.appendChild(preview);
+  // Klíče v pořadí: tmavé pozadí → světlé prvky → akcent → text
   const previewKeys = [
-    "mod.aurora.color.browser_bg","mod.aurora.color.toolbar_bg","mod.aurora.color.panel_bg",
-    "mod.aurora.color.sidebar_bg","mod.aurora.color.tab_active_bg","mod.aurora.color.border",
-    "mod.aurora.color.accent","mod.aurora.color.panel_text",
+    "mod.aurora.color.browser_bg",
+    "mod.aurora.color.workspace_strip_bg",
+    "mod.aurora.color.toolbar_bg",
+    "mod.aurora.color.sidebar_bg",
+    "mod.aurora.color.panel_bg",
+    "mod.aurora.color.tab_inactive_bg",
+    "mod.aurora.color.urlbar_bg",
+    "mod.aurora.color.tab_active_bg",
+    "mod.aurora.color.button_bg",
+    "mod.aurora.color.border",
+    "mod.aurora.color.workspace_dot",
+    "mod.aurora.color.scrollbar",
+    "mod.aurora.color.accent",
+    "mod.aurora.color.workspace_dot_active",
+    "mod.aurora.color.selection_bg",
+    "mod.aurora.color.panel_text",
   ];
   const dots: HTMLElement[] = [];
   for (const k of previewKeys) {
@@ -348,9 +417,16 @@ function buildQuick(doc: Document, el: HTMLElement, st: HTMLElement): void {
     dot.style.background = getPref(k, "#333"); preview.appendChild(dot); dots.push(dot);
   }
 
+  // Co paleta nastavuje — textový souhrn
+  const coverNote = note(doc, [
+    "Nastavuje: 23 barev · průhlednost · blur · styl ohraničení · animace ·",
+    "rozvržení toolbaru · stav no-gap · zapnutí všech stylů elementů (záložky, urlbar, sidebar…)",
+  ].join(" "));
+  el.appendChild(coverNote);
+
   function updatePreview(accent: string): void {
-    const palette = modeSelect.value === "light" ? generateLightPalette(accent) : generateDarkPalette(accent);
-    dots.forEach((dot, i) => { dot.style.background = palette[previewKeys[i]] ?? "#333"; });
+    const data = modeSelect.value === "light" ? generateLightPalette(accent) : generateDarkPalette(accent);
+    dots.forEach((dot, i) => { dot.style.background = data.colors[previewKeys[i]] ?? "#333"; });
   }
   modeSelect.addEventListener("change", () => updatePreview(accentHex.value));
   updatePreview(curAccent);
@@ -360,8 +436,8 @@ function buildQuick(doc: Document, el: HTMLElement, st: HTMLElement): void {
   applyBtn.textContent = "✦ Použít paletu";
   applyBtn.addEventListener("click", () => {
     const v = accentHex.value.trim();
-    const palette = modeSelect.value === "light" ? generateLightPalette(v) : generateDarkPalette(v);
-    applyPalette(palette); status(st, "✓ Paleta aplikována", "ok");
+    const data = modeSelect.value === "light" ? generateLightPalette(v) : generateDarkPalette(v);
+    applyPalette(data); status(st, "✓ Paleta aplikována — barvy, efekty, animace", "ok");
   });
   el.appendChild(applyBtn);
 }
