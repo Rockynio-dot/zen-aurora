@@ -1,4 +1,5 @@
 import type { AuroraTheme } from "./state.ts";
+import { generateZenTheme } from "./zenGradient.ts";
 
 const STYLE_ID = "aurora-dynamic-styles";
 const MD_EASE  = "cubic-bezier(0.4, 0, 0.2, 1)";
@@ -446,9 +447,39 @@ ${t.accessibility.webContrast === "high-light" ? `
 }
 ` : ""}
 
+/* ══ Zen "Upravit motiv" gradient ══ */
+${gradientCSS(t)}
+
 /* ══ Kill all animations ══ */
 ${noAnim ? "*, *::before, *::after { transition: none !important; animation: none !important; }" : ""}
 `.trim();
+}
+
+// Reproduces Zen's gradient theming: paints the toolbar + content backdrop and
+// sets the same Zen variables Zen's own "Upravit motiv" sets.
+function gradientCSS(t: AuroraTheme): string {
+  if (!t.gradient.enabled) return "";
+  const hexes = t.gradient.colors.split(",").map((c) => c.trim()).filter(Boolean);
+  if (!hexes.length) return "";
+  const opacity = parseFloat(t.gradient.opacity);
+  const z = generateZenTheme(hexes, isNaN(opacity) ? 0.5 : opacity, t.gradient.dark);
+  return `
+:root {
+  --zen-primary-color:                   ${z.primaryColor} !important;
+  --toolbox-textcolor:                   ${z.textColor}    !important;
+  --toolbar-color-scheme:                ${z.colorScheme}  !important;
+  --zen-main-browser-background:         ${z.background}   !important;
+  --zen-main-browser-background-toolbar: ${z.toolbar}      !important;
+}
+#zen-browser-background { --zen-main-browser-background: ${z.background} !important; }
+#zen-toolbar-background { --zen-main-browser-background-toolbar: ${z.toolbar} !important; }
+#navigator-toolbox, #TabsToolbar, #nav-bar, #PersonalToolbar {
+  background: ${z.toolbar} !important;
+}
+#browser, #tabbrowser-tabpanels {
+  background-image: ${z.background} !important;
+}
+`;
 }
 
 function hexToRgba(hex: string, opacity: string): string {
@@ -474,10 +505,31 @@ export function applyTheme(theme: AuroraTheme, targetDoc: Document = document): 
   // Zen sets these as inline styles on documentElement — inline overrides
   // any stylesheet rule including !important, so we force-set them inline too.
   const root = targetDoc.documentElement;
-  root.style.setProperty("--zen-primary-color",                   theme.colors.accent);
-  root.style.setProperty("--zen-main-browser-background-toolbar", theme.colors.toolbarBg);
-  root.style.setProperty("--zen-appcontent-border",               theme.colors.border);
-  root.style.setProperty("--zen-colors-tertiary",                 theme.colors.panelBg);
+  root.style.setProperty("--zen-appcontent-border", theme.colors.border);
+  root.style.setProperty("--zen-colors-tertiary",   theme.colors.panelBg);
+
+  if (theme.gradient.enabled) {
+    // Gradient mode ("Upravit motiv"): inline-set on Zen's own background
+    // layers so we win over Zen's per-workspace inline gradient.
+    const hexes = theme.gradient.colors.split(",").map((c) => c.trim()).filter(Boolean);
+    const op = parseFloat(theme.gradient.opacity);
+    const z = generateZenTheme(hexes, isNaN(op) ? 0.5 : op, theme.gradient.dark);
+    root.style.setProperty("--zen-primary-color", z.primaryColor);
+    root.style.setProperty("--toolbox-textcolor", z.textColor);
+    targetDoc.getElementById("zen-browser-background")
+      ?.style.setProperty("--zen-main-browser-background", z.background);
+    targetDoc.getElementById("zen-toolbar-background")
+      ?.style.setProperty("--zen-main-browser-background-toolbar", z.toolbar);
+  } else {
+    root.style.setProperty("--zen-primary-color",                   theme.colors.accent);
+    root.style.setProperty("--zen-main-browser-background-toolbar", theme.colors.toolbarBg);
+    // Clear any gradient we previously inlined on Zen's background layers so
+    // switching gradient off reverts them instead of leaving a stale gradient.
+    targetDoc.getElementById("zen-browser-background")
+      ?.style.removeProperty("--zen-main-browser-background");
+    targetDoc.getElementById("zen-toolbar-background")
+      ?.style.removeProperty("--zen-main-browser-background-toolbar");
+  }
 }
 
 export function removeTheme(targetDoc: Document = document): void {

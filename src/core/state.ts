@@ -78,6 +78,12 @@ export interface AuroraTheme {
     colorBlindMode: string; // "off" | "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia"
     webContrast: string;    // "off" | "high-dark" | "high-light"
   };
+  gradient: {
+    enabled: boolean;
+    colors: string;  // comma-separated hex, 1..3 (Zen "Upravit motiv")
+    opacity: string; // "0".."1"
+    dark: boolean;   // window dark mode for the gradient math
+  };
 }
 
 function s(key: string, def: string): string {
@@ -169,6 +175,12 @@ export function loadTheme(): AuroraTheme {
       colorBlindMode: s("mod.aurora.accessibility.color_blind_mode", "off"),
       webContrast:    s("mod.aurora.accessibility.web_contrast",     "off"),
     },
+    gradient: {
+      enabled: b("mod.aurora.gradient.enabled", false),
+      colors:  s("mod.aurora.gradient.colors",  "#7c6af7"),
+      opacity: s("mod.aurora.gradient.opacity", "0.5"),
+      dark:    b("mod.aurora.gradient.dark",    true),
+    },
   };
 }
 
@@ -239,6 +251,10 @@ export function saveTheme(theme: AuroraTheme): void {
   ss("mod.aurora.accessibility.color_scheme",     theme.accessibility.colorScheme);
   ss("mod.aurora.accessibility.color_blind_mode", theme.accessibility.colorBlindMode);
   ss("mod.aurora.accessibility.web_contrast",     theme.accessibility.webContrast);
+  sb("mod.aurora.gradient.enabled", theme.gradient.enabled);
+  ss("mod.aurora.gradient.colors",  theme.gradient.colors);
+  ss("mod.aurora.gradient.opacity", theme.gradient.opacity);
+  sb("mod.aurora.gradient.dark",    theme.gradient.dark);
 }
 
 // Default Aurora color values (used by reset)

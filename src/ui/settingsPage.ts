@@ -6,6 +6,7 @@ import {
   buildToggle, buildSlider, buildSelect, buildTextInput, buildSectionHeading,
 } from "./controls.ts";
 import { AURORA_COLOR_DEFAULTS } from "../core/state.ts";
+import { generateZenTheme, rgbToHex } from "../core/zenGradient.ts";
 
 // ── CSS ───────────────────────────────────────────────────────────────────────
 
@@ -371,80 +372,156 @@ function applyPalette(data: PaletteData): void {
   for (const [k, v] of Object.entries(data.booleans)) { try { Services.prefs.setBoolPref(k, v);   } catch {} }
 }
 
-// ── 1. Rychlé nastavení ───────────────────────────────────────────────────────
+// ── 1. Rychlé nastavení (Zen "Upravit motiv" port) ────────────────────────────
 
 function buildQuick(doc: Document, el: HTMLElement, st: HTMLElement): void {
-  el.appendChild(note(doc, "Vyberte jeden akcent a Aurora vygeneruje celou paletu — barvy, efekty, animace, style přepínače. Stejně jako \"Upravit motiv\" v Zenu."));
+  el.appendChild(note(doc, "Vyberte 1–3 barvy a průhlednost — Aurora vygeneruje gradient na toolbar i pozadí a sladí akcent, text i celou plochou paletu. Stejný algoritmus jako \"Upravit motiv\" v Zenu."));
 
-  buildSectionHeading(doc, el, "Akcent");
-  const accentRow = doc.createElement("div"); accentRow.style.cssText = "display:flex;gap:16px;align-items:center;padding:8px 0;";
-  const curAccent = getPref("mod.aurora.color.accent", "#7c6af7");
-  const swBig = doc.createElement("div"); swBig.className = "ao-quick-swatch-big"; swBig.style.background = curAccent;
-  const accentHex = doc.createElement("input") as HTMLInputElement;
-  accentHex.type = "text"; accentHex.className = "aoc-color-hex"; accentHex.style.cssText = "width:90px;font-size:13px;height:36px;";
-  accentHex.value = curAccent; accentHex.maxLength = 9;
-  const syncAccent = (v: string) => { swBig.style.background = v; accentHex.value = v; updatePreview(v); };
-  swBig.addEventListener("click", (e) => { e.stopPropagation(); openColorPicker(swBig, accentHex.value || "#7c6af7", syncAccent); });
-  accentHex.addEventListener("change", () => { const v = accentHex.value.trim(); syncAccent(v.startsWith("#") ? v : `#${v}`); });
+  // State
+  let colors: string[] = getPref("mod.aurora.gradient.colors", "#7c6af7")
+    .split(",").map((c) => c.trim()).filter(Boolean).slice(0, 3);
+  if (!colors.length) colors = ["#7c6af7"];
+  let dark = getBoolPref("mod.aurora.gradient.dark", true);
 
-  const modeSelect = doc.createElement("select"); modeSelect.className = "aoc-select"; modeSelect.style.minWidth = "120px";
-  for (const [val, lbl] of [["dark","🌙 Tmavý"],["light","☀️ Světlý"]]) {
-    const opt = doc.createElement("option"); opt.value = val; opt.textContent = lbl; modeSelect.appendChild(opt);
+  // ── Dots row (add / edit / remove up to 3 colours) ──
+  buildSectionHeading(doc, el, "Barvy motivu (1–3)");
+  const dotsRow = doc.createElement("div");
+  dotsRow.style.cssText = "display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:8px 0;";
+  el.appendChild(dotsRow);
+
+  function renderDots(): void {
+    dotsRow.innerHTML = "";
+    colors.forEach((c, i) => {
+      const wrap = doc.createElement("div");
+      wrap.style.cssText = "position:relative;";
+      const sw = doc.createElement("div"); sw.className = "ao-quick-swatch-big";
+      sw.style.background = c; sw.title = "Upravit barvu";
+      sw.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openColorPicker(sw, colors[i], (v) => { colors[i] = v; sw.style.background = v; updatePreview(); });
+      });
+      wrap.appendChild(sw);
+      if (colors.length > 1) {
+        const rm = doc.createElement("button");
+        rm.textContent = "✕";
+        rm.style.cssText = "position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:9px;border:none;background:#c04040;color:#fff;font-size:10px;cursor:pointer;line-height:1;";
+        rm.title = "Odebrat barvu";
+        rm.addEventListener("click", () => { colors.splice(i, 1); renderDots(); updatePreview(); });
+        wrap.appendChild(rm);
+      }
+      dotsRow.appendChild(wrap);
+    });
+    if (colors.length < 3) {
+      const add = doc.createElement("button");
+      add.textContent = "＋";
+      add.style.cssText = "width:64px;height:64px;border-radius:14px;border:2px dashed #3a3a6c;background:transparent;color:#6660aa;font-size:26px;cursor:pointer;";
+      add.title = "Přidat barvu";
+      add.addEventListener("click", () => {
+        colors.push(colors[colors.length - 1] ?? "#7c6af7"); renderDots(); updatePreview();
+      });
+      dotsRow.appendChild(add);
+    }
   }
-  accentRow.appendChild(swBig); accentRow.appendChild(accentHex); accentRow.appendChild(modeSelect);
-  el.appendChild(accentRow);
 
-  buildSectionHeading(doc, el, "Náhled palety");
-  const preview = doc.createElement("div"); preview.className = "ao-quick-preview"; el.appendChild(preview);
-  // Klíče v pořadí: tmavé pozadí → světlé prvky → akcent → text
-  const previewKeys = [
-    "mod.aurora.color.browser_bg",
-    "mod.aurora.color.workspace_strip_bg",
-    "mod.aurora.color.toolbar_bg",
-    "mod.aurora.color.sidebar_bg",
-    "mod.aurora.color.panel_bg",
-    "mod.aurora.color.tab_inactive_bg",
-    "mod.aurora.color.urlbar_bg",
-    "mod.aurora.color.tab_active_bg",
-    "mod.aurora.color.button_bg",
-    "mod.aurora.color.border",
-    "mod.aurora.color.workspace_dot",
-    "mod.aurora.color.scrollbar",
-    "mod.aurora.color.accent",
-    "mod.aurora.color.workspace_dot_active",
-    "mod.aurora.color.selection_bg",
-    "mod.aurora.color.panel_text",
-  ];
-  const dots: HTMLElement[] = [];
-  for (const k of previewKeys) {
-    const dot = doc.createElement("div"); dot.className = "ao-quick-preview-dot";
-    dot.title = k.replace("mod.aurora.color.", "");
-    dot.style.background = getPref(k, "#333"); preview.appendChild(dot); dots.push(dot);
+  // ── Opacity + mode ──
+  const ctrlRow = doc.createElement("div");
+  ctrlRow.style.cssText = "display:flex;gap:20px;align-items:center;flex-wrap:wrap;padding:4px 0 8px;";
+  // opacity
+  const opWrap = doc.createElement("div"); opWrap.style.cssText = "flex:1;min-width:200px;";
+  const opHead = doc.createElement("div"); opHead.style.cssText = "display:flex;justify-content:space-between;font-size:12px;color:#b0b0d0;margin-bottom:4px;";
+  const opLbl = doc.createElement("span"); opLbl.textContent = "Průhlednost (sytost gradientu)";
+  const opVal = doc.createElement("span"); opVal.className = "aoc-slider-val";
+  opHead.appendChild(opLbl); opHead.appendChild(opVal);
+  const opSlider = doc.createElement("input") as HTMLInputElement;
+  opSlider.type = "range"; opSlider.min = "0.1"; opSlider.max = "1"; opSlider.step = "0.05";
+  opSlider.className = "aoc-slider";
+  opSlider.value = getPref("mod.aurora.gradient.opacity", "0.5");
+  opVal.textContent = opSlider.value;
+  opSlider.addEventListener("input", () => { opVal.textContent = opSlider.value; updatePreview(); });
+  opWrap.appendChild(opHead); opWrap.appendChild(opSlider);
+  // mode
+  const modeWrap = doc.createElement("div"); modeWrap.style.cssText = "display:flex;align-items:center;gap:8px;";
+  const modeLbl = doc.createElement("span"); modeLbl.style.cssText = "font-size:12px;color:#b0b0d0;"; modeLbl.textContent = "Režim";
+  const modeSelect = doc.createElement("select"); modeSelect.className = "aoc-select"; modeSelect.style.minWidth = "110px";
+  for (const [val, lbl] of [["dark", "🌙 Tmavý"], ["light", "☀️ Světlý"]]) {
+    const opt = doc.createElement("option"); opt.value = val; opt.textContent = lbl;
+    if ((val === "dark") === dark) opt.selected = true;
+    modeSelect.appendChild(opt);
+  }
+  modeSelect.addEventListener("change", () => { dark = modeSelect.value === "dark"; updatePreview(); });
+  modeWrap.appendChild(modeLbl); modeWrap.appendChild(modeSelect);
+  ctrlRow.appendChild(opWrap); ctrlRow.appendChild(modeWrap);
+  el.appendChild(ctrlRow);
+
+  // ── Live preview ──
+  buildSectionHeading(doc, el, "Náhled");
+  const previewCard = doc.createElement("div");
+  previewCard.style.cssText = "border:1px solid #1e1e44;border-radius:10px;overflow:hidden;margin-bottom:8px;";
+  const pvToolbar = doc.createElement("div");
+  pvToolbar.style.cssText = "height:40px;display:flex;align-items:center;padding:0 12px;font-size:12px;font-weight:600;";
+  const pvToolbarTxt = doc.createElement("span"); pvToolbarTxt.textContent = "Toolbar";
+  pvToolbar.appendChild(pvToolbarTxt);
+  const pvContent = doc.createElement("div");
+  pvContent.style.cssText = "height:90px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9090c0;";
+  pvContent.textContent = "Pozadí obsahu";
+  previewCard.appendChild(pvToolbar); previewCard.appendChild(pvContent);
+  el.appendChild(previewCard);
+
+  const swatchRow = doc.createElement("div");
+  swatchRow.style.cssText = "display:flex;gap:16px;align-items:center;font-size:11px;color:#8880cc;margin-bottom:8px;";
+  el.appendChild(swatchRow);
+
+  function updatePreview(): void {
+    const op = parseFloat(opSlider.value) || 0.5;
+    const z = generateZenTheme(colors, op, dark);
+    pvToolbar.style.background = z.toolbar;
+    pvToolbar.style.color = z.textColor;
+    pvContent.style.background = z.background;
+    pvContent.style.backgroundColor = dark ? "#131313" : "#e9e9e9";
+    swatchRow.innerHTML = "";
+    const mk = (label: string, col: string) => {
+      const s2 = doc.createElement("div"); s2.style.cssText = "display:flex;align-items:center;gap:6px;";
+      const c = doc.createElement("div"); c.style.cssText = `width:20px;height:20px;border-radius:5px;border:1px solid #2d2d5c;background:${col};`;
+      const t = doc.createElement("span"); t.textContent = label;
+      s2.appendChild(c); s2.appendChild(t); return s2;
+    };
+    swatchRow.appendChild(mk(`Akcent ${z.primaryColor}`, z.primaryColor));
+    swatchRow.appendChild(mk(`Schéma: ${z.colorScheme}`, z.colorScheme === "dark" ? "#222" : "#eee"));
   }
 
-  // Co paleta nastavuje — textový souhrn
-  const coverNote = note(doc, [
-    "Nastavuje: 23 barev · průhlednost · blur · styl ohraničení · animace ·",
-    "rozvržení toolbaru · stav no-gap · zapnutí všech stylů elementů (záložky, urlbar, sidebar…)",
-  ].join(" "));
-  el.appendChild(coverNote);
+  renderDots();
+  updatePreview();
 
-  function updatePreview(accent: string): void {
-    const data = modeSelect.value === "light" ? generateLightPalette(accent) : generateDarkPalette(accent);
-    dots.forEach((dot, i) => { dot.style.background = data.colors[previewKeys[i]] ?? "#333"; });
-  }
-  modeSelect.addEventListener("change", () => updatePreview(accentHex.value));
-  updatePreview(curAccent);
+  // ── Apply ──
+  buildSectionHeading(doc, el, "Použít");
+  el.appendChild(note(doc, "Použít motiv zapne gradient a zároveň vygeneruje sladěnou plochou paletu (záložky, urlbar, sidebar…). Jen plochá paleta vypne gradient a nastaví jen barvy."));
+  const btnRow = doc.createElement("div"); btnRow.style.cssText = "display:flex;gap:10px;flex-wrap:wrap;";
 
   const applyBtn = doc.createElement("button"); applyBtn.className = "ao-apply-btn";
-  applyBtn.style.cssText = "display:block;margin:16px 0 0;";
-  applyBtn.textContent = "✦ Použít paletu";
+  applyBtn.textContent = "✦ Použít motiv (gradient + paleta)";
   applyBtn.addEventListener("click", () => {
-    const v = accentHex.value.trim();
-    const data = modeSelect.value === "light" ? generateLightPalette(v) : generateDarkPalette(v);
-    applyPalette(data); status(st, "✓ Paleta aplikována — barvy, efekty, animace", "ok");
+    const op = opSlider.value;
+    setPref("mod.aurora.gradient.colors", colors.join(","));
+    setPref("mod.aurora.gradient.opacity", op);
+    setBoolPref("mod.aurora.gradient.dark", dark);
+    setBoolPref("mod.aurora.gradient.enabled", true);
+    const z = generateZenTheme(colors, parseFloat(op) || 0.5, dark);
+    const seed = rgbToHex(z.dominant);
+    applyPalette(dark ? generateDarkPalette(seed) : generateLightPalette(seed));
+    status(st, "✓ Motiv aplikován — gradient + paleta", "ok");
   });
-  el.appendChild(applyBtn);
+
+  const flatBtn = doc.createElement("button"); flatBtn.className = "ao-nav-btn";
+  flatBtn.style.cssText = "padding:10px 18px;";
+  flatBtn.textContent = "Jen plochá paleta (bez gradientu)";
+  flatBtn.addEventListener("click", () => {
+    setBoolPref("mod.aurora.gradient.enabled", false);
+    applyPalette(dark ? generateDarkPalette(colors[0]) : generateLightPalette(colors[0]));
+    status(st, "✓ Plochá paleta aplikována, gradient vypnut", "ok");
+  });
+
+  btnRow.appendChild(applyBtn); btnRow.appendChild(flatBtn);
+  el.appendChild(btnRow);
 }
 
 // ── 2. Barvy (pokročilé) ──────────────────────────────────────────────────────
@@ -741,6 +818,7 @@ const ALL_STRING_PREFS = [
   "mod.aurora.layout.toolbar_mode","mod.aurora.layout.hitbox_height",
   "mod.aurora.layout.no_gap_bg","mod.aurora.layout.no_gap_mode",
   "mod.aurora.animation_speed","mod.aurora.animation.easing",
+  "mod.aurora.gradient.colors","mod.aurora.gradient.opacity",
 ];
 const ALL_BOOL_PREFS = [
   "mod.aurora.effect.tab_shadow","mod.aurora.effect.accent_glow",
@@ -749,6 +827,7 @@ const ALL_BOOL_PREFS = [
   "mod.aurora.style.tabs","mod.aurora.style.urlbar","mod.aurora.style.sidebar",
   "mod.aurora.style.toolbar","mod.aurora.style.workspace_strip","mod.aurora.style.menus",
   "mod.aurora.style.individual_text_colors",
+  "mod.aurora.gradient.enabled","mod.aurora.gradient.dark",
 ];
 
 function capturePreset(): string {

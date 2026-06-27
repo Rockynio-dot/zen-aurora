@@ -96,7 +96,152 @@
         colorScheme: s("mod.aurora.accessibility.color_scheme", "auto"),
         colorBlindMode: s("mod.aurora.accessibility.color_blind_mode", "off"),
         webContrast: s("mod.aurora.accessibility.web_contrast", "off")
+      },
+      gradient: {
+        enabled: b("mod.aurora.gradient.enabled", false),
+        colors: s("mod.aurora.gradient.colors", "#7c6af7"),
+        opacity: s("mod.aurora.gradient.opacity", "0.5"),
+        dark: b("mod.aurora.gradient.dark", true)
       }
+    };
+  }
+
+  // src/core/zenGradient.ts
+  var ROTATION = -45;
+  function hexToRgb(hex) {
+    let h = hex.startsWith("#") ? hex.slice(1) : hex;
+    if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+    return [
+      parseInt(h.slice(0, 2), 16) || 0,
+      parseInt(h.slice(2, 4), 16) || 0,
+      parseInt(h.slice(4, 6), 16) || 0
+    ];
+  }
+  function rgbToHsl(r, g, b2) {
+    r /= 255;
+    g /= 255;
+    b2 /= 255;
+    const max = Math.max(r, g, b2), min = Math.min(r, g, b2), d = max - min;
+    let h = 0;
+    if (d !== 0) {
+      if (max === r) h = (g - b2) / d % 6;
+      else if (max === g) h = (b2 - r) / d + 2;
+      else h = (r - g) / d + 4;
+    }
+    const l = (min + max) / 2;
+    const s2 = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+    return [h * 60, s2, l];
+  }
+  function hueToRgb(p, q, t) {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  }
+  function hslToRgb(h, s2, l) {
+    let r, g, b2;
+    if (s2 === 0) {
+      r = g = b2 = l;
+    } else {
+      const q = l < 0.5 ? l * (1 + s2) : l + s2 - l * s2;
+      const p = 2 * l - q;
+      r = hueToRgb(p, q, h + 1 / 3);
+      g = hueToRgb(p, q, h);
+      b2 = hueToRgb(p, q, h - 1 / 3);
+    }
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b2 * 255)];
+  }
+  function luminance([r, g, b2]) {
+    const a = [r, g, b2].map((v) => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+  }
+  function contrastRatio(rgb1, rgb2) {
+    const l1 = luminance(rgb1), l2 = luminance(rgb2);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  }
+  function blendColors(rgb1, rgb2, percentage) {
+    const p = percentage / 100;
+    return [
+      Math.round(rgb1[0] * p + rgb2[0] * (1 - p)),
+      Math.round(rgb1[1] * p + rgb2[1] * (1 - p)),
+      Math.round(rgb1[2] * p + rgb2[2] * (1 - p))
+    ];
+  }
+  function toolbarBaseRaw(isDark) {
+    return isDark ? [23, 23, 26] : [240, 240, 244];
+  }
+  function singleColor(color, opacity, isDark) {
+    const blended = blendColors(color, toolbarBaseRaw(isDark), opacity * 100);
+    return `rgba(${blended[0]}, ${blended[1]}, ${blended[2]}, 1)`;
+  }
+  function getGradient(colors, opacity, isDark, forToolbar) {
+    if (colors.length === 0) {
+      if (forToolbar) {
+        const b2 = toolbarBaseRaw(isDark);
+        return `rgba(${b2[0]}, ${b2[1]}, ${b2[2]}, 1)`;
+      }
+      return isDark ? "#131313" : "#e9e9e9";
+    }
+    if (colors.length === 1) {
+      return singleColor(colors[0], opacity, isDark);
+    }
+    if (colors.length === 2) {
+      const c0 = singleColor(colors[0], opacity, isDark);
+      const c1 = singleColor(colors[1], opacity, isDark);
+      if (!forToolbar) {
+        return [
+          `linear-gradient(${ROTATION}deg, ${c1} 0%, transparent 100%)`,
+          `linear-gradient(${ROTATION + 180}deg, ${c0} 0%, transparent 100%)`
+        ].reverse().join(", ");
+      }
+      return `linear-gradient(${ROTATION}deg, ${c1} 0%, ${c0} 100%)`;
+    }
+    const color1 = singleColor(colors[2], opacity, isDark);
+    const color2 = singleColor(colors[0], opacity, isDark);
+    const color3 = singleColor(colors[1], opacity, isDark);
+    return [
+      `linear-gradient(-5deg, ${color1} 10%, transparent 80%)`,
+      `radial-gradient(circle at 95% 0%, ${color3} 0%, transparent 75%)`,
+      `radial-gradient(circle at 0% 0%, ${color2} 10%, transparent 70%)`
+    ].join(", ");
+  }
+  function toolbarColor(isDark) {
+    return isDark ? [255, 255, 255, 0.8] : [0, 0, 0, 0.8];
+  }
+  function shouldBeDarkMode(dominant, opacity, windowDark) {
+    const bg = blendColors(toolbarBaseRaw(windowDark), dominant, (1 - opacity) * 100);
+    const white = toolbarColor(true);
+    const black = toolbarColor(false);
+    const whiteOnBg = blendColors(bg, [white[0], white[1], white[2]], (1 - white[3]) * 100);
+    const blackOnBg = blendColors(bg, [black[0], black[1], black[2]], (1 - black[3]) * 100);
+    return contrastRatio(bg, whiteOnBg) > contrastRatio(bg, blackOnBg);
+  }
+  function accentForUI(dominant, contentDark, windowDark) {
+    if (contentDark) return `rgb(${dominant[0]}, ${dominant[1]}, ${dominant[2]})`;
+    const [h, s2, l] = rgbToHsl(dominant[0], dominant[1], dominant[2]);
+    const saturation = Math.min(1, s2 + 0.3);
+    const targetLightness = windowDark ? 0.62 : 0.42;
+    const lightness = l * 0.4 + targetLightness * 0.6;
+    const [r, g, b2] = hslToRgb(h / 360, saturation, lightness);
+    return `rgb(${r}, ${g}, ${b2})`;
+  }
+  function generateZenTheme(hexColors, opacity, windowDark) {
+    const colors = hexColors.filter(Boolean).slice(0, 3).map(hexToRgb);
+    const dominant = colors[0] ?? (windowDark ? [40, 40, 46] : [220, 220, 228]);
+    const contentDark = colors.length ? shouldBeDarkMode(dominant, opacity, windowDark) : windowDark;
+    const text = toolbarColor(contentDark);
+    return {
+      background: getGradient(colors, opacity, windowDark, false),
+      toolbar: getGradient(colors, opacity, windowDark, true),
+      primaryColor: accentForUI(dominant, contentDark, windowDark),
+      textColor: `rgba(${text[0]}, ${text[1]}, ${text[2]}, ${text[3]})`,
+      colorScheme: contentDark ? "dark" : "light",
+      dominant
     };
   }
 
@@ -541,9 +686,36 @@ ${t.accessibility.webContrast === "high-light" ? `
 }
 ` : ""}
 
+/* \u2550\u2550 Zen "Upravit motiv" gradient \u2550\u2550 */
+${gradientCSS(t)}
+
 /* \u2550\u2550 Kill all animations \u2550\u2550 */
 ${noAnim ? "*, *::before, *::after { transition: none !important; animation: none !important; }" : ""}
 `.trim();
+  }
+  function gradientCSS(t) {
+    if (!t.gradient.enabled) return "";
+    const hexes = t.gradient.colors.split(",").map((c) => c.trim()).filter(Boolean);
+    if (!hexes.length) return "";
+    const opacity = parseFloat(t.gradient.opacity);
+    const z = generateZenTheme(hexes, isNaN(opacity) ? 0.5 : opacity, t.gradient.dark);
+    return `
+:root {
+  --zen-primary-color:                   ${z.primaryColor} !important;
+  --toolbox-textcolor:                   ${z.textColor}    !important;
+  --toolbar-color-scheme:                ${z.colorScheme}  !important;
+  --zen-main-browser-background:         ${z.background}   !important;
+  --zen-main-browser-background-toolbar: ${z.toolbar}      !important;
+}
+#zen-browser-background { --zen-main-browser-background: ${z.background} !important; }
+#zen-toolbar-background { --zen-main-browser-background-toolbar: ${z.toolbar} !important; }
+#navigator-toolbox, #TabsToolbar, #nav-bar, #PersonalToolbar {
+  background: ${z.toolbar} !important;
+}
+#browser, #tabbrowser-tabpanels {
+  background-image: ${z.background} !important;
+}
+`;
   }
   function hexToRgba(hex, opacity) {
     const clean = hex.replace("#", "");
@@ -564,10 +736,22 @@ ${noAnim ? "*, *::before, *::after { transition: none !important; animation: non
     }
     el.textContent = generateCSS(theme);
     const root = targetDoc.documentElement;
-    root.style.setProperty("--zen-primary-color", theme.colors.accent);
-    root.style.setProperty("--zen-main-browser-background-toolbar", theme.colors.toolbarBg);
     root.style.setProperty("--zen-appcontent-border", theme.colors.border);
     root.style.setProperty("--zen-colors-tertiary", theme.colors.panelBg);
+    if (theme.gradient.enabled) {
+      const hexes = theme.gradient.colors.split(",").map((c) => c.trim()).filter(Boolean);
+      const op = parseFloat(theme.gradient.opacity);
+      const z = generateZenTheme(hexes, isNaN(op) ? 0.5 : op, theme.gradient.dark);
+      root.style.setProperty("--zen-primary-color", z.primaryColor);
+      root.style.setProperty("--toolbox-textcolor", z.textColor);
+      targetDoc.getElementById("zen-browser-background")?.style.setProperty("--zen-main-browser-background", z.background);
+      targetDoc.getElementById("zen-toolbar-background")?.style.setProperty("--zen-main-browser-background-toolbar", z.toolbar);
+    } else {
+      root.style.setProperty("--zen-primary-color", theme.colors.accent);
+      root.style.setProperty("--zen-main-browser-background-toolbar", theme.colors.toolbarBg);
+      targetDoc.getElementById("zen-browser-background")?.style.removeProperty("--zen-main-browser-background");
+      targetDoc.getElementById("zen-toolbar-background")?.style.removeProperty("--zen-main-browser-background-toolbar");
+    }
   }
   function injectStyles(css, id, targetDoc = document) {
     let el = targetDoc.getElementById(id);

@@ -6,6 +6,7 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
     "paths": {
       "chrome://*": ["./src/types/chrome.d.ts"],
       "resource://*": ["./src/types/chrome.d.ts"]

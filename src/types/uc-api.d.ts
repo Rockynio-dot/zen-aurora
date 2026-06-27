@@ -38,17 +38,43 @@ declare const Services: {
   prefs: {
     getBoolPref(pref: string, defaultValue?: boolean): boolean;
     getStringPref(pref: string, defaultValue?: string): string;
+    getIntPref(pref: string, defaultValue?: number): number;
+    getCharPref(pref: string, defaultValue?: string): string;
     setStringPref(pref: string, value: string): void;
     setBoolPref(pref: string, value: boolean): void;
+    setIntPref(pref: string, value: number): void;
+    setCharPref(pref: string, value: string): void;
+    clearUserPref(pref: string): void;
+    prefHasUserValue(pref: string): boolean;
+    addObserver(domain: string, observer: NsIObserver | (() => void), holdWeak?: boolean): void;
+    removeObserver(domain: string, observer: NsIObserver | (() => void)): void;
   };
   wm: {
     getMostRecentWindow(type: string): Window | null;
-    getEnumerator(type: string): { hasMoreElements(): boolean; getNext(): Window };
+    getEnumerator(type: string | null): { hasMoreElements(): boolean; getNext(): Window };
+  };
+  ww: {
+    openWindow(
+      parent: Window | null,
+      url: string,
+      name: string,
+      features: string,
+      args: unknown,
+    ): Window | null;
   };
   io: {
     newURI(spec: string): { spec: string };
   };
+  obs: {
+    notifyObservers(subject: unknown, topic: string, data?: string): void;
+    addObserver(observer: NsIObserver, topic: string, ownsWeak?: boolean): void;
+    removeObserver(observer: NsIObserver, topic: string): void;
+  };
 };
+
+interface NsIObserver {
+  observe(subject: unknown, topic: string, data: string): void;
+}
 
 declare const ChromeUtils: {
   import(uri: string): unknown;

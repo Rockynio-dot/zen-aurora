@@ -592,6 +592,148 @@
     "mod.aurora.color.workspace_dot_active": "#7c6af7"
   };
 
+  // src/core/zenGradient.ts
+  var ROTATION = -45;
+  function hexToRgb(hex) {
+    let h = hex.startsWith("#") ? hex.slice(1) : hex;
+    if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+    return [
+      parseInt(h.slice(0, 2), 16) || 0,
+      parseInt(h.slice(2, 4), 16) || 0,
+      parseInt(h.slice(4, 6), 16) || 0
+    ];
+  }
+  function rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+    let h = 0;
+    if (d !== 0) {
+      if (max === r) h = (g - b) / d % 6;
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+    }
+    const l = (min + max) / 2;
+    const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+    return [h * 60, s, l];
+  }
+  function hueToRgb(p, q, t) {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  }
+  function hslToRgb(h, s, l) {
+    let r, g, b;
+    if (s === 0) {
+      r = g = b = l;
+    } else {
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hueToRgb(p, q, h + 1 / 3);
+      g = hueToRgb(p, q, h);
+      b = hueToRgb(p, q, h - 1 / 3);
+    }
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  }
+  function luminance([r, g, b]) {
+    const a = [r, g, b].map((v) => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+  }
+  function contrastRatio(rgb1, rgb2) {
+    const l1 = luminance(rgb1), l2 = luminance(rgb2);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  }
+  function blendColors(rgb1, rgb2, percentage) {
+    const p = percentage / 100;
+    return [
+      Math.round(rgb1[0] * p + rgb2[0] * (1 - p)),
+      Math.round(rgb1[1] * p + rgb2[1] * (1 - p)),
+      Math.round(rgb1[2] * p + rgb2[2] * (1 - p))
+    ];
+  }
+  function toolbarBaseRaw(isDark) {
+    return isDark ? [23, 23, 26] : [240, 240, 244];
+  }
+  function singleColor(color, opacity, isDark) {
+    const blended = blendColors(color, toolbarBaseRaw(isDark), opacity * 100);
+    return `rgba(${blended[0]}, ${blended[1]}, ${blended[2]}, 1)`;
+  }
+  function getGradient(colors, opacity, isDark, forToolbar) {
+    if (colors.length === 0) {
+      if (forToolbar) {
+        const b = toolbarBaseRaw(isDark);
+        return `rgba(${b[0]}, ${b[1]}, ${b[2]}, 1)`;
+      }
+      return isDark ? "#131313" : "#e9e9e9";
+    }
+    if (colors.length === 1) {
+      return singleColor(colors[0], opacity, isDark);
+    }
+    if (colors.length === 2) {
+      const c0 = singleColor(colors[0], opacity, isDark);
+      const c1 = singleColor(colors[1], opacity, isDark);
+      if (!forToolbar) {
+        return [
+          `linear-gradient(${ROTATION}deg, ${c1} 0%, transparent 100%)`,
+          `linear-gradient(${ROTATION + 180}deg, ${c0} 0%, transparent 100%)`
+        ].reverse().join(", ");
+      }
+      return `linear-gradient(${ROTATION}deg, ${c1} 0%, ${c0} 100%)`;
+    }
+    const color1 = singleColor(colors[2], opacity, isDark);
+    const color2 = singleColor(colors[0], opacity, isDark);
+    const color3 = singleColor(colors[1], opacity, isDark);
+    return [
+      `linear-gradient(-5deg, ${color1} 10%, transparent 80%)`,
+      `radial-gradient(circle at 95% 0%, ${color3} 0%, transparent 75%)`,
+      `radial-gradient(circle at 0% 0%, ${color2} 10%, transparent 70%)`
+    ].join(", ");
+  }
+  function toolbarColor(isDark) {
+    return isDark ? [255, 255, 255, 0.8] : [0, 0, 0, 0.8];
+  }
+  function shouldBeDarkMode(dominant, opacity, windowDark) {
+    const bg = blendColors(toolbarBaseRaw(windowDark), dominant, (1 - opacity) * 100);
+    const white = toolbarColor(true);
+    const black = toolbarColor(false);
+    const whiteOnBg = blendColors(bg, [white[0], white[1], white[2]], (1 - white[3]) * 100);
+    const blackOnBg = blendColors(bg, [black[0], black[1], black[2]], (1 - black[3]) * 100);
+    return contrastRatio(bg, whiteOnBg) > contrastRatio(bg, blackOnBg);
+  }
+  function accentForUI(dominant, contentDark, windowDark) {
+    if (contentDark) return `rgb(${dominant[0]}, ${dominant[1]}, ${dominant[2]})`;
+    const [h, s, l] = rgbToHsl(dominant[0], dominant[1], dominant[2]);
+    const saturation = Math.min(1, s + 0.3);
+    const targetLightness = windowDark ? 0.62 : 0.42;
+    const lightness = l * 0.4 + targetLightness * 0.6;
+    const [r, g, b] = hslToRgb(h / 360, saturation, lightness);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+  function generateZenTheme(hexColors, opacity, windowDark) {
+    const colors = hexColors.filter(Boolean).slice(0, 3).map(hexToRgb);
+    const dominant = colors[0] ?? (windowDark ? [40, 40, 46] : [220, 220, 228]);
+    const contentDark = colors.length ? shouldBeDarkMode(dominant, opacity, windowDark) : windowDark;
+    const text = toolbarColor(contentDark);
+    return {
+      background: getGradient(colors, opacity, windowDark, false),
+      toolbar: getGradient(colors, opacity, windowDark, true),
+      primaryColor: accentForUI(dominant, contentDark, windowDark),
+      textColor: `rgba(${text[0]}, ${text[1]}, ${text[2]}, ${text[3]})`,
+      colorScheme: contentDark ? "dark" : "light",
+      dominant
+    };
+  }
+  function rgbToHex([r, g, b]) {
+    return "#" + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
+  }
+
   // src/ui/settingsPage.ts
   var CSS = `
 *, *::before, *::after { box-sizing: border-box; }
@@ -994,101 +1136,180 @@ body {
     }
   }
   function buildQuick(doc, el, st) {
-    el.appendChild(note(doc, 'Vyberte jeden akcent a Aurora vygeneruje celou paletu \u2014 barvy, efekty, animace, style p\u0159ep\xEDna\u010De. Stejn\u011B jako "Upravit motiv" v Zenu.'));
-    buildSectionHeading(doc, el, "Akcent");
-    const accentRow = doc.createElement("div");
-    accentRow.style.cssText = "display:flex;gap:16px;align-items:center;padding:8px 0;";
-    const curAccent = getPref("mod.aurora.color.accent", "#7c6af7");
-    const swBig = doc.createElement("div");
-    swBig.className = "ao-quick-swatch-big";
-    swBig.style.background = curAccent;
-    const accentHex = doc.createElement("input");
-    accentHex.type = "text";
-    accentHex.className = "aoc-color-hex";
-    accentHex.style.cssText = "width:90px;font-size:13px;height:36px;";
-    accentHex.value = curAccent;
-    accentHex.maxLength = 9;
-    const syncAccent = (v) => {
-      swBig.style.background = v;
-      accentHex.value = v;
-      updatePreview(v);
-    };
-    swBig.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openColorPicker(swBig, accentHex.value || "#7c6af7", syncAccent);
+    el.appendChild(note(doc, 'Vyberte 1\u20133 barvy a pr\u016Fhlednost \u2014 Aurora vygeneruje gradient na toolbar i pozad\xED a slad\xED akcent, text i celou plochou paletu. Stejn\xFD algoritmus jako "Upravit motiv" v Zenu.'));
+    let colors = getPref("mod.aurora.gradient.colors", "#7c6af7").split(",").map((c) => c.trim()).filter(Boolean).slice(0, 3);
+    if (!colors.length) colors = ["#7c6af7"];
+    let dark = getBoolPref("mod.aurora.gradient.dark", true);
+    buildSectionHeading(doc, el, "Barvy motivu (1\u20133)");
+    const dotsRow = doc.createElement("div");
+    dotsRow.style.cssText = "display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:8px 0;";
+    el.appendChild(dotsRow);
+    function renderDots() {
+      dotsRow.innerHTML = "";
+      colors.forEach((c, i) => {
+        const wrap = doc.createElement("div");
+        wrap.style.cssText = "position:relative;";
+        const sw = doc.createElement("div");
+        sw.className = "ao-quick-swatch-big";
+        sw.style.background = c;
+        sw.title = "Upravit barvu";
+        sw.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openColorPicker(sw, colors[i], (v) => {
+            colors[i] = v;
+            sw.style.background = v;
+            updatePreview();
+          });
+        });
+        wrap.appendChild(sw);
+        if (colors.length > 1) {
+          const rm = doc.createElement("button");
+          rm.textContent = "\u2715";
+          rm.style.cssText = "position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:9px;border:none;background:#c04040;color:#fff;font-size:10px;cursor:pointer;line-height:1;";
+          rm.title = "Odebrat barvu";
+          rm.addEventListener("click", () => {
+            colors.splice(i, 1);
+            renderDots();
+            updatePreview();
+          });
+          wrap.appendChild(rm);
+        }
+        dotsRow.appendChild(wrap);
+      });
+      if (colors.length < 3) {
+        const add = doc.createElement("button");
+        add.textContent = "\uFF0B";
+        add.style.cssText = "width:64px;height:64px;border-radius:14px;border:2px dashed #3a3a6c;background:transparent;color:#6660aa;font-size:26px;cursor:pointer;";
+        add.title = "P\u0159idat barvu";
+        add.addEventListener("click", () => {
+          colors.push(colors[colors.length - 1] ?? "#7c6af7");
+          renderDots();
+          updatePreview();
+        });
+        dotsRow.appendChild(add);
+      }
+    }
+    const ctrlRow = doc.createElement("div");
+    ctrlRow.style.cssText = "display:flex;gap:20px;align-items:center;flex-wrap:wrap;padding:4px 0 8px;";
+    const opWrap = doc.createElement("div");
+    opWrap.style.cssText = "flex:1;min-width:200px;";
+    const opHead = doc.createElement("div");
+    opHead.style.cssText = "display:flex;justify-content:space-between;font-size:12px;color:#b0b0d0;margin-bottom:4px;";
+    const opLbl = doc.createElement("span");
+    opLbl.textContent = "Pr\u016Fhlednost (sytost gradientu)";
+    const opVal = doc.createElement("span");
+    opVal.className = "aoc-slider-val";
+    opHead.appendChild(opLbl);
+    opHead.appendChild(opVal);
+    const opSlider = doc.createElement("input");
+    opSlider.type = "range";
+    opSlider.min = "0.1";
+    opSlider.max = "1";
+    opSlider.step = "0.05";
+    opSlider.className = "aoc-slider";
+    opSlider.value = getPref("mod.aurora.gradient.opacity", "0.5");
+    opVal.textContent = opSlider.value;
+    opSlider.addEventListener("input", () => {
+      opVal.textContent = opSlider.value;
+      updatePreview();
     });
-    accentHex.addEventListener("change", () => {
-      const v = accentHex.value.trim();
-      syncAccent(v.startsWith("#") ? v : `#${v}`);
-    });
+    opWrap.appendChild(opHead);
+    opWrap.appendChild(opSlider);
+    const modeWrap = doc.createElement("div");
+    modeWrap.style.cssText = "display:flex;align-items:center;gap:8px;";
+    const modeLbl = doc.createElement("span");
+    modeLbl.style.cssText = "font-size:12px;color:#b0b0d0;";
+    modeLbl.textContent = "Re\u017Eim";
     const modeSelect = doc.createElement("select");
     modeSelect.className = "aoc-select";
-    modeSelect.style.minWidth = "120px";
+    modeSelect.style.minWidth = "110px";
     for (const [val, lbl] of [["dark", "\u{1F319} Tmav\xFD"], ["light", "\u2600\uFE0F Sv\u011Btl\xFD"]]) {
       const opt = doc.createElement("option");
       opt.value = val;
       opt.textContent = lbl;
+      if (val === "dark" === dark) opt.selected = true;
       modeSelect.appendChild(opt);
     }
-    accentRow.appendChild(swBig);
-    accentRow.appendChild(accentHex);
-    accentRow.appendChild(modeSelect);
-    el.appendChild(accentRow);
-    buildSectionHeading(doc, el, "N\xE1hled palety");
-    const preview = doc.createElement("div");
-    preview.className = "ao-quick-preview";
-    el.appendChild(preview);
-    const previewKeys = [
-      "mod.aurora.color.browser_bg",
-      "mod.aurora.color.workspace_strip_bg",
-      "mod.aurora.color.toolbar_bg",
-      "mod.aurora.color.sidebar_bg",
-      "mod.aurora.color.panel_bg",
-      "mod.aurora.color.tab_inactive_bg",
-      "mod.aurora.color.urlbar_bg",
-      "mod.aurora.color.tab_active_bg",
-      "mod.aurora.color.button_bg",
-      "mod.aurora.color.border",
-      "mod.aurora.color.workspace_dot",
-      "mod.aurora.color.scrollbar",
-      "mod.aurora.color.accent",
-      "mod.aurora.color.workspace_dot_active",
-      "mod.aurora.color.selection_bg",
-      "mod.aurora.color.panel_text"
-    ];
-    const dots = [];
-    for (const k of previewKeys) {
-      const dot = doc.createElement("div");
-      dot.className = "ao-quick-preview-dot";
-      dot.title = k.replace("mod.aurora.color.", "");
-      dot.style.background = getPref(k, "#333");
-      preview.appendChild(dot);
-      dots.push(dot);
+    modeSelect.addEventListener("change", () => {
+      dark = modeSelect.value === "dark";
+      updatePreview();
+    });
+    modeWrap.appendChild(modeLbl);
+    modeWrap.appendChild(modeSelect);
+    ctrlRow.appendChild(opWrap);
+    ctrlRow.appendChild(modeWrap);
+    el.appendChild(ctrlRow);
+    buildSectionHeading(doc, el, "N\xE1hled");
+    const previewCard = doc.createElement("div");
+    previewCard.style.cssText = "border:1px solid #1e1e44;border-radius:10px;overflow:hidden;margin-bottom:8px;";
+    const pvToolbar = doc.createElement("div");
+    pvToolbar.style.cssText = "height:40px;display:flex;align-items:center;padding:0 12px;font-size:12px;font-weight:600;";
+    const pvToolbarTxt = doc.createElement("span");
+    pvToolbarTxt.textContent = "Toolbar";
+    pvToolbar.appendChild(pvToolbarTxt);
+    const pvContent = doc.createElement("div");
+    pvContent.style.cssText = "height:90px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9090c0;";
+    pvContent.textContent = "Pozad\xED obsahu";
+    previewCard.appendChild(pvToolbar);
+    previewCard.appendChild(pvContent);
+    el.appendChild(previewCard);
+    const swatchRow = doc.createElement("div");
+    swatchRow.style.cssText = "display:flex;gap:16px;align-items:center;font-size:11px;color:#8880cc;margin-bottom:8px;";
+    el.appendChild(swatchRow);
+    function updatePreview() {
+      const op = parseFloat(opSlider.value) || 0.5;
+      const z = generateZenTheme(colors, op, dark);
+      pvToolbar.style.background = z.toolbar;
+      pvToolbar.style.color = z.textColor;
+      pvContent.style.background = z.background;
+      pvContent.style.backgroundColor = dark ? "#131313" : "#e9e9e9";
+      swatchRow.innerHTML = "";
+      const mk = (label, col) => {
+        const s2 = doc.createElement("div");
+        s2.style.cssText = "display:flex;align-items:center;gap:6px;";
+        const c = doc.createElement("div");
+        c.style.cssText = `width:20px;height:20px;border-radius:5px;border:1px solid #2d2d5c;background:${col};`;
+        const t = doc.createElement("span");
+        t.textContent = label;
+        s2.appendChild(c);
+        s2.appendChild(t);
+        return s2;
+      };
+      swatchRow.appendChild(mk(`Akcent ${z.primaryColor}`, z.primaryColor));
+      swatchRow.appendChild(mk(`Sch\xE9ma: ${z.colorScheme}`, z.colorScheme === "dark" ? "#222" : "#eee"));
     }
-    const coverNote = note(doc, [
-      "Nastavuje: 23 barev \xB7 pr\u016Fhlednost \xB7 blur \xB7 styl ohrani\u010Den\xED \xB7 animace \xB7",
-      "rozvr\u017Een\xED toolbaru \xB7 stav no-gap \xB7 zapnut\xED v\u0161ech styl\u016F element\u016F (z\xE1lo\u017Eky, urlbar, sidebar\u2026)"
-    ].join(" "));
-    el.appendChild(coverNote);
-    function updatePreview(accent) {
-      const data = modeSelect.value === "light" ? generateLightPalette(accent) : generateDarkPalette(accent);
-      dots.forEach((dot, i) => {
-        dot.style.background = data.colors[previewKeys[i]] ?? "#333";
-      });
-    }
-    modeSelect.addEventListener("change", () => updatePreview(accentHex.value));
-    updatePreview(curAccent);
+    renderDots();
+    updatePreview();
+    buildSectionHeading(doc, el, "Pou\u017E\xEDt");
+    el.appendChild(note(doc, "Pou\u017E\xEDt motiv zapne gradient a z\xE1rove\u0148 vygeneruje slad\u011Bnou plochou paletu (z\xE1lo\u017Eky, urlbar, sidebar\u2026). Jen ploch\xE1 paleta vypne gradient a nastav\xED jen barvy."));
+    const btnRow = doc.createElement("div");
+    btnRow.style.cssText = "display:flex;gap:10px;flex-wrap:wrap;";
     const applyBtn = doc.createElement("button");
     applyBtn.className = "ao-apply-btn";
-    applyBtn.style.cssText = "display:block;margin:16px 0 0;";
-    applyBtn.textContent = "\u2726 Pou\u017E\xEDt paletu";
+    applyBtn.textContent = "\u2726 Pou\u017E\xEDt motiv (gradient + paleta)";
     applyBtn.addEventListener("click", () => {
-      const v = accentHex.value.trim();
-      const data = modeSelect.value === "light" ? generateLightPalette(v) : generateDarkPalette(v);
-      applyPalette(data);
-      status(st, "\u2713 Paleta aplikov\xE1na \u2014 barvy, efekty, animace", "ok");
+      const op = opSlider.value;
+      setPref("mod.aurora.gradient.colors", colors.join(","));
+      setPref("mod.aurora.gradient.opacity", op);
+      setBoolPref("mod.aurora.gradient.dark", dark);
+      setBoolPref("mod.aurora.gradient.enabled", true);
+      const z = generateZenTheme(colors, parseFloat(op) || 0.5, dark);
+      const seed = rgbToHex(z.dominant);
+      applyPalette(dark ? generateDarkPalette(seed) : generateLightPalette(seed));
+      status(st, "\u2713 Motiv aplikov\xE1n \u2014 gradient + paleta", "ok");
     });
-    el.appendChild(applyBtn);
+    const flatBtn = doc.createElement("button");
+    flatBtn.className = "ao-nav-btn";
+    flatBtn.style.cssText = "padding:10px 18px;";
+    flatBtn.textContent = "Jen ploch\xE1 paleta (bez gradientu)";
+    flatBtn.addEventListener("click", () => {
+      setBoolPref("mod.aurora.gradient.enabled", false);
+      applyPalette(dark ? generateDarkPalette(colors[0]) : generateLightPalette(colors[0]));
+      status(st, "\u2713 Ploch\xE1 paleta aplikov\xE1na, gradient vypnut", "ok");
+    });
+    btnRow.appendChild(applyBtn);
+    btnRow.appendChild(flatBtn);
+    el.appendChild(btnRow);
   }
   function buildColors(doc, el, st) {
     buildSectionHeading(doc, el, "Akcent & Ohrani\u010Den\xED");
@@ -1374,7 +1595,9 @@ body {
     "mod.aurora.layout.no_gap_bg",
     "mod.aurora.layout.no_gap_mode",
     "mod.aurora.animation_speed",
-    "mod.aurora.animation.easing"
+    "mod.aurora.animation.easing",
+    "mod.aurora.gradient.colors",
+    "mod.aurora.gradient.opacity"
   ];
   var ALL_BOOL_PREFS = [
     "mod.aurora.effect.tab_shadow",
@@ -1388,7 +1611,9 @@ body {
     "mod.aurora.style.toolbar",
     "mod.aurora.style.workspace_strip",
     "mod.aurora.style.menus",
-    "mod.aurora.style.individual_text_colors"
+    "mod.aurora.style.individual_text_colors",
+    "mod.aurora.gradient.enabled",
+    "mod.aurora.gradient.dark"
   ];
   function capturePreset() {
     const data = {};

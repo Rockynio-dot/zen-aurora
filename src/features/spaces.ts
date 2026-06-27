@@ -6,7 +6,7 @@ import type { AuroraTheme } from "../core/state.ts";
 
 function getZenSpaces(): { uuid: string; name: string }[] {
   try {
-    const gZen = (window as Record<string, unknown>).gZenWorkspaces as {
+    const gZen = (window as unknown as Record<string, unknown>).gZenWorkspaces as {
       _workspaceCache?: { uuid: string; name: string }[];
     } | undefined;
     return gZen?._workspaceCache ?? [];
@@ -17,7 +17,7 @@ function getZenSpaces(): { uuid: string; name: string }[] {
 
 function getActiveSpaceIndex(): number {
   try {
-    const gZen = (window as Record<string, unknown>).gZenWorkspaces as {
+    const gZen = (window as unknown as Record<string, unknown>).gZenWorkspaces as {
       _workspaceCache?: { uuid: string }[];
       activeWorkspace?: string;
     } | undefined;
