@@ -152,6 +152,14 @@ body {
 }
 .aoc-input:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
 
+/* Target badge — small CSS selector hint next to a label */
+.ao-badge {
+  display: inline-block; font-size: 9px; font-family: monospace;
+  background: #141430; border: 1px solid #252550; border-radius: 3px;
+  color: #5550aa; padding: 1px 4px; margin-left: 6px;
+  vertical-align: middle; white-space: nowrap;
+}
+
 /* Space tabs */
 .ao-space-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
 .ao-space-tab {
@@ -174,6 +182,13 @@ body {
 }
 .ao-dynamic-dot { width: 8px; height: 8px; border-radius: 50%; background: #3a3a6c; flex-shrink: 0; }
 .ao-dynamic-dot.on { background: #7c6af7; box-shadow: 0 0 8px #7c6af7; }
+
+/* Info note */
+.ao-note {
+  font-size: 11.5px; color: #5550aa; line-height: 1.6;
+  padding: 8px 12px; background: #0d0d22; border: 1px solid #1e1e44;
+  border-radius: 6px; margin-bottom: 12px;
+}
 
 /* Presets */
 .ao-preset-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
@@ -216,9 +231,18 @@ body {
 .ao-about-title { font-size: 18px; font-weight: 700; color: #a89bff; margin-bottom: 4px; }
 .ao-about-sub { font-size: 12px; color: #5550aa; }
 
-/* Status */
+/* Coverage grid */
+.ao-coverage-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 8px 0 16px;
+}
+.ao-coverage-item {
+  padding: 5px 8px; background: #0a0a1e; border: 1px solid #1a1a38;
+  border-radius: 5px; font-size: 10px; font-family: monospace; color: #5550aa;
+}
+
+/* Status bar */
 .ao-status { font-size: 11px; height: 16px; color: #5550aa; padding: 2px 0; transition: color 0.2s; }
-.ao-status.ok { color: #60c060; }
+.ao-status.ok  { color: #60c060; }
 .ao-status.err { color: #c06060; }
 `;
 
@@ -226,17 +250,29 @@ body {
 
 function status(el: HTMLElement, msg: string, cls: "ok" | "err" | ""): void {
   el.textContent = msg; el.className = `ao-status ${cls}`;
-  if (cls) setTimeout(() => { el.textContent = ""; el.className = "ao-status"; }, 2200);
+  if (cls) setTimeout(() => { el.textContent = ""; el.className = "ao-status"; }, 2400);
+}
+
+function badge(doc: Document, text: string): HTMLElement {
+  const b = doc.createElement("span"); b.className = "ao-badge"; b.textContent = text; return b;
+}
+
+function note(doc: Document, text: string): HTMLElement {
+  const n = doc.createElement("div"); n.className = "ao-note"; n.textContent = text; return n;
 }
 
 // ── Color row ─────────────────────────────────────────────────────────────────
 
 function buildColorRow(
   doc: Document, container: HTMLElement,
-  label: string, pref: string, def: string, st: HTMLElement
+  label: string, pref: string, def: string, st: HTMLElement,
+  cssTarget?: string,
 ): void {
   const row = doc.createElement("div"); row.className = "aoc-row";
-  const lbl = doc.createElement("span"); lbl.className = "aoc-label"; lbl.textContent = label;
+  const lbl = doc.createElement("span"); lbl.className = "aoc-label";
+  lbl.textContent = label;
+  if (cssTarget) lbl.appendChild(badge(doc, cssTarget));
+
   const cur = getPref(pref, def);
   const swatch = doc.createElement("div"); swatch.className = "aoc-color-swatch";
   swatch.style.background = cur || def || "#555";
@@ -256,52 +292,79 @@ function buildColorRow(
   container.appendChild(row);
 }
 
-// ── Text color prefs ──────────────────────────────────────────────────────────
+// ── 1. Barvy ──────────────────────────────────────────────────────────────────
 
-const TEXT_COLOR_PREFS = [
-  "mod.aurora.color.panel_text",
-  "mod.aurora.color.tab_text",
-  "mod.aurora.color.urlbar_text",
+const TEXT_COLOR_PREFS: [string, string, string][] = [
+  ["mod.aurora.color.panel_text",  "Text panelů (toolbar, sidebar, menu)", "#TabsToolbar toolbarbutton menuitem"],
+  ["mod.aurora.color.tab_text",    "Text záložek",                         ".tab-label .tab-text"],
+  ["mod.aurora.color.urlbar_text", "Text URL lišty",                       "#urlbar-input"],
 ];
 
-// ── Section builders ──────────────────────────────────────────────────────────
-
 function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
-  const groups: [string, string[]][] = [
-    ["Panely & Sidebar", ["panel_bg","toolbar_bg","sidebar_bg","border","accent"]],
-    ["Workspace strip",  ["workspace_strip_bg","workspace_dot","workspace_dot_active"]],
-    ["Záložky",          ["tab_active_bg","tab_inactive_bg","tab_close_hover","tab_hover_bg"]],
-    ["URL lišta",        ["urlbar_bg","urlbar_border","urlbar_focus"]],
-    ["Obsah & Ostatní",  ["browser_bg","selection_bg","scrollbar","button_bg","button_hover"]],
-  ];
-  for (const [heading, keys] of groups) {
-    buildSectionHeading(doc, el, heading);
-    for (const key of keys) {
-      const f = GLOBAL_COLORS.find(c => c.pref.endsWith(`.${key}`));
-      if (f) buildColorRow(doc, el, f.label, f.pref, f.default, st);
-    }
-  }
+  // ── Akcent ──
+  buildSectionHeading(doc, el, "Akcent & Ohraničení");
+  buildColorRow(doc, el, "Akcent", "mod.aurora.color.accent", "#7c6af7", st, "--zen-primary-color");
+  buildColorRow(doc, el, "Ohraničení", "mod.aurora.color.border", "#3a3a5c", st, "všechny border");
 
+  // ── Toolbar (#navigator-toolbox) ──
+  buildSectionHeading(doc, el, "Toolbar");
+  buildColorRow(doc, el, "Pozadí toolbaru", "mod.aurora.color.toolbar_bg", "#16162a", st, "#navigator-toolbox");
+
+  // ── Panely (#TabsToolbar, #nav-bar, #PersonalToolbar, menupopup) ──
+  buildSectionHeading(doc, el, "Panely (nav bar · záložkový panel · menu)");
+  buildColorRow(doc, el, "Pozadí panelů",          "mod.aurora.color.panel_bg",     "#1a1a2e", st, "#TabsToolbar #nav-bar menupopup");
+  buildColorRow(doc, el, "Tlačítka aktivní/checked","mod.aurora.color.button_bg",    "#2a2a4e", st, "toolbarbutton[checked]");
+  buildColorRow(doc, el, "Tlačítka hover",          "mod.aurora.color.button_hover", "#3a3a6e", st, "toolbarbutton:hover menuitem:hover");
+
+  // ── Sidebar ──
+  buildSectionHeading(doc, el, "Sidebar");
+  buildColorRow(doc, el, "Pozadí sidebaru", "mod.aurora.color.sidebar_bg", "#12122a", st, "#sidebar-box #zen-sidebar-top-buttons");
+
+  // ── Workspace strip (#zen-appcontent-navbar) ──
+  buildSectionHeading(doc, el, "Workspace strip (levý panel se spaces)");
+  buildColorRow(doc, el, "Pozadí stripu",    "mod.aurora.color.workspace_strip_bg",    "#0d0d1e", st, "#zen-appcontent-navbar");
+  buildColorRow(doc, el, "Dot neaktivní",    "mod.aurora.color.workspace_dot",          "#3a3a6c", st, ".zen-workspace-dot");
+  buildColorRow(doc, el, "Dot aktivní",      "mod.aurora.color.workspace_dot_active",   "#7c6af7", st, ".zen-workspace-dot[selected]");
+
+  // ── Záložky ──
+  buildSectionHeading(doc, el, "Záložky (.tabbrowser-tab)");
+  buildColorRow(doc, el, "Aktivní záložka",  "mod.aurora.color.tab_active_bg",  "#2a2a4e", st, "[selected] .tab-background");
+  buildColorRow(doc, el, "Neaktivní záložka","mod.aurora.color.tab_inactive_bg","#1a1a2e", st, ".tab-background");
+  buildColorRow(doc, el, "Hover záložky",    "mod.aurora.color.tab_hover_bg",   "#252550", st, ":hover .tab-background");
+  buildColorRow(doc, el, "✕ tlačítko hover", "mod.aurora.color.tab_close_hover","#ff6b6b", st, ".tab-close-button:hover");
+
+  // ── URL lišta ──
+  buildSectionHeading(doc, el, "URL lišta (#urlbar)");
+  buildColorRow(doc, el, "Pozadí",         "mod.aurora.color.urlbar_bg",    "#1e1e3a", st, "#urlbar-background");
+  buildColorRow(doc, el, "Ohraničení idle","mod.aurora.color.urlbar_border","#3a3a6c", st, "#urlbar border");
+  buildColorRow(doc, el, "Ohraničení focus","mod.aurora.color.urlbar_focus","#7c6af7", st, "#urlbar:focus-within");
+
+  // ── Obsah prohlížeče ──
+  buildSectionHeading(doc, el, "Obsah prohlížeče");
+  buildColorRow(doc, el, "Pozadí obsahu (#browser)",  "mod.aurora.color.browser_bg",   "#0f0f1a", st, "#browser");
+  buildColorRow(doc, el, "Výběr textu (::selection)", "mod.aurora.color.selection_bg", "#7c6af740",st, "::selection");
+  buildColorRow(doc, el, "Scrollbar (thumb)",          "mod.aurora.color.scrollbar",    "#3a3a6c", st, "thumb");
+
+  // ── Barvy textu ──
   buildSectionHeading(doc, el, "Barvy textu");
-
   const masterDef = "#e0e0ff";
-  const masterCur = getPref("mod.aurora.color.panel_text", masterDef);
   const masterRow = doc.createElement("div"); masterRow.className = "aoc-row";
-  const masterLbl = doc.createElement("span"); masterLbl.className = "aoc-label"; masterLbl.textContent = "Barva všech textů";
+  const masterLbl = doc.createElement("span"); masterLbl.className = "aoc-label";
+  masterLbl.textContent = "Barva všech textů";
+  masterLbl.appendChild(badge(doc, "panely + záložky + urlbar"));
   const masterSwatch = doc.createElement("div"); masterSwatch.className = "aoc-color-swatch";
-  masterSwatch.style.background = masterCur;
+  masterSwatch.style.background = getPref("mod.aurora.color.panel_text", masterDef);
   const masterHex = doc.createElement("input") as HTMLInputElement;
   masterHex.type = "text"; masterHex.className = "aoc-color-hex";
-  masterHex.value = masterCur; masterHex.maxLength = 9;
+  masterHex.value = getPref("mod.aurora.color.panel_text", masterDef); masterHex.maxLength = 9;
 
   const setAllText = (hex: string) => {
     masterSwatch.style.background = hex; masterHex.value = hex;
-    for (const p of TEXT_COLOR_PREFS) setPref(p, hex);
-    status(st, "✓ Text nastaven", "ok");
+    for (const [p] of TEXT_COLOR_PREFS) setPref(p, hex);
+    status(st, "✓ Všechny texty nastaveny", "ok");
   };
   masterSwatch.addEventListener("click", (e) => { e.stopPropagation(); openColorPicker(masterSwatch, masterHex.value || masterDef, setAllText); });
   masterHex.addEventListener("change", () => { const v = masterHex.value.trim(); setAllText(v.startsWith("#") ? v : `#${v}`); });
-
   masterRow.appendChild(masterLbl); masterRow.appendChild(masterSwatch); masterRow.appendChild(masterHex);
   el.appendChild(masterRow);
 
@@ -314,28 +377,27 @@ function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
     expanded = !expanded;
     if (expanded && !indBuilt) {
       indBuilt = true;
-      for (const p of TEXT_COLOR_PREFS) {
-        const f = GLOBAL_COLORS.find(c => c.pref === p);
-        if (f) buildColorRow(doc, indContainer, f.label, f.pref, f.default, st);
-      }
+      for (const [p, lbl, tgt] of TEXT_COLOR_PREFS)
+        buildColorRow(doc, indContainer, lbl, p, masterDef, st, tgt);
     }
     indContainer.style.display = expanded ? "block" : "none";
-    expandBtn.textContent = expanded ? "▲ Skrýt individuální nastavení" : "▼ Nastavit každý text zvlášť";
+    expandBtn.textContent = expanded ? "▲ Skrýt" : "▼ Nastavit každý text zvlášť";
   });
   el.appendChild(expandBtn); el.appendChild(indContainer);
 }
 
+// ── 2. Spaces ─────────────────────────────────────────────────────────────────
+
 function buildSpaces(doc: Document, el: HTMLElement, st: HTMLElement): void {
+  el.appendChild(note(doc, "Přepíše globální barvy jen pro vybraný Space. Prázdné pole = globální hodnota."));
   const tabBar = doc.createElement("div"); tabBar.className = "ao-space-tabs"; el.appendChild(tabBar);
   const contents: HTMLElement[] = [];
   for (let i = 0; i < SPACE_COUNT; i++) {
     const tab = doc.createElement("button"); tab.className = "ao-space-tab" + (i === 0 ? " active" : "");
     tab.textContent = `Space ${i + 1}`; tabBar.appendChild(tab);
     const content = doc.createElement("div"); content.className = "ao-space-content" + (i === 0 ? " active" : "");
-    const note = doc.createElement("div"); note.style.cssText = "font-size:11px;color:#5550aa;margin-bottom:10px;";
-    note.textContent = `Přepíše globální barvy jen pro Space ${i + 1}. Prázdné = globální hodnota.`;
-    content.appendChild(note);
-    for (const sc of SPACE_COLORS) buildColorRow(doc, content, sc.label, spaceColorPref(i, sc.key), sc.default, st);
+    for (const sc of SPACE_COLORS)
+      buildColorRow(doc, content, sc.label, spaceColorPref(i, sc.key), sc.default, st);
     el.appendChild(content); contents.push(content);
   }
   const tabs = Array.from(tabBar.querySelectorAll<HTMLButtonElement>(".ao-space-tab"));
@@ -346,6 +408,8 @@ function buildSpaces(doc: Document, el: HTMLElement, st: HTMLElement): void {
     contents.forEach((c, ci) => c.classList.toggle("active", ci === idx));
   });
 }
+
+// ── 3. Dynamika ───────────────────────────────────────────────────────────────
 
 function buildDynamic(doc: Document, el: HTMLElement, st: HTMLElement): void {
   const statBar = doc.createElement("div"); statBar.className = "ao-dynamic-status";
@@ -362,24 +426,26 @@ function buildDynamic(doc: Document, el: HTMLElement, st: HTMLElement): void {
 
   buildSectionHeading(doc, el, "Režim");
   buildSelect(doc, el, "Aktivní režim", "mod.aurora.dynamic_mode", [
-    { label: "Vypnuto", value: "off" }, { label: "Material You", value: "material" },
-    { label: "Denní cyklus", value: "daynight" }, { label: "Akcent z favikony", value: "tab_accent" },
+    { label: "Vypnuto",          value: "off"       },
+    { label: "Material You",     value: "material"  },
+    { label: "Denní cyklus",     value: "daynight"  },
+    { label: "Akcent z favikony",value: "tab_accent"},
   ], "off", (v) => { dot.classList.toggle("on", v !== "off"); txt.textContent = modeLabels[v] ?? v; });
 
   buildSectionHeading(doc, el, "Material You");
   buildSelect(doc, el, "Intenzita", "mod.aurora.dynamic.material_intensity", [
     { label: "Slabá (25%)", value: "0.25" }, { label: "Střední (50%)", value: "0.5" },
-    { label: "Silná (75%)", value: "0.75" }, { label: "Plná (100%)", value: "1.0" },
+    { label: "Silná (75%)", value: "0.75" }, { label: "Plná (100%)", value: "1.0"  },
   ], "0.75");
 
   buildSectionHeading(doc, el, "Denní cyklus");
-  buildSelect(doc, el, "Začátek dne", "mod.aurora.dynamic.day_hour",
+  buildSelect(doc, el, "Začátek dne",  "mod.aurora.dynamic.day_hour",
     [5,6,7,8].map(h => ({ label: `${h}:00`, value: String(h) })), "7");
   buildSelect(doc, el, "Začátek noci", "mod.aurora.dynamic.night_hour",
     [17,18,19,20,21,22].map(h => ({ label: `${h}:00`, value: String(h) })), "20");
   buildSelect(doc, el, "Délka přechodu", "mod.aurora.dynamic.transition_minutes", [
     { label: "Okamžitý", value: "0" }, { label: "30 min", value: "30" },
-    { label: "60 min", value: "60" }, { label: "90 min", value: "90" },
+    { label: "60 min",   value: "60"}, { label: "90 min", value: "90" },
   ], "60");
   buildColorRow(doc, el, "Akcent ve dne",  "mod.aurora.dynamic.day_accent",   "#4a90d9", st);
   buildColorRow(doc, el, "Pozadí ve dne",  "mod.aurora.dynamic.day_bg",       "#1a2035", st);
@@ -389,89 +455,119 @@ function buildDynamic(doc: Document, el: HTMLElement, st: HTMLElement): void {
   buildColorRow(doc, el, "Text v noci",    "mod.aurora.dynamic.night_text",   "#ffe0cc", st);
 
   buildSectionHeading(doc, el, "Akcent z favikony");
-  buildColorRow(doc, el, "Záložní barva", "mod.aurora.dynamic.favicon_fallback", "#7c6af7", st);
+  buildColorRow(doc, el, "Záložní barva",     "mod.aurora.dynamic.favicon_fallback",           "#7c6af7", st);
   buildSelect(doc, el, "Zesílení saturace", "mod.aurora.dynamic.favicon_saturation_boost", [
-    { label: "Bez (1×)", value: "1.0" }, { label: "Mírné (1.2×)", value: "1.2" },
-    { label: "Výrazné (1.5×)", value: "1.5" }, { label: "Maximum (2×)", value: "2.0" },
+    { label: "Bez (1×)",       value: "1.0"}, { label: "Mírné (1.2×)", value: "1.2"},
+    { label: "Výrazné (1.5×)", value: "1.5"}, { label: "Maximum (2×)", value: "2.0"},
   ], "1.2");
 }
 
-function buildBackground(doc: Document, el: HTMLElement, st: HTMLElement): void {
-  buildSectionHeading(doc, el, "Obrázek pozadí");
+// ── 4. Pozadí ─────────────────────────────────────────────────────────────────
+
+function buildBackground(doc: Document, el: HTMLElement, _st: HTMLElement): void {
+  el.appendChild(note(doc, "Obrázek pozadí se zobrazuje za #browser::before. Průhlednost a blur panelů nastavíš v sekci Efekty."));
+
+  buildSectionHeading(doc, el, "Obrázek pozadí (#browser::before)");
   buildTextInput(doc, el, "URL obrázku", "mod.aurora.image.browser_bg", "https://...", "");
-  buildSelect(doc, el, "Velikost", "mod.aurora.image.bg_size", [
-    { label: "Cover", value: "cover" }, { label: "Contain", value: "contain" },
-    { label: "Auto", value: "auto" }, { label: "100% šířka", value: "100% auto" },
+  buildSelect(doc, el, "Velikost (background-size)", "mod.aurora.image.bg_size", [
+    { label: "Cover — vyplní plochu",    value: "cover"     },
+    { label: "Contain — celý viditelný", value: "contain"   },
+    { label: "Auto — přirozená velikost",value: "auto"      },
+    { label: "100% šířka",               value: "100% auto" },
   ], "cover");
-  buildSelect(doc, el, "Pozice", "mod.aurora.image.bg_position", [
-    { label: "Střed", value: "center" }, { label: "Nahoře", value: "top" },
-    { label: "Dole", value: "bottom" }, { label: "Vlevo", value: "left" },
+  buildSelect(doc, el, "Pozice (background-position)", "mod.aurora.image.bg_position", [
+    { label: "Střed",  value: "center" }, { label: "Nahoře", value: "top"    },
+    { label: "Dole",   value: "bottom" }, { label: "Vlevo",  value: "left"   },
+    { label: "Vpravo", value: "right"  },
   ], "center");
-  buildSlider(doc, el, "Rozmazání pozadí",  "mod.aurora.image.bg_blur",         0, 30, 1,    "px", 0);
-  buildSlider(doc, el, "Průhlednost pozadí","mod.aurora.image.bg_opacity",       0, 1,  0.05, "",   1);
-  buildSlider(doc, el, "Průhlednost panelů","mod.aurora.effect.panel_opacity",   0, 1,  0.05, "",   1);
-  buildSlider(doc, el, "Rozmazání panelů",  "mod.aurora.effect.panel_blur",      0, 30, 1,    "px", 0);
+  buildSlider(doc, el, "Rozmazání obrázku (filter: blur)", "mod.aurora.image.bg_blur",    0, 30, 1,    "px", 0);
+  buildSlider(doc, el, "Průhlednost obrázku (opacity)",    "mod.aurora.image.bg_opacity",  0,  1, 0.05, "",  1);
 }
+
+// ── 5. Rozměry ────────────────────────────────────────────────────────────────
 
 function buildLayout(doc: Document, el: HTMLElement, _st: HTMLElement): void {
-  buildSectionHeading(doc, el, "Záložky");
-  buildSlider(doc, el, "Výška záložky",        "mod.aurora.layout.tab_height",          20, 60,  1, "px", 36);
-  buildSlider(doc, el, "Zaoblení záložky",      "mod.aurora.layout.tab_border_radius",    0, 20,  1, "px", 8);
-  buildSectionHeading(doc, el, "Panely");
-  buildSlider(doc, el, "Výška toolbaru",        "mod.aurora.layout.toolbar_height",      32, 64,  1, "px", 40);
-  buildSlider(doc, el, "Šířka sidebaru",        "mod.aurora.layout.sidebar_width",      120, 400, 4, "px", 200);
-  buildSlider(doc, el, "Šířka workspace stripu","mod.aurora.layout.workspace_strip_width", 20, 80, 2, "px", 36);
-  buildSlider(doc, el, "Zaoblení panelů",       "mod.aurora.layout.panel_border_radius",  0, 24,  1, "px", 8);
-  buildSectionHeading(doc, el, "Ostatní");
-  buildSlider(doc, el, "Zaoblení tlačítek",     "mod.aurora.layout.button_border_radius", 0, 20,  1, "px", 6);
-  buildSlider(doc, el, "Tloušťka ohraničení",   "mod.aurora.layout.border_width",         0,  4,  1, "px", 1);
-  buildSelect(doc, el, "Styl ohraničení",        "mod.aurora.effect.panel_border_style", [
-    { label: "Plné (solid)", value: "solid" }, { label: "Tečky (dotted)", value: "dotted" },
-    { label: "Přerušované (dashed)", value: "dashed" }, { label: "Žádné", value: "none" },
-  ], "solid");
+  buildSectionHeading(doc, el, "Záložky (.tabbrowser-tab)");
+  buildSlider(doc, el, "Výška záložky (min/max-height)",    "mod.aurora.layout.tab_height",          20, 60,  1, "px", 36);
+  buildSlider(doc, el, "Zaoblení záložky (border-radius)",  "mod.aurora.layout.tab_border_radius",    0, 20,  1, "px", 8);
+
+  buildSectionHeading(doc, el, "Panely (#TabsToolbar · #nav-bar · #PersonalToolbar)");
+  buildSlider(doc, el, "Výška panelů (min-height)",         "mod.aurora.layout.toolbar_height",      32, 64,  1, "px", 40);
+
+  buildSectionHeading(doc, el, "Sidebar (#sidebar-box)");
+  buildSlider(doc, el, "Šířka sidebaru (min/max-width)",    "mod.aurora.layout.sidebar_width",      120, 400, 4, "px", 200);
+
+  buildSectionHeading(doc, el, "Workspace strip (#zen-appcontent-navbar)");
+  buildSlider(doc, el, "Šířka stripu (min/max-width)",      "mod.aurora.layout.workspace_strip_width", 20, 80, 2, "px", 36);
+
+  buildSectionHeading(doc, el, "Zaoblení prvků");
+  buildSlider(doc, el, "Zaoblení panelů / URL (#urlbar, menupopup)", "mod.aurora.layout.panel_border_radius",  0, 24, 1, "px", 8);
+  buildSlider(doc, el, "Zaoblení tlačítek / položek menu",           "mod.aurora.layout.button_border_radius", 0, 20, 1, "px", 6);
+
+  buildSectionHeading(doc, el, "Ohraničení");
+  buildSlider(doc, el, "Tloušťka ohraničení (border-width — vše)",   "mod.aurora.layout.border_width",         0,  4, 1, "px", 1);
 }
 
+// ── 6. Efekty & Animace ───────────────────────────────────────────────────────
+
 function buildEffects(doc: Document, el: HTMLElement, _st: HTMLElement): void {
+  // Průhlednost panelů — patří sem, protože to je vizuální efekt, ne layout
+  buildSectionHeading(doc, el, "Průhlednost panelů");
+  el.appendChild(note(doc, "Ovlivňuje #navigator-toolbox, #sidebar-box, #zen-appcontent-navbar a menupopup. Blur = frosted glass efekt."));
+  buildSlider(doc, el, "Průhlednost panelů (panel-bg rgba alpha)", "mod.aurora.effect.panel_opacity", 0, 1,  0.05, "", 1);
+  buildSlider(doc, el, "Blur panelů (backdrop-filter: blur)",       "mod.aurora.effect.panel_blur",   0, 30, 1,    "px", 0);
+
   buildSectionHeading(doc, el, "Stíny a záře");
-  buildToggle(doc, el, "Stín aktivní záložky", "mod.aurora.effect.tab_shadow", false);
-  buildToggle(doc, el, "Záře akcentu (glow)",  "mod.aurora.effect.accent_glow", false);
-  buildSectionHeading(doc, el, "Animace");
-  buildSelect(doc, el, "Rychlost animací", "mod.aurora.animation_speed", [
-    { label: "Vypnuté", value: "none" }, { label: "Pomalé", value: "slow" },
-    { label: "Normální", value: "normal" }, { label: "Rychlé", value: "fast" },
+  buildToggle(doc, el, "Stín aktivní záložky (.tabbrowser-tab[selected])",   "mod.aurora.effect.tab_shadow",  false);
+  buildToggle(doc, el, "Záře akcentu při hoveru a na aktivní záložce (glow)", "mod.aurora.effect.accent_glow", false);
+
+  buildSectionHeading(doc, el, "Styl ohraničení (border-style — vše)");
+  buildSelect(doc, el, "Styl", "mod.aurora.effect.panel_border_style", [
+    { label: "Plné (solid)",         value: "solid"  },
+    { label: "Tečky (dotted)",       value: "dotted" },
+    { label: "Přerušované (dashed)", value: "dashed" },
+    { label: "Žádné (none)",         value: "none"   },
+  ], "solid");
+
+  buildSectionHeading(doc, el, "Animace (CSS transitions — vše)");
+  buildSelect(doc, el, "Rychlost (transition-duration)", "mod.aurora.animation_speed", [
+    { label: "Vypnuté — žádné animace (0s)", value: "none"   },
+    { label: "Pomalé (0.45s)",               value: "slow"   },
+    { label: "Normální (0.18s)",             value: "normal" },
+    { label: "Rychlé (0.08s)",              value: "fast"   },
   ], "normal");
-  buildSelect(doc, el, "Křivka animace", "mod.aurora.animation.easing", [
-    { label: "Ease", value: "ease" }, { label: "Linear", value: "linear" },
-    { label: "Ease Out", value: "ease-out" },
-    { label: "Spring", value: "cubic-bezier(0.34,1.56,0.64,1)" },
+  buildSelect(doc, el, "Křivka (transition-timing-function)", "mod.aurora.animation.easing", [
+    { label: "Material ease (výchozí)", value: "ease"                         },
+    { label: "Linear",                  value: "linear"                       },
+    { label: "Ease Out",                value: "ease-out"                     },
+    { label: "Spring (překmit)",        value: "cubic-bezier(0.34,1.56,0.64,1)"},
   ], "ease");
 }
 
-function buildFont(doc: Document, el: HTMLElement, _st: HTMLElement): void {
-  buildSectionHeading(doc, el, "Písmo");
-  buildTextInput(doc, el, "Rodina písma", "mod.aurora.font.family", "system-ui, sans-serif", "inherit");
-  buildSlider(doc, el, "Velikost", "mod.aurora.font.size", 10, 20, 1, "px", 13);
-  buildSelect(doc, el, "Tučnost", "mod.aurora.font.weight", [
-    { label: "300", value: "300" }, { label: "400 (normální)", value: "400" },
-    { label: "500", value: "500" }, { label: "600", value: "600" }, { label: "700", value: "700" },
+// ── 7. Písmo & Zvuky ──────────────────────────────────────────────────────────
+
+function buildFontSounds(doc: Document, el: HTMLElement, _st: HTMLElement): void {
+  buildSectionHeading(doc, el, "Písmo (font — záložky, panely, URL lišta)");
+  buildTextInput(doc, el, "Rodina (font-family)", "mod.aurora.font.family", "system-ui, sans-serif", "inherit");
+  buildSlider(doc, el,    "Velikost (font-size)",  "mod.aurora.font.size",   10, 20, 1, "px", 13);
+  buildSelect(doc, el, "Tučnost (font-weight)", "mod.aurora.font.weight", [
+    { label: "300 — tenké",    value: "300" }, { label: "400 — normální", value: "400" },
+    { label: "500 — střední",  value: "500" }, { label: "600 — semibold", value: "600" },
+    { label: "700 — tučné",    value: "700" },
   ], "400");
+
+  buildSectionHeading(doc, el, "Zvukové efekty klávesnice");
+  el.appendChild(note(doc, "Jemné klikání při psaní do URL lišty. Vyžaduje restart prohlížeče."));
+  buildToggle(doc, el, "Zapnout zvukové efekty", "mod.aurora.sounds_enabled", false);
 }
 
-function buildSounds(doc: Document, el: HTMLElement, _st: HTMLElement): void {
-  buildSectionHeading(doc, el, "Zvukové efekty");
-  const note = doc.createElement("div"); note.style.cssText = "font-size:11.5px;color:#5550aa;margin-bottom:12px;line-height:1.6;";
-  note.textContent = "Jemný zvuk při psaní. Změna vyžaduje restart prohlížeče.";
-  el.appendChild(note);
-  buildToggle(doc, el, "Zapnout zvukové efekty klávesnice", "mod.aurora.sounds_enabled", false);
-}
-
-// ── Presets ───────────────────────────────────────────────────────────────────
+// ── 8. Presety ────────────────────────────────────────────────────────────────
 
 const ALL_STRING_PREFS = [
   ...GLOBAL_COLORS.map(c => c.pref),
   "mod.aurora.image.browser_bg","mod.aurora.image.bg_size","mod.aurora.image.bg_position",
-  "mod.aurora.image.bg_blur","mod.aurora.image.bg_opacity","mod.aurora.effect.panel_opacity",
-  "mod.aurora.effect.panel_blur","mod.aurora.effect.panel_border_style",
+  "mod.aurora.image.bg_blur","mod.aurora.image.bg_opacity",
+  "mod.aurora.effect.panel_opacity","mod.aurora.effect.panel_blur","mod.aurora.effect.panel_border_style",
   "mod.aurora.font.family","mod.aurora.font.size","mod.aurora.font.weight",
   "mod.aurora.layout.tab_height","mod.aurora.layout.tab_border_radius",
   "mod.aurora.layout.panel_border_radius","mod.aurora.layout.button_border_radius",
@@ -514,7 +610,8 @@ function savePreset(name: string): number {
   for (let i = 1; i <= 20; i++) {
     const raw = Services.prefs.getStringPref(`mod.aurora.preset.${i}`, "");
     if (!raw) {
-      Services.prefs.setStringPref(`mod.aurora.preset.${i}`, JSON.stringify({ name, ts: Date.now(), data: capturePreset() }));
+      Services.prefs.setStringPref(`mod.aurora.preset.${i}`,
+        JSON.stringify({ name, ts: Date.now(), data: capturePreset() }));
       return i;
     }
   }
@@ -540,16 +637,19 @@ function buildPresets(doc: Document, el: HTMLElement, st: HTMLElement): void {
       try {
         const data = JSON.parse(p.json) as Record<string, string>;
         for (const key of ["mod.aurora.color.accent","mod.aurora.color.panel_bg","mod.aurora.color.tab_active_bg"]) {
-          const sw = doc.createElement("div"); sw.className = "ao-preset-swatch"; sw.style.background = data[key] || "#333"; swatches.appendChild(sw);
+          const sw = doc.createElement("div"); sw.className = "ao-preset-swatch";
+          sw.style.background = data[key] || "#333"; swatches.appendChild(sw);
         }
       } catch {}
       const name = doc.createElement("span"); name.className = "ao-preset-name"; name.textContent = p.name;
-      const time = doc.createElement("span"); time.className = "ao-preset-time"; time.textContent = new Date(p.ts).toLocaleDateString("cs-CZ");
+      const time = doc.createElement("span"); time.className = "ao-preset-time";
+      time.textContent = new Date(p.ts).toLocaleDateString("cs-CZ");
       const loadBtn = doc.createElement("button"); loadBtn.className = "ao-preset-btn load"; loadBtn.textContent = "Načíst";
       loadBtn.addEventListener("click", () => { applyPresetData(p.json); status(st, `Načten "${p.name}"`, "ok"); });
       const delBtn = doc.createElement("button"); delBtn.className = "ao-preset-btn del"; delBtn.textContent = "Smazat";
       delBtn.addEventListener("click", () => { deletePreset(p.idx); refresh(); });
-      item.appendChild(swatches); item.appendChild(name); item.appendChild(time); item.appendChild(loadBtn); item.appendChild(delBtn);
+      item.appendChild(swatches); item.appendChild(name); item.appendChild(time);
+      item.appendChild(loadBtn); item.appendChild(delBtn);
       listEl.appendChild(item);
     }
   }
@@ -603,89 +703,125 @@ function importTxt(doc: Document, st: HTMLElement): void {
         const eq = l.indexOf("="); if (eq < 0) continue;
         const p = l.slice(0, eq).trim(), v = l.slice(eq + 1).trim();
         if (!p.startsWith("mod.aurora.")) { bad++; continue; }
-        if (v === "true" || v === "false") { try { Services.prefs.setBoolPref(p, v === "true"); ok++; } catch { bad++; } }
-        else { try { Services.prefs.setStringPref(p, v); ok++; } catch { bad++; } }
+        if (v === "true" || v === "false")
+          { try { Services.prefs.setBoolPref(p, v === "true"); ok++; } catch { bad++; } }
+        else
+          { try { Services.prefs.setStringPref(p, v); ok++; } catch { bad++; } }
       }
-      status(st, bad > 0 ? `Načteno ${ok}, přeskočeno ${bad}` : `Načteno ${ok} hodnot`, ok > 0 ? "ok" : "err");
+      status(st, bad ? `Načteno ${ok}, přeskočeno ${bad}` : `Načteno ${ok} hodnot`, ok > 0 ? "ok" : "err");
     };
     r.readAsText(f);
   });
   doc.body.appendChild(inp); inp.click(); setTimeout(() => inp.remove(), 30_000);
 }
 
+// ── 9. O módu ─────────────────────────────────────────────────────────────────
+
 function buildAbout(doc: Document, el: HTMLElement, st: HTMLElement): void {
   const card = doc.createElement("div"); card.className = "ao-about-card";
   const t = doc.createElement("div"); t.className = "ao-about-title"; t.textContent = "✦ Aurora";
   const sub = doc.createElement("div"); sub.className = "ao-about-sub";
-  sub.textContent = "Kompletní UI overhaul pro Zen Browser · v0.1.0";
+  sub.textContent = "Kompletní UI overhaul pro Zen Browser · v0.1.0 · Rockynio-dot";
   card.appendChild(t); card.appendChild(sub); el.appendChild(card);
 
+  buildSectionHeading(doc, el, "CSS pokrytí — ovlivněné prvky");
+  const grid = doc.createElement("div"); grid.className = "ao-coverage-grid";
+  for (const sel of [
+    "#navigator-toolbox","#TabsToolbar","#PersonalToolbar","#nav-bar",
+    "#sidebar-box","#zen-sidebar-top-buttons","#zen-sidebar-top-buttons-customization-target",
+    ".zen-sidebar-action-button","#zen-appcontent-navbar",
+    ".zen-workspace-dot",".zen-workspace-button",
+    ".tabbrowser-tab .tab-background",".tab-label .tab-text",
+    ".tab-close-button:hover",
+    "#urlbar","#urlbar-background","#urlbar:focus-within","#urlbar-input",
+    "#browser","#browser::before",
+    "toolbarbutton","toolbarbutton:hover","toolbarbutton[checked]",
+    "menupopup .panel-arrowcontainer","menuitem menu","menuseparator",
+    "::selection","thumb (scrollbar)",
+  ]) {
+    const item = doc.createElement("div"); item.className = "ao-coverage-item"; item.textContent = sel; grid.appendChild(item);
+  }
+  el.appendChild(grid);
+
   buildSectionHeading(doc, el, "Resetovat nastavení");
-  const resetBtn = doc.createElement("button"); resetBtn.className = "ao-nav-btn danger";
-  resetBtn.style.cssText = "width:100%;margin-bottom:8px;";
-  resetBtn.textContent = "⟳  Reset všech barev na výchozí hodnoty";
-  resetBtn.addEventListener("click", () => {
+  const resetColorsBtn = doc.createElement("button"); resetColorsBtn.className = "ao-nav-btn danger";
+  resetColorsBtn.style.cssText = "width:100%;margin-bottom:8px;";
+  resetColorsBtn.textContent = "⟳  Reset všech barev na výchozí";
+  resetColorsBtn.addEventListener("click", () => {
+    if (!confirm("Opravdu resetovat všechny barvy? Tuto akci nelze vrátit.")) return;
     for (const f of GLOBAL_COLORS) { try { Services.prefs.setStringPref(f.pref, f.default); } catch {} }
     for (let i = 0; i < SPACE_COUNT; i++)
       for (const sc of SPACE_COLORS)
         try { Services.prefs.clearUserPref(spaceColorPref(i, sc.key)); } catch {}
-    status(st, "Resetováno na výchozí hodnoty", "ok");
+    status(st, "Barvy resetovány na výchozí", "ok");
   });
-  el.appendChild(resetBtn);
+  el.appendChild(resetColorsBtn);
+
+  const resetAllBtn = doc.createElement("button"); resetAllBtn.className = "ao-nav-btn danger";
+  resetAllBtn.style.cssText = "width:100%;";
+  resetAllBtn.textContent = "⟳  Reset VEŠKERÝCH nastavení Aurora";
+  resetAllBtn.addEventListener("click", () => {
+    if (!confirm("Opravdu resetovat veškerá nastavení Aurora? Tuto akci nelze vrátit.")) return;
+    for (const p of [...ALL_STRING_PREFS, ...ALL_BOOL_PREFS])
+      { try { Services.prefs.clearUserPref(p); } catch {} }
+    for (let i = 1; i <= 20; i++)
+      { try { Services.prefs.clearUserPref(`mod.aurora.preset.${i}`); } catch {} }
+    status(st, "Veškerá nastavení resetována", "ok");
+  });
+  el.appendChild(resetAllBtn);
 }
 
 // ── Nav items ─────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { id: "colors",     icon: "🎨", label: "Barvy"      },
-  { id: "spaces",     icon: "🌌", label: "Spaces"     },
-  { id: "dynamic",    icon: "🌅", label: "Dynamika"   },
-  { id: "background", icon: "🖼️", label: "Pozadí"     },
-  { id: "layout",     icon: "📐", label: "Rozměry"    },
-  { id: "effects",    icon: "✨", label: "Efekty"     },
-  { id: "font",       icon: "🔤", label: "Písmo"      },
-  { id: "sounds",     icon: "🔊", label: "Zvuky"      },
-  { id: "presets",    icon: "💾", label: "Presety"    },
-  { id: "about",      icon: "ℹ️", label: "O módu"     },
+  { id: "colors",     icon: "🎨", label: "Barvy"        },
+  { id: "spaces",     icon: "🌌", label: "Spaces"       },
+  { id: "dynamic",    icon: "🌅", label: "Dynamika"     },
+  { id: "background", icon: "🖼️", label: "Pozadí"       },
+  { id: "layout",     icon: "📐", label: "Rozměry"      },
+  { id: "effects",    icon: "✨", label: "Efekty"       },
+  { id: "typography", icon: "🔤", label: "Písmo & Zvuky"},
+  { id: "presets",    icon: "💾", label: "Presety"      },
+  { id: "about",      icon: "ℹ️", label: "O módu"       },
 ] as const;
 
 type NavId = typeof NAV_ITEMS[number]["id"];
 
 const SECTION_BUILDERS: Record<NavId, (doc: Document, el: HTMLElement, st: HTMLElement) => void> = {
-  colors: buildColors, spaces: buildSpaces, dynamic: buildDynamic,
-  background: buildBackground, layout: buildLayout, effects: buildEffects,
-  font: buildFont, sounds: buildSounds, presets: buildPresets, about: buildAbout,
+  colors:     buildColors,
+  spaces:     buildSpaces,
+  dynamic:    buildDynamic,
+  background: buildBackground,
+  layout:     buildLayout,
+  effects:    buildEffects,
+  typography: buildFontSounds,
+  presets:    buildPresets,
+  about:      buildAbout,
 };
 
 // ── Main init ─────────────────────────────────────────────────────────────────
 
 function buildUI(doc: Document): void {
-  // Inject CSS
   const style = doc.createElement("style"); style.textContent = CSS;
   doc.head.appendChild(style);
 
-  // Init color picker in this window's document
   initColorPicker(doc);
 
-  // Shell
   const nav  = doc.createElement("div"); nav.className = "ao-nav";
   const main = doc.createElement("div"); main.className = "ao-main";
 
-  // Logo
   const logo = doc.createElement("div"); logo.className = "ao-nav-logo"; logo.textContent = "✦ Aurora";
   nav.appendChild(logo);
 
-  // Header
-  const header     = doc.createElement("div"); header.className = "ao-header";
-  const headerTitle= doc.createElement("div"); headerTitle.className = "ao-header-title";
-  const headerSub  = doc.createElement("span"); headerSub.className = "ao-header-sub";
+  const header      = doc.createElement("div"); header.className = "ao-header";
+  const headerTitle = doc.createElement("div"); headerTitle.className = "ao-header-title";
+  const headerSub   = doc.createElement("span"); headerSub.className = "ao-header-sub";
   headerTitle.appendChild(doc.createTextNode("✦ Aurora")); headerTitle.appendChild(headerSub);
-  const closeBtn   = doc.createElement("button"); closeBtn.className = "ao-header-close";
+  const closeBtn = doc.createElement("button"); closeBtn.className = "ao-header-close";
   closeBtn.textContent = "✕ Zavřít  (Esc)";
   closeBtn.addEventListener("click", () => window.close());
   header.appendChild(headerTitle); header.appendChild(closeBtn);
 
-  // Content
   const content = doc.createElement("div"); content.className = "ao-content";
   const st = doc.createElement("div"); st.className = "ao-status"; st.style.marginBottom = "4px";
   content.appendChild(st);
@@ -693,7 +829,6 @@ function buildUI(doc: Document): void {
   main.appendChild(header); main.appendChild(content);
   doc.body.appendChild(nav); doc.body.appendChild(main);
 
-  // Sections + nav
   const sections: Partial<Record<NavId, HTMLElement>> = {};
   const navEls: HTMLElement[] = [];
   let activeId: NavId = "colors";
@@ -725,13 +860,8 @@ function buildUI(doc: Document): void {
   }
 
   showSection("colors");
-
-  // Escape closes window
   doc.addEventListener("keydown", (e) => { if (e.key === "Escape") window.close(); });
 }
 
-// Mark this window so overlay.ts can detect it's already open
 (window as Window & { _auroraSettings?: boolean })._auroraSettings = true;
-
-// Run immediately (script is at end of body, DOM is ready)
 buildUI(document);

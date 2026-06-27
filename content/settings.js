@@ -710,6 +710,14 @@ body {
 }
 .aoc-input:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
 
+/* Target badge \u2014 small CSS selector hint next to a label */
+.ao-badge {
+  display: inline-block; font-size: 9px; font-family: monospace;
+  background: #141430; border: 1px solid #252550; border-radius: 3px;
+  color: #5550aa; padding: 1px 4px; margin-left: 6px;
+  vertical-align: middle; white-space: nowrap;
+}
+
 /* Space tabs */
 .ao-space-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
 .ao-space-tab {
@@ -732,6 +740,13 @@ body {
 }
 .ao-dynamic-dot { width: 8px; height: 8px; border-radius: 50%; background: #3a3a6c; flex-shrink: 0; }
 .ao-dynamic-dot.on { background: #7c6af7; box-shadow: 0 0 8px #7c6af7; }
+
+/* Info note */
+.ao-note {
+  font-size: 11.5px; color: #5550aa; line-height: 1.6;
+  padding: 8px 12px; background: #0d0d22; border: 1px solid #1e1e44;
+  border-radius: 6px; margin-bottom: 12px;
+}
 
 /* Presets */
 .ao-preset-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
@@ -774,9 +789,18 @@ body {
 .ao-about-title { font-size: 18px; font-weight: 700; color: #a89bff; margin-bottom: 4px; }
 .ao-about-sub { font-size: 12px; color: #5550aa; }
 
-/* Status */
+/* Coverage grid */
+.ao-coverage-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 8px 0 16px;
+}
+.ao-coverage-item {
+  padding: 5px 8px; background: #0a0a1e; border: 1px solid #1a1a38;
+  border-radius: 5px; font-size: 10px; font-family: monospace; color: #5550aa;
+}
+
+/* Status bar */
 .ao-status { font-size: 11px; height: 16px; color: #5550aa; padding: 2px 0; transition: color 0.2s; }
-.ao-status.ok { color: #60c060; }
+.ao-status.ok  { color: #60c060; }
 .ao-status.err { color: #c06060; }
 `;
   function status(el, msg, cls) {
@@ -785,14 +809,27 @@ body {
     if (cls) setTimeout(() => {
       el.textContent = "";
       el.className = "ao-status";
-    }, 2200);
+    }, 2400);
   }
-  function buildColorRow(doc, container, label, pref, def, st) {
+  function badge(doc, text) {
+    const b = doc.createElement("span");
+    b.className = "ao-badge";
+    b.textContent = text;
+    return b;
+  }
+  function note(doc, text) {
+    const n = doc.createElement("div");
+    n.className = "ao-note";
+    n.textContent = text;
+    return n;
+  }
+  function buildColorRow(doc, container, label, pref, def, st, cssTarget) {
     const row2 = doc.createElement("div");
     row2.className = "aoc-row";
     const lbl = doc.createElement("span");
     lbl.className = "aoc-label";
     lbl.textContent = label;
+    if (cssTarget) lbl.appendChild(badge(doc, cssTarget));
     const cur = getPref(pref, def);
     const swatch = doc.createElement("div");
     swatch.className = "aoc-color-swatch";
@@ -823,46 +860,60 @@ body {
     container.appendChild(row2);
   }
   var TEXT_COLOR_PREFS = [
-    "mod.aurora.color.panel_text",
-    "mod.aurora.color.tab_text",
-    "mod.aurora.color.urlbar_text"
+    ["mod.aurora.color.panel_text", "Text panel\u016F (toolbar, sidebar, menu)", "#TabsToolbar toolbarbutton menuitem"],
+    ["mod.aurora.color.tab_text", "Text z\xE1lo\u017Eek", ".tab-label .tab-text"],
+    ["mod.aurora.color.urlbar_text", "Text URL li\u0161ty", "#urlbar-input"]
   ];
   function buildColors(doc, el, st) {
-    const groups = [
-      ["Panely & Sidebar", ["panel_bg", "toolbar_bg", "sidebar_bg", "border", "accent"]],
-      ["Workspace strip", ["workspace_strip_bg", "workspace_dot", "workspace_dot_active"]],
-      ["Z\xE1lo\u017Eky", ["tab_active_bg", "tab_inactive_bg", "tab_close_hover", "tab_hover_bg"]],
-      ["URL li\u0161ta", ["urlbar_bg", "urlbar_border", "urlbar_focus"]],
-      ["Obsah & Ostatn\xED", ["browser_bg", "selection_bg", "scrollbar", "button_bg", "button_hover"]]
-    ];
-    for (const [heading, keys] of groups) {
-      buildSectionHeading(doc, el, heading);
-      for (const key of keys) {
-        const f = GLOBAL_COLORS.find((c) => c.pref.endsWith(`.${key}`));
-        if (f) buildColorRow(doc, el, f.label, f.pref, f.default, st);
-      }
-    }
+    buildSectionHeading(doc, el, "Akcent & Ohrani\u010Den\xED");
+    buildColorRow(doc, el, "Akcent", "mod.aurora.color.accent", "#7c6af7", st, "--zen-primary-color");
+    buildColorRow(doc, el, "Ohrani\u010Den\xED", "mod.aurora.color.border", "#3a3a5c", st, "v\u0161echny border");
+    buildSectionHeading(doc, el, "Toolbar");
+    buildColorRow(doc, el, "Pozad\xED toolbaru", "mod.aurora.color.toolbar_bg", "#16162a", st, "#navigator-toolbox");
+    buildSectionHeading(doc, el, "Panely (nav bar \xB7 z\xE1lo\u017Ekov\xFD panel \xB7 menu)");
+    buildColorRow(doc, el, "Pozad\xED panel\u016F", "mod.aurora.color.panel_bg", "#1a1a2e", st, "#TabsToolbar #nav-bar menupopup");
+    buildColorRow(doc, el, "Tla\u010D\xEDtka aktivn\xED/checked", "mod.aurora.color.button_bg", "#2a2a4e", st, "toolbarbutton[checked]");
+    buildColorRow(doc, el, "Tla\u010D\xEDtka hover", "mod.aurora.color.button_hover", "#3a3a6e", st, "toolbarbutton:hover menuitem:hover");
+    buildSectionHeading(doc, el, "Sidebar");
+    buildColorRow(doc, el, "Pozad\xED sidebaru", "mod.aurora.color.sidebar_bg", "#12122a", st, "#sidebar-box #zen-sidebar-top-buttons");
+    buildSectionHeading(doc, el, "Workspace strip (lev\xFD panel se spaces)");
+    buildColorRow(doc, el, "Pozad\xED stripu", "mod.aurora.color.workspace_strip_bg", "#0d0d1e", st, "#zen-appcontent-navbar");
+    buildColorRow(doc, el, "Dot neaktivn\xED", "mod.aurora.color.workspace_dot", "#3a3a6c", st, ".zen-workspace-dot");
+    buildColorRow(doc, el, "Dot aktivn\xED", "mod.aurora.color.workspace_dot_active", "#7c6af7", st, ".zen-workspace-dot[selected]");
+    buildSectionHeading(doc, el, "Z\xE1lo\u017Eky (.tabbrowser-tab)");
+    buildColorRow(doc, el, "Aktivn\xED z\xE1lo\u017Eka", "mod.aurora.color.tab_active_bg", "#2a2a4e", st, "[selected] .tab-background");
+    buildColorRow(doc, el, "Neaktivn\xED z\xE1lo\u017Eka", "mod.aurora.color.tab_inactive_bg", "#1a1a2e", st, ".tab-background");
+    buildColorRow(doc, el, "Hover z\xE1lo\u017Eky", "mod.aurora.color.tab_hover_bg", "#252550", st, ":hover .tab-background");
+    buildColorRow(doc, el, "\u2715 tla\u010D\xEDtko hover", "mod.aurora.color.tab_close_hover", "#ff6b6b", st, ".tab-close-button:hover");
+    buildSectionHeading(doc, el, "URL li\u0161ta (#urlbar)");
+    buildColorRow(doc, el, "Pozad\xED", "mod.aurora.color.urlbar_bg", "#1e1e3a", st, "#urlbar-background");
+    buildColorRow(doc, el, "Ohrani\u010Den\xED idle", "mod.aurora.color.urlbar_border", "#3a3a6c", st, "#urlbar border");
+    buildColorRow(doc, el, "Ohrani\u010Den\xED focus", "mod.aurora.color.urlbar_focus", "#7c6af7", st, "#urlbar:focus-within");
+    buildSectionHeading(doc, el, "Obsah prohl\xED\u017Ee\u010De");
+    buildColorRow(doc, el, "Pozad\xED obsahu (#browser)", "mod.aurora.color.browser_bg", "#0f0f1a", st, "#browser");
+    buildColorRow(doc, el, "V\xFDb\u011Br textu (::selection)", "mod.aurora.color.selection_bg", "#7c6af740", st, "::selection");
+    buildColorRow(doc, el, "Scrollbar (thumb)", "mod.aurora.color.scrollbar", "#3a3a6c", st, "thumb");
     buildSectionHeading(doc, el, "Barvy textu");
     const masterDef = "#e0e0ff";
-    const masterCur = getPref("mod.aurora.color.panel_text", masterDef);
     const masterRow = doc.createElement("div");
     masterRow.className = "aoc-row";
     const masterLbl = doc.createElement("span");
     masterLbl.className = "aoc-label";
     masterLbl.textContent = "Barva v\u0161ech text\u016F";
+    masterLbl.appendChild(badge(doc, "panely + z\xE1lo\u017Eky + urlbar"));
     const masterSwatch = doc.createElement("div");
     masterSwatch.className = "aoc-color-swatch";
-    masterSwatch.style.background = masterCur;
+    masterSwatch.style.background = getPref("mod.aurora.color.panel_text", masterDef);
     const masterHex = doc.createElement("input");
     masterHex.type = "text";
     masterHex.className = "aoc-color-hex";
-    masterHex.value = masterCur;
+    masterHex.value = getPref("mod.aurora.color.panel_text", masterDef);
     masterHex.maxLength = 9;
     const setAllText = (hex) => {
       masterSwatch.style.background = hex;
       masterHex.value = hex;
-      for (const p of TEXT_COLOR_PREFS) setPref(p, hex);
-      status(st, "\u2713 Text nastaven", "ok");
+      for (const [p] of TEXT_COLOR_PREFS) setPref(p, hex);
+      status(st, "\u2713 V\u0161echny texty nastaveny", "ok");
     };
     masterSwatch.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -887,18 +938,17 @@ body {
       expanded = !expanded;
       if (expanded && !indBuilt) {
         indBuilt = true;
-        for (const p of TEXT_COLOR_PREFS) {
-          const f = GLOBAL_COLORS.find((c) => c.pref === p);
-          if (f) buildColorRow(doc, indContainer, f.label, f.pref, f.default, st);
-        }
+        for (const [p, lbl, tgt] of TEXT_COLOR_PREFS)
+          buildColorRow(doc, indContainer, lbl, p, masterDef, st, tgt);
       }
       indContainer.style.display = expanded ? "block" : "none";
-      expandBtn.textContent = expanded ? "\u25B2 Skr\xFDt individu\xE1ln\xED nastaven\xED" : "\u25BC Nastavit ka\u017Ed\xFD text zvl\xE1\u0161\u0165";
+      expandBtn.textContent = expanded ? "\u25B2 Skr\xFDt" : "\u25BC Nastavit ka\u017Ed\xFD text zvl\xE1\u0161\u0165";
     });
     el.appendChild(expandBtn);
     el.appendChild(indContainer);
   }
   function buildSpaces(doc, el, st) {
+    el.appendChild(note(doc, "P\u0159ep\xED\u0161e glob\xE1ln\xED barvy jen pro vybran\xFD Space. Pr\xE1zdn\xE9 pole = glob\xE1ln\xED hodnota."));
     const tabBar = doc.createElement("div");
     tabBar.className = "ao-space-tabs";
     el.appendChild(tabBar);
@@ -910,11 +960,8 @@ body {
       tabBar.appendChild(tab);
       const content = doc.createElement("div");
       content.className = "ao-space-content" + (i === 0 ? " active" : "");
-      const note = doc.createElement("div");
-      note.style.cssText = "font-size:11px;color:#5550aa;margin-bottom:10px;";
-      note.textContent = `P\u0159ep\xED\u0161e glob\xE1ln\xED barvy jen pro Space ${i + 1}. Pr\xE1zdn\xE9 = glob\xE1ln\xED hodnota.`;
-      content.appendChild(note);
-      for (const sc of SPACE_COLORS) buildColorRow(doc, content, sc.label, spaceColorPref(i, sc.key), sc.default, st);
+      for (const sc of SPACE_COLORS)
+        buildColorRow(doc, content, sc.label, spaceColorPref(i, sc.key), sc.default, st);
       el.appendChild(content);
       contents.push(content);
     }
@@ -1000,82 +1047,85 @@ body {
       { label: "Maximum (2\xD7)", value: "2.0" }
     ], "1.2");
   }
-  function buildBackground(doc, el, st) {
-    buildSectionHeading(doc, el, "Obr\xE1zek pozad\xED");
+  function buildBackground(doc, el, _st) {
+    el.appendChild(note(doc, "Obr\xE1zek pozad\xED se zobrazuje za #browser::before. Pr\u016Fhlednost a blur panel\u016F nastav\xED\u0161 v sekci Efekty."));
+    buildSectionHeading(doc, el, "Obr\xE1zek pozad\xED (#browser::before)");
     buildTextInput(doc, el, "URL obr\xE1zku", "mod.aurora.image.browser_bg", "https://...", "");
-    buildSelect(doc, el, "Velikost", "mod.aurora.image.bg_size", [
-      { label: "Cover", value: "cover" },
-      { label: "Contain", value: "contain" },
-      { label: "Auto", value: "auto" },
+    buildSelect(doc, el, "Velikost (background-size)", "mod.aurora.image.bg_size", [
+      { label: "Cover \u2014 vypln\xED plochu", value: "cover" },
+      { label: "Contain \u2014 cel\xFD viditeln\xFD", value: "contain" },
+      { label: "Auto \u2014 p\u0159irozen\xE1 velikost", value: "auto" },
       { label: "100% \u0161\xED\u0159ka", value: "100% auto" }
     ], "cover");
-    buildSelect(doc, el, "Pozice", "mod.aurora.image.bg_position", [
+    buildSelect(doc, el, "Pozice (background-position)", "mod.aurora.image.bg_position", [
       { label: "St\u0159ed", value: "center" },
       { label: "Naho\u0159e", value: "top" },
       { label: "Dole", value: "bottom" },
-      { label: "Vlevo", value: "left" }
+      { label: "Vlevo", value: "left" },
+      { label: "Vpravo", value: "right" }
     ], "center");
-    buildSlider(doc, el, "Rozmaz\xE1n\xED pozad\xED", "mod.aurora.image.bg_blur", 0, 30, 1, "px", 0);
-    buildSlider(doc, el, "Pr\u016Fhlednost pozad\xED", "mod.aurora.image.bg_opacity", 0, 1, 0.05, "", 1);
-    buildSlider(doc, el, "Pr\u016Fhlednost panel\u016F", "mod.aurora.effect.panel_opacity", 0, 1, 0.05, "", 1);
-    buildSlider(doc, el, "Rozmaz\xE1n\xED panel\u016F", "mod.aurora.effect.panel_blur", 0, 30, 1, "px", 0);
+    buildSlider(doc, el, "Rozmaz\xE1n\xED obr\xE1zku (filter: blur)", "mod.aurora.image.bg_blur", 0, 30, 1, "px", 0);
+    buildSlider(doc, el, "Pr\u016Fhlednost obr\xE1zku (opacity)", "mod.aurora.image.bg_opacity", 0, 1, 0.05, "", 1);
   }
   function buildLayout(doc, el, _st) {
-    buildSectionHeading(doc, el, "Z\xE1lo\u017Eky");
-    buildSlider(doc, el, "V\xFD\u0161ka z\xE1lo\u017Eky", "mod.aurora.layout.tab_height", 20, 60, 1, "px", 36);
-    buildSlider(doc, el, "Zaoblen\xED z\xE1lo\u017Eky", "mod.aurora.layout.tab_border_radius", 0, 20, 1, "px", 8);
-    buildSectionHeading(doc, el, "Panely");
-    buildSlider(doc, el, "V\xFD\u0161ka toolbaru", "mod.aurora.layout.toolbar_height", 32, 64, 1, "px", 40);
-    buildSlider(doc, el, "\u0160\xED\u0159ka sidebaru", "mod.aurora.layout.sidebar_width", 120, 400, 4, "px", 200);
-    buildSlider(doc, el, "\u0160\xED\u0159ka workspace stripu", "mod.aurora.layout.workspace_strip_width", 20, 80, 2, "px", 36);
-    buildSlider(doc, el, "Zaoblen\xED panel\u016F", "mod.aurora.layout.panel_border_radius", 0, 24, 1, "px", 8);
-    buildSectionHeading(doc, el, "Ostatn\xED");
-    buildSlider(doc, el, "Zaoblen\xED tla\u010D\xEDtek", "mod.aurora.layout.button_border_radius", 0, 20, 1, "px", 6);
-    buildSlider(doc, el, "Tlou\u0161\u0165ka ohrani\u010Den\xED", "mod.aurora.layout.border_width", 0, 4, 1, "px", 1);
-    buildSelect(doc, el, "Styl ohrani\u010Den\xED", "mod.aurora.effect.panel_border_style", [
+    buildSectionHeading(doc, el, "Z\xE1lo\u017Eky (.tabbrowser-tab)");
+    buildSlider(doc, el, "V\xFD\u0161ka z\xE1lo\u017Eky (min/max-height)", "mod.aurora.layout.tab_height", 20, 60, 1, "px", 36);
+    buildSlider(doc, el, "Zaoblen\xED z\xE1lo\u017Eky (border-radius)", "mod.aurora.layout.tab_border_radius", 0, 20, 1, "px", 8);
+    buildSectionHeading(doc, el, "Panely (#TabsToolbar \xB7 #nav-bar \xB7 #PersonalToolbar)");
+    buildSlider(doc, el, "V\xFD\u0161ka panel\u016F (min-height)", "mod.aurora.layout.toolbar_height", 32, 64, 1, "px", 40);
+    buildSectionHeading(doc, el, "Sidebar (#sidebar-box)");
+    buildSlider(doc, el, "\u0160\xED\u0159ka sidebaru (min/max-width)", "mod.aurora.layout.sidebar_width", 120, 400, 4, "px", 200);
+    buildSectionHeading(doc, el, "Workspace strip (#zen-appcontent-navbar)");
+    buildSlider(doc, el, "\u0160\xED\u0159ka stripu (min/max-width)", "mod.aurora.layout.workspace_strip_width", 20, 80, 2, "px", 36);
+    buildSectionHeading(doc, el, "Zaoblen\xED prvk\u016F");
+    buildSlider(doc, el, "Zaoblen\xED panel\u016F / URL (#urlbar, menupopup)", "mod.aurora.layout.panel_border_radius", 0, 24, 1, "px", 8);
+    buildSlider(doc, el, "Zaoblen\xED tla\u010D\xEDtek / polo\u017Eek menu", "mod.aurora.layout.button_border_radius", 0, 20, 1, "px", 6);
+    buildSectionHeading(doc, el, "Ohrani\u010Den\xED");
+    buildSlider(doc, el, "Tlou\u0161\u0165ka ohrani\u010Den\xED (border-width \u2014 v\u0161e)", "mod.aurora.layout.border_width", 0, 4, 1, "px", 1);
+  }
+  function buildEffects(doc, el, _st) {
+    buildSectionHeading(doc, el, "Pr\u016Fhlednost panel\u016F");
+    el.appendChild(note(doc, "Ovliv\u0148uje #navigator-toolbox, #sidebar-box, #zen-appcontent-navbar a menupopup. Blur = frosted glass efekt."));
+    buildSlider(doc, el, "Pr\u016Fhlednost panel\u016F (panel-bg rgba alpha)", "mod.aurora.effect.panel_opacity", 0, 1, 0.05, "", 1);
+    buildSlider(doc, el, "Blur panel\u016F (backdrop-filter: blur)", "mod.aurora.effect.panel_blur", 0, 30, 1, "px", 0);
+    buildSectionHeading(doc, el, "St\xEDny a z\xE1\u0159e");
+    buildToggle(doc, el, "St\xEDn aktivn\xED z\xE1lo\u017Eky (.tabbrowser-tab[selected])", "mod.aurora.effect.tab_shadow", false);
+    buildToggle(doc, el, "Z\xE1\u0159e akcentu p\u0159i hoveru a na aktivn\xED z\xE1lo\u017Ece (glow)", "mod.aurora.effect.accent_glow", false);
+    buildSectionHeading(doc, el, "Styl ohrani\u010Den\xED (border-style \u2014 v\u0161e)");
+    buildSelect(doc, el, "Styl", "mod.aurora.effect.panel_border_style", [
       { label: "Pln\xE9 (solid)", value: "solid" },
       { label: "Te\u010Dky (dotted)", value: "dotted" },
       { label: "P\u0159eru\u0161ovan\xE9 (dashed)", value: "dashed" },
-      { label: "\u017D\xE1dn\xE9", value: "none" }
+      { label: "\u017D\xE1dn\xE9 (none)", value: "none" }
     ], "solid");
-  }
-  function buildEffects(doc, el, _st) {
-    buildSectionHeading(doc, el, "St\xEDny a z\xE1\u0159e");
-    buildToggle(doc, el, "St\xEDn aktivn\xED z\xE1lo\u017Eky", "mod.aurora.effect.tab_shadow", false);
-    buildToggle(doc, el, "Z\xE1\u0159e akcentu (glow)", "mod.aurora.effect.accent_glow", false);
-    buildSectionHeading(doc, el, "Animace");
-    buildSelect(doc, el, "Rychlost animac\xED", "mod.aurora.animation_speed", [
-      { label: "Vypnut\xE9", value: "none" },
-      { label: "Pomal\xE9", value: "slow" },
-      { label: "Norm\xE1ln\xED", value: "normal" },
-      { label: "Rychl\xE9", value: "fast" }
+    buildSectionHeading(doc, el, "Animace (CSS transitions \u2014 v\u0161e)");
+    buildSelect(doc, el, "Rychlost (transition-duration)", "mod.aurora.animation_speed", [
+      { label: "Vypnut\xE9 \u2014 \u017E\xE1dn\xE9 animace (0s)", value: "none" },
+      { label: "Pomal\xE9 (0.45s)", value: "slow" },
+      { label: "Norm\xE1ln\xED (0.18s)", value: "normal" },
+      { label: "Rychl\xE9 (0.08s)", value: "fast" }
     ], "normal");
-    buildSelect(doc, el, "K\u0159ivka animace", "mod.aurora.animation.easing", [
-      { label: "Ease", value: "ease" },
+    buildSelect(doc, el, "K\u0159ivka (transition-timing-function)", "mod.aurora.animation.easing", [
+      { label: "Material ease (v\xFDchoz\xED)", value: "ease" },
       { label: "Linear", value: "linear" },
       { label: "Ease Out", value: "ease-out" },
-      { label: "Spring", value: "cubic-bezier(0.34,1.56,0.64,1)" }
+      { label: "Spring (p\u0159ekmit)", value: "cubic-bezier(0.34,1.56,0.64,1)" }
     ], "ease");
   }
-  function buildFont(doc, el, _st) {
-    buildSectionHeading(doc, el, "P\xEDsmo");
-    buildTextInput(doc, el, "Rodina p\xEDsma", "mod.aurora.font.family", "system-ui, sans-serif", "inherit");
-    buildSlider(doc, el, "Velikost", "mod.aurora.font.size", 10, 20, 1, "px", 13);
-    buildSelect(doc, el, "Tu\u010Dnost", "mod.aurora.font.weight", [
-      { label: "300", value: "300" },
-      { label: "400 (norm\xE1ln\xED)", value: "400" },
-      { label: "500", value: "500" },
-      { label: "600", value: "600" },
-      { label: "700", value: "700" }
+  function buildFontSounds(doc, el, _st) {
+    buildSectionHeading(doc, el, "P\xEDsmo (font \u2014 z\xE1lo\u017Eky, panely, URL li\u0161ta)");
+    buildTextInput(doc, el, "Rodina (font-family)", "mod.aurora.font.family", "system-ui, sans-serif", "inherit");
+    buildSlider(doc, el, "Velikost (font-size)", "mod.aurora.font.size", 10, 20, 1, "px", 13);
+    buildSelect(doc, el, "Tu\u010Dnost (font-weight)", "mod.aurora.font.weight", [
+      { label: "300 \u2014 tenk\xE9", value: "300" },
+      { label: "400 \u2014 norm\xE1ln\xED", value: "400" },
+      { label: "500 \u2014 st\u0159edn\xED", value: "500" },
+      { label: "600 \u2014 semibold", value: "600" },
+      { label: "700 \u2014 tu\u010Dn\xE9", value: "700" }
     ], "400");
-  }
-  function buildSounds(doc, el, _st) {
-    buildSectionHeading(doc, el, "Zvukov\xE9 efekty");
-    const note = doc.createElement("div");
-    note.style.cssText = "font-size:11.5px;color:#5550aa;margin-bottom:12px;line-height:1.6;";
-    note.textContent = "Jemn\xFD zvuk p\u0159i psan\xED. Zm\u011Bna vy\u017Eaduje restart prohl\xED\u017Ee\u010De.";
-    el.appendChild(note);
-    buildToggle(doc, el, "Zapnout zvukov\xE9 efekty kl\xE1vesnice", "mod.aurora.sounds_enabled", false);
+    buildSectionHeading(doc, el, "Zvukov\xE9 efekty kl\xE1vesnice");
+    el.appendChild(note(doc, "Jemn\xE9 klik\xE1n\xED p\u0159i psan\xED do URL li\u0161ty. Vy\u017Eaduje restart prohl\xED\u017Ee\u010De."));
+    buildToggle(doc, el, "Zapnout zvukov\xE9 efekty", "mod.aurora.sounds_enabled", false);
   }
   var ALL_STRING_PREFS = [
     ...GLOBAL_COLORS.map((c) => c.pref),
@@ -1153,7 +1203,10 @@ body {
     for (let i = 1; i <= 20; i++) {
       const raw = Services.prefs.getStringPref(`mod.aurora.preset.${i}`, "");
       if (!raw) {
-        Services.prefs.setStringPref(`mod.aurora.preset.${i}`, JSON.stringify({ name, ts: Date.now(), data: capturePreset() }));
+        Services.prefs.setStringPref(
+          `mod.aurora.preset.${i}`,
+          JSON.stringify({ name, ts: Date.now(), data: capturePreset() })
+        );
         return i;
       }
     }
@@ -1318,7 +1371,7 @@ body {
             }
           }
         }
-        status(st, bad > 0 ? `Na\u010Dteno ${ok}, p\u0159esko\u010Deno ${bad}` : `Na\u010Dteno ${ok} hodnot`, ok > 0 ? "ok" : "err");
+        status(st, bad ? `Na\u010Dteno ${ok}, p\u0159esko\u010Deno ${bad}` : `Na\u010Dteno ${ok} hodnot`, ok > 0 ? "ok" : "err");
       };
       r.readAsText(f);
     });
@@ -1334,16 +1387,56 @@ body {
     t.textContent = "\u2726 Aurora";
     const sub = doc.createElement("div");
     sub.className = "ao-about-sub";
-    sub.textContent = "Kompletn\xED UI overhaul pro Zen Browser \xB7 v0.1.0";
+    sub.textContent = "Kompletn\xED UI overhaul pro Zen Browser \xB7 v0.1.0 \xB7 Rockynio-dot";
     card.appendChild(t);
     card.appendChild(sub);
     el.appendChild(card);
+    buildSectionHeading(doc, el, "CSS pokryt\xED \u2014 ovlivn\u011Bn\xE9 prvky");
+    const grid = doc.createElement("div");
+    grid.className = "ao-coverage-grid";
+    for (const sel of [
+      "#navigator-toolbox",
+      "#TabsToolbar",
+      "#PersonalToolbar",
+      "#nav-bar",
+      "#sidebar-box",
+      "#zen-sidebar-top-buttons",
+      "#zen-sidebar-top-buttons-customization-target",
+      ".zen-sidebar-action-button",
+      "#zen-appcontent-navbar",
+      ".zen-workspace-dot",
+      ".zen-workspace-button",
+      ".tabbrowser-tab .tab-background",
+      ".tab-label .tab-text",
+      ".tab-close-button:hover",
+      "#urlbar",
+      "#urlbar-background",
+      "#urlbar:focus-within",
+      "#urlbar-input",
+      "#browser",
+      "#browser::before",
+      "toolbarbutton",
+      "toolbarbutton:hover",
+      "toolbarbutton[checked]",
+      "menupopup .panel-arrowcontainer",
+      "menuitem menu",
+      "menuseparator",
+      "::selection",
+      "thumb (scrollbar)"
+    ]) {
+      const item = doc.createElement("div");
+      item.className = "ao-coverage-item";
+      item.textContent = sel;
+      grid.appendChild(item);
+    }
+    el.appendChild(grid);
     buildSectionHeading(doc, el, "Resetovat nastaven\xED");
-    const resetBtn = doc.createElement("button");
-    resetBtn.className = "ao-nav-btn danger";
-    resetBtn.style.cssText = "width:100%;margin-bottom:8px;";
-    resetBtn.textContent = "\u27F3  Reset v\u0161ech barev na v\xFDchoz\xED hodnoty";
-    resetBtn.addEventListener("click", () => {
+    const resetColorsBtn = doc.createElement("button");
+    resetColorsBtn.className = "ao-nav-btn danger";
+    resetColorsBtn.style.cssText = "width:100%;margin-bottom:8px;";
+    resetColorsBtn.textContent = "\u27F3  Reset v\u0161ech barev na v\xFDchoz\xED";
+    resetColorsBtn.addEventListener("click", () => {
+      if (!confirm("Opravdu resetovat v\u0161echny barvy? Tuto akci nelze vr\xE1tit.")) return;
       for (const f of GLOBAL_COLORS) {
         try {
           Services.prefs.setStringPref(f.pref, f.default);
@@ -1356,9 +1449,30 @@ body {
             Services.prefs.clearUserPref(spaceColorPref(i, sc.key));
           } catch {
           }
-      status(st, "Resetov\xE1no na v\xFDchoz\xED hodnoty", "ok");
+      status(st, "Barvy resetov\xE1ny na v\xFDchoz\xED", "ok");
     });
-    el.appendChild(resetBtn);
+    el.appendChild(resetColorsBtn);
+    const resetAllBtn = doc.createElement("button");
+    resetAllBtn.className = "ao-nav-btn danger";
+    resetAllBtn.style.cssText = "width:100%;";
+    resetAllBtn.textContent = "\u27F3  Reset VE\u0160KER\xDDCH nastaven\xED Aurora";
+    resetAllBtn.addEventListener("click", () => {
+      if (!confirm("Opravdu resetovat ve\u0161ker\xE1 nastaven\xED Aurora? Tuto akci nelze vr\xE1tit.")) return;
+      for (const p of [...ALL_STRING_PREFS, ...ALL_BOOL_PREFS]) {
+        try {
+          Services.prefs.clearUserPref(p);
+        } catch {
+        }
+      }
+      for (let i = 1; i <= 20; i++) {
+        try {
+          Services.prefs.clearUserPref(`mod.aurora.preset.${i}`);
+        } catch {
+        }
+      }
+      status(st, "Ve\u0161ker\xE1 nastaven\xED resetov\xE1na", "ok");
+    });
+    el.appendChild(resetAllBtn);
   }
   var NAV_ITEMS = [
     { id: "colors", icon: "\u{1F3A8}", label: "Barvy" },
@@ -1367,8 +1481,7 @@ body {
     { id: "background", icon: "\u{1F5BC}\uFE0F", label: "Pozad\xED" },
     { id: "layout", icon: "\u{1F4D0}", label: "Rozm\u011Bry" },
     { id: "effects", icon: "\u2728", label: "Efekty" },
-    { id: "font", icon: "\u{1F524}", label: "P\xEDsmo" },
-    { id: "sounds", icon: "\u{1F50A}", label: "Zvuky" },
+    { id: "typography", icon: "\u{1F524}", label: "P\xEDsmo & Zvuky" },
     { id: "presets", icon: "\u{1F4BE}", label: "Presety" },
     { id: "about", icon: "\u2139\uFE0F", label: "O m\xF3du" }
   ];
@@ -1379,8 +1492,7 @@ body {
     background: buildBackground,
     layout: buildLayout,
     effects: buildEffects,
-    font: buildFont,
-    sounds: buildSounds,
+    typography: buildFontSounds,
     presets: buildPresets,
     about: buildAbout
   };
