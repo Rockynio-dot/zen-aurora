@@ -263,14 +263,128 @@ menuseparator { margin-block: 2px !important; }
 scrollbar, scrollbarbutton, slider { background: transparent !important; }
 thumb { background: var(--aurora-scrollbar) !important; border-radius: 999px !important; }
 
-/* ══ No Gap Mod ══ */
+/* ══ No Gap Mod (based on github.com/Comp-Tech-Guy/No-Gaps v2.5.2) ══ */
 ${t.layout.noGapMod ? `
-:root { --zen-element-separation: 0px !important; }
-#browser, #appcontent { gap: 0 !important; }
-#tabbrowser-tabpanels, #appcontent-animation-container {
-  background: ${t.layout.noGapBg} !important;
-  border-radius: 0 !important;
+#zen-tabbox-wrapper { transition: margin 0.2s ease-in !important; }
+
+${t.layout.noGapMode === "compact" ? `
+/* ── Pouze kompaktní mód ── */
+:root[zen-single-toolbar="true"][zen-compact-mode="true"]:not([customizing]) {
+  #zen-appcontent-navbar-wrapper {
+    min-height: 0.1px !important;
+    height: 0.1px !important;
+  }
+  #zen-appcontent-navbar-wrapper[zen-has-hover="true"],
+  #zen-appcontent-navbar-wrapper[has-popup-menu="true"] {
+    height: 34px !important;
+  }
+  @media (not -moz-pref('zen.view.shift-down-site-on-hover')) and (not ((-moz-pref('zen.view.experimental-no-window-controls') or (not -moz-pref('zen.view.hide-window-controls'))) and -moz-pref('zen.view.use-single-toolbar'))) {
+    .browserSidebarContainer:is(.deck-selected, [zen-split='true']):not(.zen-glance-overlay) .browserContainer {
+      #tabbrowser-tabpanels[has-toolbar-hovered] & { margin-top: -34px !important; }
+    }
+  }
 }
+:root[zen-compact-mode="true"]:not([customizing]) {
+  .browserSidebarContainer { border-radius: 0.1px !important; }
+  #zen-tabbox-wrapper { margin: 0px !important; }
+  @media -moz-pref("zen.view.compact.hide-toolbar") {
+    #zen-appcontent-navbar-wrapper {
+      min-height: 0.1px !important;
+      height: 0.1px !important;
+    }
+    #zen-appcontent-navbar-wrapper[zen-has-hover="true"],
+    #zen-appcontent-navbar-wrapper[has-popup-menu="true"] {
+      height: var(--zen-toolbar-height-with-bookmarks) !important;
+    }
+    @media (not -moz-pref('zen.view.shift-down-site-on-hover')) and (not ((-moz-pref('zen.view.experimental-no-window-controls') or (not -moz-pref('zen.view.hide-window-controls'))) and (not -moz-pref('zen.view.use-single-toolbar')))) {
+      .browserSidebarContainer:is(.deck-selected, [zen-split='true']):not(.zen-glance-overlay) .browserContainer {
+        #tabbrowser-tabpanels[has-toolbar-hovered] & {
+          margin-top: calc(-1 * var(--zen-toolbar-height-with-bookmarks)) !important;
+        }
+      }
+    }
+  }
+  .browserSidebarContainer[zen-split="true"] { margin: 0px !important; }
+  :has(.browserSidebarContainer[zen-split="true"]) #zen-tabbox-wrapper { margin-right: 9px !important; }
+  #tabbrowser-tabbox[zen-split-view="true"] #tabbrowser-tabpanels { margin: 0px !important; position: relative; }
+}
+` : `
+/* ── Oba módy — compact i non-compact (výchozí) ── */
+:root[zen-single-toolbar="true"] .browserSidebarContainer {
+  border-top-left-radius: 0.1px !important;
+  border-top-right-radius: 0.1px !important;
+}
+:root[zen-compact-mode="true"]:not([customizing]) .browserSidebarContainer {
+  border-top-left-radius: 0.1px !important;
+  border-top-right-radius: 0.1px !important;
+}
+:root[zen-right-side="true"]:not([zen-single-toolbar="true"]) .browserSidebarContainer {
+  border-top-left-radius: 0.1px !important;
+}
+:root:not([zen-right-side="true"]):not([zen-single-toolbar="true"]) .browserSidebarContainer {
+  border-top-right-radius: 0.1px !important;
+}
+.browserSidebarContainer {
+  border-bottom-left-radius: 0.1px !important;
+  border-bottom-right-radius: 0.1px !important;
+}
+#zen-tabbox-wrapper { margin: 0px !important; }
+:root[zen-single-toolbar="true"] {
+  #zen-appcontent-navbar-wrapper {
+    min-height: 0.1px !important;
+    height: 0.1px !important;
+  }
+  #zen-appcontent-navbar-wrapper[zen-has-hover="true"],
+  #zen-appcontent-navbar-wrapper[has-popup-menu="true"] { height: 34px !important; }
+  @media (not -moz-pref('zen.view.shift-down-site-on-hover')) and (not ((-moz-pref('zen.view.experimental-no-window-controls') or (not -moz-pref('zen.view.hide-window-controls'))) and -moz-pref('zen.view.use-single-toolbar'))) {
+    .browserSidebarContainer:is(.deck-selected, [zen-split='true']):not(.zen-glance-overlay) .browserContainer {
+      #tabbrowser-tabpanels[has-toolbar-hovered] & { margin-top: -34px !important; }
+    }
+  }
+}
+@media -moz-pref("zen.view.compact.hide-toolbar") {
+  :root[zen-compact-mode="true"]:not([zen-single-toolbar="true"]) {
+    #zen-appcontent-navbar-wrapper {
+      min-height: 0.1px !important;
+      height: 0.1px !important;
+    }
+    #zen-appcontent-navbar-wrapper[zen-has-hover="true"],
+    #zen-appcontent-navbar-wrapper[has-popup-menu="true"] {
+      height: var(--zen-toolbar-height-with-bookmarks) !important;
+    }
+    @media (not -moz-pref('zen.view.shift-down-site-on-hover')) and (not ((-moz-pref('zen.view.experimental-no-window-controls') or (not -moz-pref('zen.view.hide-window-controls'))) and (not -moz-pref('zen.view.use-single-toolbar')))) {
+      .browserSidebarContainer:is(.deck-selected, [zen-split='true']):not(.zen-glance-overlay) .browserContainer {
+        #tabbrowser-tabpanels[has-toolbar-hovered] & {
+          margin-top: calc(-1 * var(--zen-toolbar-height-with-bookmarks)) !important;
+        }
+      }
+    }
+  }
+}
+.browserSidebarContainer[zen-split="true"] { margin: 0px !important; }
+:has(.browserSidebarContainer[zen-split="true"]) #zen-tabbox-wrapper { margin-right: 9px !important; }
+#tabbrowser-tabbox[zen-split-view="true"] #tabbrowser-tabpanels { margin: 0px !important; position: relative; }
+`}
+
+/* ── Split view — společné ── */
+.deck-selected { z-index: 1 !important; }
+.browserSidebarContainer:not(.deck-selected) { z-index: 0 !important; }
+.zen-split-view-splitter:hover {
+  background: var(--aurora-accent) !important;
+  filter: brightness(0.5);
+}
+.zen-split-view-splitter[orient="vertical"]   { width: 5px !important; margin-left: -3px !important; }
+.zen-split-view-splitter[orient="horizontal"] { height: 5px !important; margin-top: 3px !important; }
+
+/* ── Volitelné: vlastní barva pozadí za obsahem ── */
+#tabbrowser-tabpanels { background: ${t.layout.noGapBg} !important; }
+
+/* ── Volitelné rozšíření ── */
+${t.layout.noGapRemoveSplitHighlight ? `.browserSidebarContainer[zen-split="true"] { outline: none !important; }` : ""}
+${t.layout.noGapRemoveBoxShadow ? `
+.browserSidebarContainer { box-shadow: none !important; }
+#tabbrowser-tabpanels[zen-split-view="true"] .browserSidebarContainer.deck-selected { box-shadow: none !important; }
+` : ""}
 ` : ""}
 
 /* ══ Toolbar mode ══ */

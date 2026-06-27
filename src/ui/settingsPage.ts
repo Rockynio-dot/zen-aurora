@@ -291,18 +291,21 @@ function generateDarkPalette(accent: string): PaletteData {
       "mod.aurora.animation.easing":          "ease",
       "mod.aurora.layout.toolbar_mode":       "multi",
       "mod.aurora.layout.no_gap_bg":          hslHex(h, Math.min(sat,20), 4),
+      "mod.aurora.layout.no_gap_mode":        "all",
     },
     booleans: {
-      "mod.aurora.effect.tab_shadow":              false,
-      "mod.aurora.effect.accent_glow":             false,
-      "mod.aurora.layout.no_gap_mod":              false,
-      "mod.aurora.style.tabs":                     true,
-      "mod.aurora.style.urlbar":                   true,
-      "mod.aurora.style.sidebar":                  true,
-      "mod.aurora.style.toolbar":                  true,
-      "mod.aurora.style.workspace_strip":          true,
-      "mod.aurora.style.menus":                    true,
-      "mod.aurora.style.individual_text_colors":   false,
+      "mod.aurora.effect.tab_shadow":                      false,
+      "mod.aurora.effect.accent_glow":                     false,
+      "mod.aurora.layout.no_gap_mod":                      false,
+      "mod.aurora.layout.no_gap_remove_split_highlight":   false,
+      "mod.aurora.layout.no_gap_remove_box_shadow":        false,
+      "mod.aurora.style.tabs":                             true,
+      "mod.aurora.style.urlbar":                           true,
+      "mod.aurora.style.sidebar":                          true,
+      "mod.aurora.style.toolbar":                          true,
+      "mod.aurora.style.workspace_strip":                  true,
+      "mod.aurora.style.menus":                            true,
+      "mod.aurora.style.individual_text_colors":           false,
     },
   };
 }
@@ -346,16 +349,18 @@ function generateLightPalette(accent: string): PaletteData {
       "mod.aurora.layout.no_gap_bg":          hslHex(h, Math.min(sat,16), 60),
     },
     booleans: {
-      "mod.aurora.effect.tab_shadow":              false,
-      "mod.aurora.effect.accent_glow":             false,
-      "mod.aurora.layout.no_gap_mod":              false,
-      "mod.aurora.style.tabs":                     true,
-      "mod.aurora.style.urlbar":                   true,
-      "mod.aurora.style.sidebar":                  true,
-      "mod.aurora.style.toolbar":                  true,
-      "mod.aurora.style.workspace_strip":          true,
-      "mod.aurora.style.menus":                    true,
-      "mod.aurora.style.individual_text_colors":   false,
+      "mod.aurora.effect.tab_shadow":                      false,
+      "mod.aurora.effect.accent_glow":                     false,
+      "mod.aurora.layout.no_gap_mod":                      false,
+      "mod.aurora.layout.no_gap_remove_split_highlight":   false,
+      "mod.aurora.layout.no_gap_remove_box_shadow":        false,
+      "mod.aurora.style.tabs":                             true,
+      "mod.aurora.style.urlbar":                           true,
+      "mod.aurora.style.sidebar":                          true,
+      "mod.aurora.style.toolbar":                          true,
+      "mod.aurora.style.workspace_strip":                  true,
+      "mod.aurora.style.menus":                            true,
+      "mod.aurora.style.individual_text_colors":           false,
     },
   };
 }
@@ -629,9 +634,15 @@ function buildEffects(doc: Document, el: HTMLElement, st: HTMLElement): void {
   buildSlider(doc, el, "Blur panelů (backdrop-filter)",   "mod.aurora.effect.panel_blur",   0, 30, 1,    "px", 0);
 
   buildSectionHeading(doc, el, "No Gap Mod");
-  el.appendChild(note(doc, "Odstraní mezery mezi panely (--zen-element-separation = 0px). Nastav barvu pozadí pro mezery."));
+  el.appendChild(note(doc, "Odstraní mezery a zaoblení okolo obsahu prohlížeče. Portováno z github.com/Comp-Tech-Guy/No-Gaps v2.5.2."));
   buildToggle(doc, el, "Zapnout No Gap Mod", "mod.aurora.layout.no_gap_mod", false);
-  colorRow(doc, el, "Barva pozadí mezer", "mod.aurora.layout.no_gap_bg", "#000000", st, "#tabbrowser-tabpanels");
+  buildSelect(doc, el, "Mód aplikace", "mod.aurora.layout.no_gap_mode", [
+    { label: "Oba (compact + non-compact) — výchozí", value: "all" },
+    { label: "Pouze kompaktní mód",                   value: "compact" },
+  ], "all");
+  buildToggle(doc, el, "Odstranit zvýraznění split záložek (outline: none)", "mod.aurora.layout.no_gap_remove_split_highlight", false);
+  buildToggle(doc, el, "Odstranit box-shadow kontejneru obsahu",             "mod.aurora.layout.no_gap_remove_box_shadow",       false);
+  colorRow(doc, el, "Barva pozadí tabpanels", "mod.aurora.layout.no_gap_bg", "#000000", st, "#tabbrowser-tabpanels");
 
   buildSectionHeading(doc, el, "Stíny a záře");
   buildToggle(doc, el, "Stín aktivní záložky (.tabbrowser-tab[selected])",    "mod.aurora.effect.tab_shadow",  false);
@@ -738,12 +749,14 @@ const ALL_STRING_PREFS = [
   "mod.aurora.layout.panel_border_radius","mod.aurora.layout.button_border_radius",
   "mod.aurora.layout.sidebar_width","mod.aurora.layout.workspace_strip_width",
   "mod.aurora.layout.toolbar_height","mod.aurora.layout.border_width",
-  "mod.aurora.layout.toolbar_mode","mod.aurora.layout.hitbox_height","mod.aurora.layout.no_gap_bg",
+  "mod.aurora.layout.toolbar_mode","mod.aurora.layout.hitbox_height",
+  "mod.aurora.layout.no_gap_bg","mod.aurora.layout.no_gap_mode",
   "mod.aurora.animation_speed","mod.aurora.animation.easing",
 ];
 const ALL_BOOL_PREFS = [
   "mod.aurora.effect.tab_shadow","mod.aurora.effect.accent_glow",
   "mod.aurora.layout.no_gap_mod",
+  "mod.aurora.layout.no_gap_remove_split_highlight","mod.aurora.layout.no_gap_remove_box_shadow",
   "mod.aurora.style.tabs","mod.aurora.style.urlbar","mod.aurora.style.sidebar",
   "mod.aurora.style.toolbar","mod.aurora.style.workspace_strip","mod.aurora.style.menus",
   "mod.aurora.style.individual_text_colors",

@@ -899,12 +899,15 @@ body {
         "mod.aurora.animation_speed": "normal",
         "mod.aurora.animation.easing": "ease",
         "mod.aurora.layout.toolbar_mode": "multi",
-        "mod.aurora.layout.no_gap_bg": hslHex(h, Math.min(sat, 20), 4)
+        "mod.aurora.layout.no_gap_bg": hslHex(h, Math.min(sat, 20), 4),
+        "mod.aurora.layout.no_gap_mode": "all"
       },
       booleans: {
         "mod.aurora.effect.tab_shadow": false,
         "mod.aurora.effect.accent_glow": false,
         "mod.aurora.layout.no_gap_mod": false,
+        "mod.aurora.layout.no_gap_remove_split_highlight": false,
+        "mod.aurora.layout.no_gap_remove_box_shadow": false,
         "mod.aurora.style.tabs": true,
         "mod.aurora.style.urlbar": true,
         "mod.aurora.style.sidebar": true,
@@ -958,6 +961,8 @@ body {
         "mod.aurora.effect.tab_shadow": false,
         "mod.aurora.effect.accent_glow": false,
         "mod.aurora.layout.no_gap_mod": false,
+        "mod.aurora.layout.no_gap_remove_split_highlight": false,
+        "mod.aurora.layout.no_gap_remove_box_shadow": false,
         "mod.aurora.style.tabs": true,
         "mod.aurora.style.urlbar": true,
         "mod.aurora.style.sidebar": true,
@@ -1263,9 +1268,15 @@ body {
     buildSlider(doc, el, "Pr\u016Fhlednost panel\u016F (rgba alpha)", "mod.aurora.effect.panel_opacity", 0, 1, 0.05, "", 1);
     buildSlider(doc, el, "Blur panel\u016F (backdrop-filter)", "mod.aurora.effect.panel_blur", 0, 30, 1, "px", 0);
     buildSectionHeading(doc, el, "No Gap Mod");
-    el.appendChild(note(doc, "Odstran\xED mezery mezi panely (--zen-element-separation = 0px). Nastav barvu pozad\xED pro mezery."));
+    el.appendChild(note(doc, "Odstran\xED mezery a zaoblen\xED okolo obsahu prohl\xED\u017Ee\u010De. Portov\xE1no z github.com/Comp-Tech-Guy/No-Gaps v2.5.2."));
     buildToggle(doc, el, "Zapnout No Gap Mod", "mod.aurora.layout.no_gap_mod", false);
-    colorRow(doc, el, "Barva pozad\xED mezer", "mod.aurora.layout.no_gap_bg", "#000000", st, "#tabbrowser-tabpanels");
+    buildSelect(doc, el, "M\xF3d aplikace", "mod.aurora.layout.no_gap_mode", [
+      { label: "Oba (compact + non-compact) \u2014 v\xFDchoz\xED", value: "all" },
+      { label: "Pouze kompaktn\xED m\xF3d", value: "compact" }
+    ], "all");
+    buildToggle(doc, el, "Odstranit zv\xFDrazn\u011Bn\xED split z\xE1lo\u017Eek (outline: none)", "mod.aurora.layout.no_gap_remove_split_highlight", false);
+    buildToggle(doc, el, "Odstranit box-shadow kontejneru obsahu", "mod.aurora.layout.no_gap_remove_box_shadow", false);
+    colorRow(doc, el, "Barva pozad\xED tabpanels", "mod.aurora.layout.no_gap_bg", "#000000", st, "#tabbrowser-tabpanels");
     buildSectionHeading(doc, el, "St\xEDny a z\xE1\u0159e");
     buildToggle(doc, el, "St\xEDn aktivn\xED z\xE1lo\u017Eky (.tabbrowser-tab[selected])", "mod.aurora.effect.tab_shadow", false);
     buildToggle(doc, el, "Z\xE1\u0159e akcentu p\u0159i hoveru a aktivn\xED z\xE1lo\u017Ece (glow)", "mod.aurora.effect.accent_glow", false);
@@ -1379,6 +1390,7 @@ body {
     "mod.aurora.layout.toolbar_mode",
     "mod.aurora.layout.hitbox_height",
     "mod.aurora.layout.no_gap_bg",
+    "mod.aurora.layout.no_gap_mode",
     "mod.aurora.animation_speed",
     "mod.aurora.animation.easing"
   ];
@@ -1386,6 +1398,8 @@ body {
     "mod.aurora.effect.tab_shadow",
     "mod.aurora.effect.accent_glow",
     "mod.aurora.layout.no_gap_mod",
+    "mod.aurora.layout.no_gap_remove_split_highlight",
+    "mod.aurora.layout.no_gap_remove_box_shadow",
     "mod.aurora.style.tabs",
     "mod.aurora.style.urlbar",
     "mod.aurora.style.sidebar",

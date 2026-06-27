@@ -46,7 +46,10 @@ export interface AuroraTheme {
     toolbarHeight: string;
     borderWidth: string;
     noGapMod: boolean;
+    noGapMode: string;                  // "all" | "compact"
     noGapBg: string;
+    noGapRemoveSplitHighlight: boolean;
+    noGapRemoveBoxShadow: boolean;
     hitboxHeight: string;
     toolbarMode: string; // "multi" | "single" | "collapsed"
   };
@@ -133,9 +136,12 @@ export function loadTheme(): AuroraTheme {
       workspaceStripWidth: s("mod.aurora.layout.workspace_strip_width","36px"),
       toolbarHeight:       s("mod.aurora.layout.toolbar_height",       "40px"),
       borderWidth:         s("mod.aurora.layout.border_width",         "1px"),
-      noGapMod:            b("mod.aurora.layout.no_gap_mod",           false),
-      noGapBg:             s("mod.aurora.layout.no_gap_bg",            "#000000"),
-      hitboxHeight:        s("mod.aurora.layout.hitbox_height",        "4px"),
+      noGapMod:                    b("mod.aurora.layout.no_gap_mod",                      false),
+      noGapMode:                   s("mod.aurora.layout.no_gap_mode",                     "all"),
+      noGapBg:                     s("mod.aurora.layout.no_gap_bg",                       "#000000"),
+      noGapRemoveSplitHighlight:   b("mod.aurora.layout.no_gap_remove_split_highlight",   false),
+      noGapRemoveBoxShadow:        b("mod.aurora.layout.no_gap_remove_box_shadow",        false),
+      hitboxHeight:                s("mod.aurora.layout.hitbox_height",                   "4px"),
       toolbarMode:         s("mod.aurora.layout.toolbar_mode",         "multi"),
     },
     effects: {
@@ -209,9 +215,12 @@ export function saveTheme(theme: AuroraTheme): void {
   ss("mod.aurora.layout.workspace_strip_width",theme.layout.workspaceStripWidth);
   ss("mod.aurora.layout.toolbar_height",       theme.layout.toolbarHeight);
   ss("mod.aurora.layout.border_width",         theme.layout.borderWidth);
-  sb("mod.aurora.layout.no_gap_mod",           theme.layout.noGapMod);
-  ss("mod.aurora.layout.no_gap_bg",            theme.layout.noGapBg);
-  ss("mod.aurora.layout.hitbox_height",        theme.layout.hitboxHeight);
+  sb("mod.aurora.layout.no_gap_mod",                    theme.layout.noGapMod);
+  ss("mod.aurora.layout.no_gap_mode",                   theme.layout.noGapMode);
+  ss("mod.aurora.layout.no_gap_bg",                     theme.layout.noGapBg);
+  sb("mod.aurora.layout.no_gap_remove_split_highlight", theme.layout.noGapRemoveSplitHighlight);
+  sb("mod.aurora.layout.no_gap_remove_box_shadow",      theme.layout.noGapRemoveBoxShadow);
+  ss("mod.aurora.layout.hitbox_height",                 theme.layout.hitboxHeight);
   ss("mod.aurora.layout.toolbar_mode",         theme.layout.toolbarMode);
   ss("mod.aurora.effect.panel_opacity",        theme.effects.panelOpacity);
   ss("mod.aurora.effect.panel_blur",           theme.effects.panelBlur);
