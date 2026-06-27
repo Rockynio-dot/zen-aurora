@@ -1,0 +1,19 @@
+{
+  "name": "zen-aurora",
+  "version": "0.1.0",
+  "description": "Complete UI overhaul mod for Zen Browser",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "@material/material-color-utilities": "^0.3.0"
+  },
+  "allowScripts": {
+    "esbuild@0.24.2": true
+  }
+}

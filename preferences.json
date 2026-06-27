@@ -1,0 +1,38 @@
+[
+  {
+    "property": "mod.aurora.enabled",
+    "label": "Zapnout Aurora overhaul",
+    "type": "checkbox",
+    "defaultValue": true
+  },
+  {
+    "property": "mod.aurora.dynamic_mode",
+    "label": "Režim dynamického motivu",
+    "type": "dropdown",
+    "defaultValue": "off",
+    "placeholder": "Vyber režim",
+    "options": [
+      { "label": "Vypnuto", "value": "off" },
+      { "label": "Material You z obrázku", "value": "material" },
+      { "label": "Podle denní doby", "value": "daynight" }
+    ]
+  },
+  {
+    "property": "mod.aurora.sounds_enabled",
+    "label": "Zvukové efekty",
+    "type": "checkbox",
+    "defaultValue": false
+  },
+  {
+    "property": "mod.aurora.animation_speed",
+    "label": "Rychlost animací UI",
+    "type": "dropdown",
+    "defaultValue": "normal",
+    "options": [
+      { "label": "Vypnuté", "value": "none" },
+      { "label": "Pomalé", "value": "slow" },
+      { "label": "Normální", "value": "normal" },
+      { "label": "Rychlé", "value": "fast" }
+    ]
+  }
+]

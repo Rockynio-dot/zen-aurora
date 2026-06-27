@@ -1,0 +1,10 @@
+{
+  "name": "Aurora",
+  "description": "Kompletní overhaul vzhledu Zen Browseru: barvy, obrázky na pozadí, zvukové efekty, dynamické motivy a sdílení témat.",
+  "author": "Rockynio-dot",
+  "version": "0.1.0",
+  "homepage": "https://github.com/Rockynio-dot/zen-aurora",
+  "preferences": "preferences.json",
+  "style": "dist/aurora.uc.css",
+  "js": "dist/entry.uc.mjs"
+}

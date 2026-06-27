@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "paths": {
+      "chrome://*": ["./src/types/chrome.d.ts"],
+      "resource://*": ["./src/types/chrome.d.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.mts", "build.mjs"]
+}
