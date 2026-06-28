@@ -92,6 +92,10 @@ const EN: Record<string, string> = {
     "Gradient is active — the toolbar, sidebar and content backgrounds are driven by the gradient (Quick section), so flat colours don't affect them.",
   "Náhled prohlížeče": "Browser preview",
   "Rozložení prohlížeče": "Browser layout",
+  "↗ Změnit rozložení prohlížeče v Zenu": "↗ Change browser layout in Zen",
+  "↗ Otevřít rozložení prohlížeče v Zenu": "↗ Open browser layout in Zen",
+  "Rozložení (jeden panel / více panelů / sbalený) spravuje Zen. Otevři nativní nastavení:":
+    "The layout (single / multiple / collapsed bars) is managed by Zen. Open the native settings:",
   "Jeden panel": "Single bar",
   "Více panelů": "Multiple bars",
   "Sbalený": "Collapsed",

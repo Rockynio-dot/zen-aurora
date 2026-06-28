@@ -632,15 +632,6 @@ ${t.layout.noGapRemoveBoxShadow ? `
 ` : ""}
 ` : ""}
 
-/* \u2550\u2550 Toolbar mode \u2550\u2550 */
-${t.layout.toolbarMode === "single" ? `
-#PersonalToolbar { display: none !important; }
-` : ""}
-${t.layout.toolbarMode === "collapsed" ? `
-#navigator-toolbox { transform: translateY(-100%); transition: transform 0.2s ease !important; }
-#navigator-toolbox:hover,
-#navigator-toolbox:focus-within { transform: translateY(0) !important; }
-` : ""}
 
 /* \u2550\u2550 Top bar hitbox (larger hover zone when toolbar is hidden) \u2550\u2550 */
 ${t.layout.hitboxHeight !== "4px" ? `

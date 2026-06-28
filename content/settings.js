@@ -823,6 +823,9 @@
     "Gradient je aktivn\xED \u2014 pozad\xED toolbaru, sidebaru a obsahu \u0159\xEDd\xED gradient (sekce Rychl\xE9), proto na n\u011B ploch\xE9 barvy nemaj\xED vliv.": "Gradient is active \u2014 the toolbar, sidebar and content backgrounds are driven by the gradient (Quick section), so flat colours don't affect them.",
     "N\xE1hled prohl\xED\u017Ee\u010De": "Browser preview",
     "Rozlo\u017Een\xED prohl\xED\u017Ee\u010De": "Browser layout",
+    "\u2197 Zm\u011Bnit rozlo\u017Een\xED prohl\xED\u017Ee\u010De v Zenu": "\u2197 Change browser layout in Zen",
+    "\u2197 Otev\u0159\xEDt rozlo\u017Een\xED prohl\xED\u017Ee\u010De v Zenu": "\u2197 Open browser layout in Zen",
+    "Rozlo\u017Een\xED (jeden panel / v\xEDce panel\u016F / sbalen\xFD) spravuje Zen. Otev\u0159i nativn\xED nastaven\xED:": "The layout (single / multiple / collapsed bars) is managed by Zen. Open the native settings:",
     "Jeden panel": "Single bar",
     "V\xEDce panel\u016F": "Multiple bars",
     "Sbalen\xFD": "Collapsed",
@@ -1804,25 +1807,41 @@ body.ao-light {
       root.style.setProperty("--m-browser-bg", `${z.background}, ${base}`);
     }
   }
+  function zenLayoutMode() {
+    try {
+      const win = Services.wm.getMostRecentWindow("navigator:browser");
+      const root = win?.document?.documentElement;
+      if (root?.getAttribute("zen-compact-mode") === "true") return "collapsed";
+      if (root?.getAttribute("zen-single-toolbar") === "true") return "single";
+    } catch {
+    }
+    return "multi";
+  }
+  function openZenSetting(hash) {
+    try {
+      const win = Services.wm.getMostRecentWindow("navigator:browser");
+      win?.openTrustedLinkIn?.(`about:preferences#${hash}`, "tab");
+      win?.focus?.();
+    } catch {
+    }
+  }
   function buildColors(doc, el, st) {
     el.appendChild(note(doc, "Klikni na prvek v n\xE1hledu prohl\xED\u017Ee\u010De a uprav jeho barvy. Hrubou paletu nastav\xED\u0161 v sekci Rychl\xE9."));
     if (getBoolPref("mod.aurora.gradient.enabled", false))
       el.appendChild(note(doc, "Gradient je aktivn\xED \u2014 pozad\xED toolbaru, sidebaru a obsahu \u0159\xEDd\xED gradient (sekce Rychl\xE9), proto na n\u011B ploch\xE9 barvy nemaj\xED vliv."));
     const mock = doc.createElement("div");
     function renderMock() {
-      const mode = getPref("mod.aurora.layout.toolbar_mode", "multi");
+      const mode = zenLayoutMode();
       mock.className = "ao-mock" + (mode === "single" ? " single" : " has-topbar");
       mock.innerHTML = mockHtml(mode);
       paintMock(mock);
     }
-    buildSelect(doc, el, "Rozlo\u017Een\xED prohl\xED\u017Ee\u010De", "mod.aurora.layout.toolbar_mode", [
-      { label: "Jeden panel", value: "single" },
-      { label: "V\xEDce panel\u016F", value: "multi" },
-      { label: "Sbalen\xFD", value: "collapsed" }
-    ], "multi", () => {
-      renderMock();
-      invalidateSections?.();
-    });
+    const layoutBtn = doc.createElement("button");
+    layoutBtn.className = "ao-nav-btn";
+    layoutBtn.style.cssText = "margin-bottom:8px;";
+    layoutBtn.textContent = "\u2197 Zm\u011Bnit rozlo\u017Een\xED prohl\xED\u017Ee\u010De v Zenu";
+    layoutBtn.addEventListener("click", () => openZenSetting("zenLooks"));
+    el.appendChild(layoutBtn);
     buildSectionHeading(doc, el, "N\xE1hled prohl\xED\u017Ee\u010De");
     el.appendChild(mock);
     renderMock();
@@ -2033,12 +2052,14 @@ body.ao-light {
     buildSlider(doc, el, "Zaoblen\xED tla\u010D\xEDtek / polo\u017Eek menu", "mod.aurora.layout.button_border_radius", 0, 20, 1, "px", 6);
     buildSectionHeading(doc, el, "Ohrani\u010Den\xED");
     buildSlider(doc, el, "Tlou\u0161\u0165ka (border-width \u2014 v\u0161e)", "mod.aurora.layout.border_width", 0, 4, 1, "px", 1);
-    buildSectionHeading(doc, el, "Rozvr\u017Een\xED toolbaru");
-    buildSelect(doc, el, "Re\u017Eim toolbaru", "mod.aurora.layout.toolbar_mode", [
-      { label: "V\xEDce panel\u016F (v\xFDchoz\xED)", value: "multi" },
-      { label: "Jeden panel (bez z\xE1lo\u017Ekov\xE9 li\u0161ty)", value: "single" },
-      { label: "Sbalen\xFD (auto-hide)", value: "collapsed" }
-    ], "multi", () => invalidateSections?.());
+    buildSectionHeading(doc, el, "Rozlo\u017Een\xED prohl\xED\u017Ee\u010De");
+    el.appendChild(note(doc, "Rozlo\u017Een\xED (jeden panel / v\xEDce panel\u016F / sbalen\xFD) spravuje Zen. Otev\u0159i nativn\xED nastaven\xED:"));
+    const layoutBtn = doc.createElement("button");
+    layoutBtn.className = "ao-nav-btn";
+    layoutBtn.style.cssText = "width:100%;";
+    layoutBtn.textContent = "\u2197 Otev\u0159\xEDt rozlo\u017Een\xED prohl\xED\u017Ee\u010De v Zenu";
+    layoutBtn.addEventListener("click", () => openZenSetting("zenLooks"));
+    el.appendChild(layoutBtn);
     buildSectionHeading(doc, el, "Hitbox horn\xED li\u0161ty (p\u0159i auto-hide)");
     el.appendChild(note(doc, "Zv\u011Bt\u0161\xED neviditelnou oblast naho\u0159e, kter\xE1 aktivuje vysunut\xED li\u0161ty."));
     buildSlider(doc, el, "V\xFD\u0161ka hitboxu", "mod.aurora.layout.hitbox_height", 4, 40, 2, "px", 4);
