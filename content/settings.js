@@ -820,7 +820,7 @@
     "Scrollbar (thumb)": "Scrollbar (thumb)",
     // ── Mockup (WYSIWYG colour editor) ──
     "Klikni na prvek v n\xE1hledu prohl\xED\u017Ee\u010De a uprav jeho barvy. Hrubou paletu nastav\xED\u0161 v sekci Rychl\xE9.": "Click an element in the browser preview to edit its colours. Set the rough palette in the Quick section.",
-    "Gradient je aktivn\xED \u2014 pozad\xED toolbaru a obsahu \u0159\xEDd\xED gradient (sekce Rychl\xE9), proto na n\u011B ploch\xE9 barvy nemaj\xED vliv.": "Gradient is active \u2014 the toolbar and content backgrounds are driven by the gradient (Quick section), so flat colours don't affect them.",
+    "Gradient je aktivn\xED \u2014 pozad\xED toolbaru, sidebaru a obsahu \u0159\xEDd\xED gradient (sekce Rychl\xE9), proto na n\u011B ploch\xE9 barvy nemaj\xED vliv.": "Gradient is active \u2014 the toolbar, sidebar and content backgrounds are driven by the gradient (Quick section), so flat colours don't affect them.",
     "N\xE1hled prohl\xED\u017Ee\u010De": "Browser preview",
     "Z\xE1lo\u017Eky": "Tabs",
     "URL li\u0161ta": "URL bar",
@@ -1782,13 +1782,15 @@ body.ao-light {
       const z = generateZenTheme(hexes, op, dark);
       const base = dark ? "#131313" : "#e9e9e9";
       root.style.setProperty("--m-toolbar-bg", z.toolbar);
+      root.style.setProperty("--m-sidebar-bg", z.toolbar);
+      root.style.setProperty("--m-strip-bg", z.toolbar);
       root.style.setProperty("--m-browser-bg", `${z.background}, ${base}`);
     }
   }
   function buildColors(doc, el, st) {
     el.appendChild(note(doc, "Klikni na prvek v n\xE1hledu prohl\xED\u017Ee\u010De a uprav jeho barvy. Hrubou paletu nastav\xED\u0161 v sekci Rychl\xE9."));
     if (getBoolPref("mod.aurora.gradient.enabled", false))
-      el.appendChild(note(doc, "Gradient je aktivn\xED \u2014 pozad\xED toolbaru a obsahu \u0159\xEDd\xED gradient (sekce Rychl\xE9), proto na n\u011B ploch\xE9 barvy nemaj\xED vliv."));
+      el.appendChild(note(doc, "Gradient je aktivn\xED \u2014 pozad\xED toolbaru, sidebaru a obsahu \u0159\xEDd\xED gradient (sekce Rychl\xE9), proto na n\u011B ploch\xE9 barvy nemaj\xED vliv."));
     buildSectionHeading(doc, el, "N\xE1hled prohl\xED\u017Ee\u010De");
     const mock = doc.createElement("div");
     mock.className = "ao-mock";

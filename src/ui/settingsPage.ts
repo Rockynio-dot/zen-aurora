@@ -747,7 +747,11 @@ function paintMock(root: HTMLElement): void {
     const dark = getBoolPref("mod.aurora.gradient.dark", true);
     const z = generateZenTheme(hexes, op, dark);
     const base = dark ? "#131313" : "#e9e9e9";
+    // In Zen the toolbar gradient covers the whole chrome (toolbar + sidebar +
+    // workspace strip are part of the toolbox); the content gets the backdrop.
     root.style.setProperty("--m-toolbar-bg", z.toolbar);
+    root.style.setProperty("--m-sidebar-bg", z.toolbar);
+    root.style.setProperty("--m-strip-bg", z.toolbar);
     root.style.setProperty("--m-browser-bg", `${z.background}, ${base}`);
   }
 }
@@ -755,7 +759,7 @@ function paintMock(root: HTMLElement): void {
 function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
   el.appendChild(note(doc, "Klikni na prvek v náhledu prohlížeče a uprav jeho barvy. Hrubou paletu nastavíš v sekci Rychlé."));
   if (getBoolPref("mod.aurora.gradient.enabled", false))
-    el.appendChild(note(doc, "Gradient je aktivní — pozadí toolbaru a obsahu řídí gradient (sekce Rychlé), proto na ně ploché barvy nemají vliv."));
+    el.appendChild(note(doc, "Gradient je aktivní — pozadí toolbaru, sidebaru a obsahu řídí gradient (sekce Rychlé), proto na ně ploché barvy nemají vliv."));
   buildSectionHeading(doc, el, "Náhled prohlížeče");
 
   const mock = doc.createElement("div"); mock.className = "ao-mock";
