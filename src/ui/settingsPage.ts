@@ -790,16 +790,6 @@ function zenLayoutMode(): string {
   return "multi";
 }
 
-// Click-through to Zen's native settings page.
-function openZenSetting(hash: string): void {
-  try {
-    const win = Services.wm.getMostRecentWindow("navigator:browser") as
-      (Window & { openTrustedLinkIn?: (u: string, w: string) => void }) | null;
-    win?.openTrustedLinkIn?.(`about:preferences#${hash}`, "tab");
-    win?.focus?.();
-  } catch { /**/ }
-}
-
 function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
   el.appendChild(note(doc, "Klikni na prvek v náhledu prohlížeče a uprav jeho barvy. Hrubou paletu nastavíš v sekci Rychlé."));
   if (getBoolPref("mod.aurora.gradient.enabled", false))
@@ -813,13 +803,8 @@ function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
     paintMock(mock);
   }
 
-  // Layout is Zen's job — the preview mirrors the current Zen layout, and the
-  // button opens Zen's native "Uspořádání prohlížeče" to change it.
-  const layoutBtn = doc.createElement("button");
-  layoutBtn.className = "ao-nav-btn"; layoutBtn.style.cssText = "margin-bottom:8px;";
-  layoutBtn.textContent = "↗ Změnit rozložení prohlížeče v Zenu";
-  layoutBtn.addEventListener("click", () => openZenSetting("zenLooks"));
-  el.appendChild(layoutBtn);
+  // Layout is Zen's job — the preview just mirrors the current Zen layout.
+  el.appendChild(note(doc, "Rozložení prohlížeče (jeden panel / více panelů / sbalený) nastavíš ve Vzhledu Zenu — Nastavení → Vzhled a dojem."));
 
   buildSectionHeading(doc, el, "Náhled prohlížeče");
   el.appendChild(mock);
@@ -1011,14 +996,6 @@ function buildLayout(doc: Document, el: HTMLElement, _st: HTMLElement): void {
 
   buildSectionHeading(doc, el, "Ohraničení");
   buildSlider(doc, el, "Tloušťka (border-width — vše)", "mod.aurora.layout.border_width", 0, 4, 1, "px", 1);
-
-  buildSectionHeading(doc, el, "Rozložení prohlížeče");
-  el.appendChild(note(doc, "Rozložení (jeden panel / více panelů / sbalený) spravuje Zen. Otevři nativní nastavení:"));
-  const layoutBtn = doc.createElement("button");
-  layoutBtn.className = "ao-nav-btn"; layoutBtn.style.cssText = "width:100%;";
-  layoutBtn.textContent = "↗ Otevřít rozložení prohlížeče v Zenu";
-  layoutBtn.addEventListener("click", () => openZenSetting("zenLooks"));
-  el.appendChild(layoutBtn);
 
   buildSectionHeading(doc, el, "Hitbox horní lišty (při auto-hide)");
   el.appendChild(note(doc, "Zvětší neviditelnou oblast nahoře, která aktivuje vysunutí lišty."));
