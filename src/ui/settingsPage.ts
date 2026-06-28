@@ -350,14 +350,12 @@ function generateDarkPalette(accent: string): PaletteData {
       "mod.aurora.animation.easing":          "ease",
       "mod.aurora.layout.toolbar_mode":       "multi",
       "mod.aurora.layout.no_gap_bg":          hslHex(h, Math.min(sat,20), 4),
-      "mod.aurora.layout.no_gap_mode":        "all",
     },
     booleans: {
+      // NOTE: No Gap mod prefs are intentionally NOT set here — applying a
+      // colour palette must not toggle a structural feature the user controls.
       "mod.aurora.effect.tab_shadow":                      false,
       "mod.aurora.effect.accent_glow":                     false,
-      "mod.aurora.layout.no_gap_mod":                      false,
-      "mod.aurora.layout.no_gap_remove_split_highlight":   false,
-      "mod.aurora.layout.no_gap_remove_box_shadow":        false,
       "mod.aurora.style.tabs":                             true,
       "mod.aurora.style.urlbar":                           true,
       "mod.aurora.style.sidebar":                          true,
@@ -408,11 +406,10 @@ function generateLightPalette(accent: string): PaletteData {
       "mod.aurora.layout.no_gap_bg":          hslHex(h, Math.min(sat,16), 60),
     },
     booleans: {
+      // NOTE: No Gap mod prefs are intentionally NOT set here — applying a
+      // colour palette must not toggle a structural feature the user controls.
       "mod.aurora.effect.tab_shadow":                      false,
       "mod.aurora.effect.accent_glow":                     false,
-      "mod.aurora.layout.no_gap_mod":                      false,
-      "mod.aurora.layout.no_gap_remove_split_highlight":   false,
-      "mod.aurora.layout.no_gap_remove_box_shadow":        false,
       "mod.aurora.style.tabs":                             true,
       "mod.aurora.style.urlbar":                           true,
       "mod.aurora.style.sidebar":                          true,
