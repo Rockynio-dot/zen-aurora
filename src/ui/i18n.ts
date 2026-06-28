@@ -88,6 +88,8 @@ const EN: Record<string, string> = {
   // ── Mockup (WYSIWYG colour editor) ──
   "Klikni na prvek v náhledu prohlížeče a uprav jeho barvy. Hrubou paletu nastavíš v sekci Rychlé.":
     "Click an element in the browser preview to edit its colours. Set the rough palette in the Quick section.",
+  "Gradient je aktivní — pozadí toolbaru a obsahu řídí gradient (sekce Rychlé), proto na ně ploché barvy nemají vliv.":
+    "Gradient is active — the toolbar and content backgrounds are driven by the gradient (Quick section), so flat colours don't affect them.",
   "Náhled prohlížeče": "Browser preview",
   "Záložky": "Tabs",
   "URL lišta": "URL bar",

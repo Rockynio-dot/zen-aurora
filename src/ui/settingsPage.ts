@@ -737,10 +737,25 @@ const MOCK_HTML = `
 
 function paintMock(root: HTMLElement): void {
   for (const m of MOCK_VARS) root.style.setProperty(m.v, getPref(m.pref, m.def));
+  // When a gradient theme is active, the real browser paints the toolbar and
+  // content with the Zen "Upravit motiv" gradients (not the flat colours) —
+  // mirror them so the preview matches what the user actually sees.
+  if (getBoolPref("mod.aurora.gradient.enabled", false)) {
+    const hexes = getPref("mod.aurora.gradient.colors", "#7c6af7")
+      .split(",").map((c) => c.trim()).filter(Boolean);
+    const op = parseFloat(getPref("mod.aurora.gradient.opacity", "0.5")) || 0.5;
+    const dark = getBoolPref("mod.aurora.gradient.dark", true);
+    const z = generateZenTheme(hexes, op, dark);
+    const base = dark ? "#131313" : "#e9e9e9";
+    root.style.setProperty("--m-toolbar-bg", z.toolbar);
+    root.style.setProperty("--m-browser-bg", `${z.background}, ${base}`);
+  }
 }
 
 function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
   el.appendChild(note(doc, "Klikni na prvek v náhledu prohlížeče a uprav jeho barvy. Hrubou paletu nastavíš v sekci Rychlé."));
+  if (getBoolPref("mod.aurora.gradient.enabled", false))
+    el.appendChild(note(doc, "Gradient je aktivní — pozadí toolbaru a obsahu řídí gradient (sekce Rychlé), proto na ně ploché barvy nemají vliv."));
   buildSectionHeading(doc, el, "Náhled prohlížeče");
 
   const mock = doc.createElement("div"); mock.className = "ao-mock";
