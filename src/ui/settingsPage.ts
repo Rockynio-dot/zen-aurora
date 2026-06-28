@@ -99,6 +99,8 @@ body.ao-light {
 .ao-head-ctrls { display: flex; align-items: center; gap: 14px; margin-left: auto; flex-wrap: wrap; }
 .ao-head-group { display: flex; align-items: center; gap: 6px; }
 .ao-head-group-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--ao-text-faint); }
+.ao-head-swatch { width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--ao-border); cursor: pointer; transition: border-color .12s, transform .12s; }
+.ao-head-swatch:hover { border-color: var(--ao-accent); transform: scale(1.08); }
 .ao-header-close {
   background: var(--ao-panel); border: 1px solid var(--ao-border); border-radius: 8px;
   color: var(--ao-text-dim); font-size: 13px; cursor: pointer; padding: 5px 12px;
@@ -1153,9 +1155,70 @@ function headSegment(
   return group;
 }
 
+function isLightColor(hex: string): boolean {
+  const n = hex.replace("#", "");
+  if (n.length < 6) return false;
+  const r = parseInt(n.slice(0, 2), 16), g = parseInt(n.slice(2, 4), 16), b = parseInt(n.slice(4, 6), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 150;
+}
+
+// Derive the whole settings-window palette (all --ao-* CSS vars) from one tint
+// colour, for either the dark or light variant. Lets the user recolour the
+// Aurora settings UI itself — e.g. a green dark theme.
+function deriveUiTheme(accent: string, dark: boolean): Record<string, string> {
+  const [h, s] = hexToHsl(accent);
+  if (dark) {
+    return {
+      "--ao-bg": `linear-gradient(160deg, ${hslHex(h, Math.min(s, 40), 9)} 0%, ${hslHex(h, Math.min(s, 45), 5)} 55%, #000000 100%)`,
+      "--ao-nav-bg":      hslHex(h, Math.min(s, 35),  6),
+      "--ao-header-bg":   hslHex(h, Math.min(s, 38),  8),
+      "--ao-panel":       hslHex(h, Math.min(s, 35), 11),
+      "--ao-panel-2":     hslHex(h, Math.min(s, 40), 16),
+      "--ao-border":      hslHex(h, Math.min(s, 42), 30),
+      "--ao-border-soft": hslHex(h, Math.min(s, 35), 18),
+      "--ao-row-sep":     hslHex(h, Math.min(s, 35), 14),
+      "--ao-text":        hslHex(h, Math.min(s, 25), 92),
+      "--ao-text-dim":    hslHex(h, Math.min(s, 22), 78),
+      "--ao-text-muted":  hslHex(h, Math.min(s, 30), 60),
+      "--ao-text-faint":  hslHex(h, Math.min(s, 30), 52),
+      "--ao-heading":     hslHex(h, Math.min(s, 30), 54),
+      "--ao-accent":      accent,
+      "--ao-accent-2":    hslHex(h, Math.min(s, 90), 70),
+      "--ao-accent-soft": hslHex(h, Math.min(s, 75), 78),
+      "--ao-on-accent":   isLightColor(accent) ? "#15151f" : "#ffffff",
+      "--ao-badge-bg":     hslHex(h, Math.min(s, 35), 13),
+      "--ao-badge-border": hslHex(h, Math.min(s, 35), 24),
+    };
+  }
+  const acc = hslHex(h, Math.max(Math.min(s, 92), 45), 46); // vivid medium on light bg
+  return {
+    "--ao-bg": `linear-gradient(160deg, ${hslHex(h, Math.min(s, 40), 98)} 0%, ${hslHex(h, Math.min(s, 38), 94)} 60%, ${hslHex(h, Math.min(s, 35), 89)} 100%)`,
+    "--ao-nav-bg":      hslHex(h, Math.min(s, 35), 95),
+    "--ao-header-bg":   hslHex(h, Math.min(s, 35), 96),
+    "--ao-panel":       hslHex(h, Math.min(s, 30), 99),
+    "--ao-panel-2":     hslHex(h, Math.min(s, 32), 95),
+    "--ao-border":      hslHex(h, Math.min(s, 32), 80),
+    "--ao-border-soft": hslHex(h, Math.min(s, 28), 90),
+    "--ao-row-sep":     hslHex(h, Math.min(s, 28), 92),
+    "--ao-text":        hslHex(h, Math.min(s, 30), 14),
+    "--ao-text-dim":    hslHex(h, Math.min(s, 25), 32),
+    "--ao-text-muted":  hslHex(h, Math.min(s, 25), 48),
+    "--ao-text-faint":  hslHex(h, Math.min(s, 25), 56),
+    "--ao-heading":     hslHex(h, Math.min(s, 25), 58),
+    "--ao-accent":      acc,
+    "--ao-accent-2":    hslHex(h, Math.max(Math.min(s, 92), 45), 38),
+    "--ao-accent-soft": hslHex(h, Math.min(s, 80), 42),
+    "--ao-on-accent":   "#ffffff",
+    "--ao-badge-bg":     hslHex(h, Math.min(s, 30), 94),
+    "--ao-badge-border": hslHex(h, Math.min(s, 28), 85),
+  };
+}
+
 function applyUiTheme(doc: Document): void {
-  const light = getPref("mod.aurora.ui.theme", "dark") === "light";
-  doc.body.classList.toggle("ao-light", light);
+  const dark = getPref("mod.aurora.ui.theme", "dark") !== "light";
+  doc.body.classList.toggle("ao-light", !dark);
+  const vars = deriveUiTheme(getPref("mod.aurora.ui.accent", "#7c6af7"), dark);
+  for (const [k, v] of Object.entries(vars)) doc.body.style.setProperty(k, v);
 }
 
 function buildUI(doc: Document): void {
@@ -1183,6 +1246,21 @@ function buildUI(doc: Document): void {
     [{ label: "🌙", value: "dark" }, { label: "☀️", value: "light" }],
     getPref("mod.aurora.ui.theme", "dark"),
     (v) => { setPref("mod.aurora.ui.theme", v); applyUiTheme(doc); }));
+  // Tint colour — recolours the whole settings UI (full colour picker)
+  {
+    const g = doc.createElement("div"); g.className = "ao-head-group";
+    const lbl = doc.createElement("span"); lbl.className = "ao-head-group-lbl"; lbl.textContent = tr("Barva");
+    const sw = doc.createElement("div"); sw.className = "ao-head-swatch";
+    sw.style.background = getPref("mod.aurora.ui.accent", "#7c6af7");
+    sw.title = tr("Barva");
+    sw.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openColorPicker(sw, getPref("mod.aurora.ui.accent", "#7c6af7"), (v) => {
+        setPref("mod.aurora.ui.accent", v); sw.style.background = v; applyUiTheme(doc);
+      });
+    });
+    g.appendChild(lbl); g.appendChild(sw); ctrls.appendChild(g);
+  }
   // Language (cs/en) — reloads to re-render in the chosen language
   ctrls.appendChild(headSegment(doc, tr("Jazyk"),
     [{ label: "CS", value: "cs" }, { label: "EN", value: "en" }],

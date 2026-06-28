@@ -19,6 +19,7 @@ const EN: Record<string, string> = {
   "✕ Zavřít  (Esc)": "✕ Close  (Esc)",
   "Jazyk": "Language",
   "Vzhled": "Appearance",
+  "Barva": "Colour",
   "Tmavý": "Dark",
   "Světlý": "Light",
 
