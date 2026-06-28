@@ -1255,8 +1255,9 @@ body.ao-light {
 .ao-mock [data-el]:hover { outline-color: var(--m-accent); position: relative; z-index: 3; }
 /* only highlight the innermost element under the cursor */
 .ao-mock [data-el]:has([data-el]:hover) { outline-color: transparent; }
-.ao-mock-strip { width: 30px; flex-shrink: 0; background: var(--m-strip-bg); display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 12px 0; }
-.ao-mock-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--m-dot); }
+.ao-mock-strip { display: flex; align-items: center; gap: 6px; background: var(--m-strip-bg); border-radius: 6px; padding: 5px 7px; }
+.ao-mock-strip.small { justify-content: center; padding: 4px; }
+.ao-mock-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--m-dot); flex-shrink: 0; }
 .ao-mock-dot.active { background: var(--m-dot-active); }
 .ao-mock-sidebar { width: 154px; flex-shrink: 0; background: var(--m-sidebar-bg); display: flex; flex-direction: column; gap: 8px; padding: 9px; }
 .ao-mock-urlbar { background: var(--m-urlbar-bg); border: 1px solid var(--m-urlbar-border); border-radius: 7px; color: var(--m-urlbar-text); padding: 5px 8px; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1773,19 +1774,19 @@ body.ao-light {
     return `<div class="ao-mock-tabs">${tab(true)}${tab(false)}${tab(false)}</div>`;
   }
   function mockHtml(mode) {
-    const strip = `<div class="ao-mock-strip" data-el="strip">${MOCK_DOTS}</div>`;
+    const ws = (small) => `<div class="ao-mock-strip${small ? " small" : ""}" data-el="strip">${MOCK_DOTS}</div>`;
     if (mode === "single") {
-      return `${strip}
+      return `
       <div class="ao-mock-sidebar" data-el="sidebar">
         <div class="ao-mock-tbrow" data-el="toolbar">${MOCK_BTNS}</div>
-        ${MOCK_URLBAR}${mockTabs(false)}
+        ${MOCK_URLBAR}${ws(false)}${mockTabs(false)}
       </div>${MOCK_CONTENT}`;
     }
     const collapsed = mode === "collapsed";
     return `
-    <div class="ao-mock-topbar" data-el="toolbar">${MOCK_URLBAR}${MOCK_BTNS}</div>
-    <div class="ao-mock-body">${strip}
-      <div class="ao-mock-sidebar${collapsed ? " collapsed" : ""}" data-el="sidebar">${mockTabs(collapsed)}</div>
+    <div class="ao-mock-topbar" data-el="toolbar">${MOCK_BTNS}${MOCK_URLBAR}</div>
+    <div class="ao-mock-body">
+      <div class="ao-mock-sidebar${collapsed ? " collapsed" : ""}" data-el="sidebar">${ws(collapsed)}${mockTabs(collapsed)}</div>
       ${MOCK_CONTENT}
     </div>`;
   }
