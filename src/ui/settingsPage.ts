@@ -7,141 +7,198 @@ import {
 } from "./controls.ts";
 import { AURORA_COLOR_DEFAULTS } from "../core/state.ts";
 import { generateZenTheme, rgbToHex } from "../core/zenGradient.ts";
+import { getLang, setLang, tr, translateTree, type Lang } from "./i18n.ts";
 
 // ── CSS ───────────────────────────────────────────────────────────────────────
 
 const CSS = `
 *, *::before, *::after { box-sizing: border-box; }
 body {
+  /* Dark theme (default) — black gradient */
+  --ao-bg: linear-gradient(160deg, #0b0b1c 0%, #07070f 55%, #000000 100%);
+  --ao-nav-bg: #08080f;
+  --ao-header-bg: #0b0b18;
+  --ao-panel: #0d0d22;
+  --ao-panel-2: #141432;
+  --ao-border: #2d2d5c;
+  --ao-border-soft: #1c1c40;
+  --ao-row-sep: #16163a;
+  --ao-text: #e0e0ff;
+  --ao-text-dim: #b0b0d0;
+  --ao-text-muted: #6660aa;
+  --ao-text-faint: #5550aa;
+  --ao-heading: #4a4a8a;
+  --ao-accent: #7c6af7;
+  --ao-accent-2: #9080ff;
+  --ao-accent-soft: #a89bff;
+  --ao-on-accent: #ffffff;
+  --ao-badge-bg: #141430;
+  --ao-badge-border: #252550;
+
   margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden;
   font-family: system-ui, -apple-system, sans-serif; font-size: 13px;
-  color: #e0e0ff; background: #10102a;
+  color: var(--ao-text); background: var(--ao-bg); background-attachment: fixed;
+}
+body.ao-light {
+  /* Light theme — white gradient */
+  --ao-bg: linear-gradient(160deg, #ffffff 0%, #eef0f8 60%, #e3e6f2 100%);
+  --ao-nav-bg: #eef0f8;
+  --ao-header-bg: #f4f5fb;
+  --ao-panel: #ffffff;
+  --ao-panel-2: #f3f4fb;
+  --ao-border: #cbcfe4;
+  --ao-border-soft: #e2e5f1;
+  --ao-row-sep: #e8eaf3;
+  --ao-text: #16162e;
+  --ao-text-dim: #34344f;
+  --ao-text-muted: #6a6a92;
+  --ao-text-faint: #8888aa;
+  --ao-heading: #9a9ac0;
+  --ao-accent: #6a58e0;
+  --ao-accent-2: #5a48d0;
+  --ao-accent-soft: #5a48c0;
+  --ao-on-accent: #ffffff;
+  --ao-badge-bg: #eceefa;
+  --ao-badge-border: #d6daee;
 }
 .ao-nav {
-  width: 180px; flex-shrink: 0; background: #0b0b1f;
-  border-right: 1px solid #1e1e44; display: flex; flex-direction: column;
+  width: 180px; flex-shrink: 0; background: var(--ao-nav-bg);
+  border-right: 1px solid var(--ao-border-soft); display: flex; flex-direction: column;
   padding: 16px 0 8px; overflow-y: auto;
 }
 .ao-nav-logo {
-  padding: 0 16px 16px; font-size: 16px; font-weight: 800; color: #a89bff;
-  border-bottom: 1px solid #1e1e44; margin-bottom: 8px;
+  padding: 0 16px 16px; font-size: 16px; font-weight: 800; color: var(--ao-accent-soft);
+  border-bottom: 1px solid var(--ao-border-soft); margin-bottom: 8px;
 }
 .ao-nav-item {
   display: flex; align-items: center; gap: 10px; padding: 9px 16px;
-  cursor: pointer; color: #6660aa; border-left: 2px solid transparent;
+  cursor: pointer; color: var(--ao-text-muted); border-left: 2px solid transparent;
   transition: color .1s, background .1s, border-color .1s;
   user-select: none; font-size: 12.5px;
 }
-.ao-nav-item:hover { color: #c0b4ff; background: #12123a; }
-.ao-nav-item.active { color: #c0b4ff; background: #16163a; border-left-color: #7c6af7; font-weight: 600; }
+.ao-nav-item:hover { color: var(--ao-text); background: color-mix(in srgb, var(--ao-accent) 12%, transparent); }
+.ao-nav-item.active { color: var(--ao-text); background: color-mix(in srgb, var(--ao-accent) 16%, transparent); border-left-color: var(--ao-accent); font-weight: 600; }
 .ao-nav-icon { font-size: 15px; width: 18px; text-align: center; }
-.ao-nav-sep { height: 1px; background: #1e1e44; margin: 8px 16px; }
+.ao-nav-sep { height: 1px; background: var(--ao-border-soft); margin: 8px 16px; }
 .ao-nav-btn {
-  padding: 7px 10px; border: 1px solid #2d2d5c; border-radius: 8px;
-  background: #0f0f28; color: #8880cc; font-size: 11px; cursor: pointer;
+  padding: 7px 10px; border: 1px solid var(--ao-border); border-radius: 8px;
+  background: var(--ao-panel); color: var(--ao-text-dim); font-size: 11px; cursor: pointer;
   font-family: inherit; transition: background .1s, color .1s, border-color .1s;
   display: flex; align-items: center; gap: 6px; text-align: left;
 }
-.ao-nav-btn:hover { background: #1a1a3a; color: #c0b4ff; border-color: #4a4a8a; }
-.ao-nav-btn.danger { border-color: #4a1a1a; color: #c06060; }
-.ao-nav-btn.danger:hover { background: #2a1010; border-color: #8a2a2a; color: #ff8080; }
+.ao-nav-btn:hover { background: var(--ao-panel-2); color: var(--ao-text); border-color: var(--ao-accent); }
+.ao-nav-btn.danger { border-color: #6a2a2a; color: #c06060; }
+.ao-nav-btn.danger:hover { background: color-mix(in srgb, #c04040 18%, transparent); border-color: #c04040; color: #ff8080; }
 .ao-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .ao-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 24px; border-bottom: 1px solid #1e1e44; background: #0d0d22; flex-shrink: 0;
+  padding: 12px 24px; border-bottom: 1px solid var(--ao-border-soft); background: var(--ao-header-bg); flex-shrink: 0; gap: 12px;
 }
-.ao-header-title { font-size: 15px; font-weight: 700; color: #c0b4ff; display: flex; align-items: center; gap: 8px; }
-.ao-header-sub { font-size: 11px; color: #5550aa; font-weight: 400; margin-left: 4px; }
+.ao-header-title { font-size: 15px; font-weight: 700; color: var(--ao-accent-soft); display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.ao-header-sub { font-size: 11px; color: var(--ao-text-faint); font-weight: 400; margin-left: 4px; }
+.ao-head-ctrls { display: flex; align-items: center; gap: 14px; margin-left: auto; flex-wrap: wrap; }
+.ao-head-group { display: flex; align-items: center; gap: 6px; }
+.ao-head-group-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--ao-text-faint); }
 .ao-header-close {
-  background: #1a1a38; border: 1px solid #2d2d5c; border-radius: 8px;
-  color: #8880cc; font-size: 13px; cursor: pointer; padding: 5px 12px;
+  background: var(--ao-panel); border: 1px solid var(--ao-border); border-radius: 8px;
+  color: var(--ao-text-dim); font-size: 13px; cursor: pointer; padding: 5px 12px;
   font-family: inherit; transition: background .1s, color .1s;
 }
-.ao-header-close:hover { background: #2a2a4e; color: #e0e0ff; }
+.ao-header-close:hover { background: var(--ao-panel-2); color: var(--ao-text); }
 .ao-content { flex: 1; overflow-y: auto; padding: 24px; }
 .ao-content::-webkit-scrollbar { width: 4px; }
-.ao-content::-webkit-scrollbar-thumb { background: #2d2d5c; border-radius: 4px; }
+.ao-content::-webkit-scrollbar-thumb { background: var(--ao-border); border-radius: 4px; }
 .ao-section { display: none; }
 .ao-section.active { display: block; }
 
 /* Controls */
 .aoc-section-heading {
   font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
-  color: #4a4a8a; padding: 16px 0 8px; margin-top: 8px;
+  color: var(--ao-heading); padding: 16px 0 8px; margin-top: 8px;
 }
 .aoc-section-heading:first-child { padding-top: 0; margin-top: 0; }
 .aoc-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 0; border-bottom: 1px solid #16163a; gap: 12px; min-height: 40px;
+  padding: 8px 0; border-bottom: 1px solid var(--ao-row-sep); gap: 12px; min-height: 40px;
 }
 .aoc-row:last-child { border-bottom: none; }
-.aoc-label { color: #b0b0d0; font-size: 12.5px; flex: 1; }
+.aoc-row-select { flex-wrap: wrap; }
+.aoc-label { color: var(--ao-text-dim); font-size: 12.5px; flex: 1; min-width: 140px; }
 .aoc-color-swatch {
-  width: 28px; height: 28px; border-radius: 7px; border: 2px solid #2d2d5c;
+  width: 28px; height: 28px; border-radius: 7px; border: 2px solid var(--ao-border);
   cursor: pointer; flex-shrink: 0; transition: border-color .12s, transform .12s;
 }
-.aoc-color-swatch:hover { border-color: #7c6af7; transform: scale(1.08); }
+.aoc-color-swatch:hover { border-color: var(--ao-accent); transform: scale(1.08); }
 .aoc-color-hex {
-  width: 74px; background: #0d0d22; border: 1px solid #2d2d5c; border-radius: 6px;
-  color: #c0b4ff; font-size: 11px; font-family: monospace;
+  width: 74px; background: var(--ao-panel); border: 1px solid var(--ao-border); border-radius: 6px;
+  color: var(--ao-accent-soft); font-size: 11px; font-family: monospace;
   padding: 5px 6px; text-align: center; flex-shrink: 0;
 }
-.aoc-color-hex:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
+.aoc-color-hex:focus { outline: 1px solid var(--ao-accent); border-color: var(--ao-accent); }
 .aoc-toggle {
-  width: 36px; height: 20px; border-radius: 10px; background: #2a2a4e;
+  width: 36px; height: 20px; border-radius: 10px; background: var(--ao-border);
   flex-shrink: 0; position: relative; cursor: pointer; transition: background .15s; outline: none;
 }
-.aoc-toggle.on { background: #7c6af7; }
+.aoc-toggle.on { background: var(--ao-accent); }
 .aoc-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 8px; background: #fff; transition: left .15s; }
 .aoc-toggle.on .aoc-thumb { left: 18px; }
 .aoc-row-slider { flex-direction: column; align-items: stretch; gap: 4px; }
 .aoc-slider-header { display: flex; justify-content: space-between; align-items: center; }
-.aoc-slider-val { color: #7c6af7; font-size: 12px; font-family: monospace; }
-.aoc-slider { width: 100%; height: 4px; cursor: pointer; -webkit-appearance: none; appearance: none; background: #2d2d5c; border-radius: 2px; }
-.aoc-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #7c6af7; cursor: pointer; box-shadow: 0 0 0 2px #0d0d22; }
-.aoc-select { background: #0d0d22; border: 1px solid #2d2d5c; border-radius: 6px; color: #c0b4ff; font-size: 12px; font-family: inherit; padding: 5px 8px; cursor: pointer; flex-shrink: 0; min-width: 180px; }
-.aoc-select:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
-.aoc-input { background: #0d0d22; border: 1px solid #2d2d5c; border-radius: 6px; color: #c0b4ff; font-size: 12px; font-family: inherit; padding: 5px 8px; flex: 1; min-width: 0; }
-.aoc-input:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
+.aoc-slider-val { color: var(--ao-accent); font-size: 12px; font-family: monospace; }
+.aoc-slider { width: 100%; height: 4px; cursor: pointer; -webkit-appearance: none; appearance: none; background: var(--ao-border); border-radius: 2px; }
+.aoc-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--ao-accent); cursor: pointer; box-shadow: 0 0 0 2px var(--ao-panel); }
+.aoc-input { background: var(--ao-panel); border: 1px solid var(--ao-border); border-radius: 6px; color: var(--ao-text); font-size: 12px; font-family: inherit; padding: 5px 8px; flex: 1; min-width: 0; }
+.aoc-input:focus { outline: 1px solid var(--ao-accent); border-color: var(--ao-accent); }
+
+/* Segmented control (replaces native <select>) */
+.aoc-seg { display: inline-flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.aoc-seg-btn {
+  padding: 5px 11px; border: 1px solid var(--ao-border); border-radius: 7px;
+  background: var(--ao-panel); color: var(--ao-text-muted); font-size: 12px; cursor: pointer;
+  font-family: inherit; transition: background .1s, color .1s, border-color .1s;
+}
+.aoc-seg-btn:hover { color: var(--ao-text); border-color: var(--ao-accent); }
+.aoc-seg-btn.active { background: var(--ao-accent); color: var(--ao-on-accent); border-color: var(--ao-accent); font-weight: 600; }
+.aoc-seg.mini .aoc-seg-btn { padding: 4px 9px; font-size: 11px; border-radius: 6px; }
 
 /* Quick settings */
 .ao-quick-swatch-big {
-  width: 64px; height: 64px; border-radius: 14px; border: 3px solid #2d2d5c;
+  width: 64px; height: 64px; border-radius: 14px; border: 3px solid var(--ao-border);
   cursor: pointer; flex-shrink: 0; transition: border-color .12s, transform .12s;
 }
-.ao-quick-swatch-big:hover { border-color: #7c6af7; transform: scale(1.04); }
+.ao-quick-swatch-big:hover { border-color: var(--ao-accent); transform: scale(1.04); }
 .ao-quick-preview { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
-.ao-quick-preview-dot { width: 24px; height: 24px; border-radius: 6px; border: 1px solid #2d2d5c; }
+.ao-quick-preview-dot { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--ao-border); }
 .ao-apply-btn {
-  padding: 10px 20px; background: #7c6af7; border: none; border-radius: 8px;
-  color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  padding: 10px 20px; background: var(--ao-accent); border: none; border-radius: 8px;
+  color: var(--ao-on-accent); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
   transition: background .1s, transform .1s;
 }
-.ao-apply-btn:hover { background: #9080ff; transform: translateY(-1px); }
+.ao-apply-btn:hover { background: var(--ao-accent-2); transform: translateY(-1px); }
 .ao-apply-btn:active { transform: translateY(0); }
 
 /* Badge */
 .ao-badge {
   display: inline-block; font-size: 9px; font-family: monospace;
-  background: #141430; border: 1px solid #252550; border-radius: 3px;
-  color: #5550aa; padding: 1px 4px; margin-left: 6px; vertical-align: middle;
+  background: var(--ao-badge-bg); border: 1px solid var(--ao-badge-border); border-radius: 3px;
+  color: var(--ao-text-faint); padding: 1px 4px; margin-left: 6px; vertical-align: middle;
 }
 
 /* Note */
 .ao-note {
-  font-size: 11.5px; color: #5550aa; line-height: 1.6; padding: 8px 12px;
-  background: #0d0d22; border: 1px solid #1e1e44; border-radius: 6px; margin-bottom: 12px;
+  font-size: 11.5px; color: var(--ao-text-faint); line-height: 1.6; padding: 8px 12px;
+  background: var(--ao-panel); border: 1px solid var(--ao-border-soft); border-radius: 6px; margin-bottom: 12px;
 }
 
 /* Space tabs */
 .ao-space-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
 .ao-space-tab {
-  padding: 5px 12px; border-radius: 6px; border: 1px solid #2d2d5c;
-  background: #0d0d22; color: #6660aa; font-size: 12px; cursor: pointer; font-family: inherit;
+  padding: 5px 12px; border-radius: 6px; border: 1px solid var(--ao-border);
+  background: var(--ao-panel); color: var(--ao-text-muted); font-size: 12px; cursor: pointer; font-family: inherit;
   transition: background .1s, color .1s, border-color .1s;
 }
-.ao-space-tab:hover { color: #c0b4ff; border-color: #4a4a8a; }
-.ao-space-tab.active { background: #1e1e3e; color: #c0b4ff; border-color: #7c6af7; }
+.ao-space-tab:hover { color: var(--ao-text); border-color: var(--ao-accent); }
+.ao-space-tab.active { background: var(--ao-accent); color: var(--ao-on-accent); border-color: var(--ao-accent); }
 .ao-space-content { display: none; }
 .ao-space-content.active { display: block; }
 
@@ -149,55 +206,56 @@ body {
 .ao-preset-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .ao-preset-item {
   display: flex; align-items: center; gap: 8px; padding: 10px 14px;
-  background: #0d0d22; border: 1px solid #1e1e44; border-radius: 8px; transition: border-color .1s;
+  background: var(--ao-panel); border: 1px solid var(--ao-border-soft); border-radius: 8px; transition: border-color .1s;
 }
-.ao-preset-item:hover { border-color: #2d2d5c; }
+.ao-preset-item:hover { border-color: var(--ao-border); }
 .ao-preset-swatch-row { display: flex; gap: 3px; flex-shrink: 0; }
 .ao-preset-swatch { width: 14px; height: 14px; border-radius: 3px; }
-.ao-preset-name-view { flex: 1; color: #c0b4ff; font-size: 12.5px; }
+.ao-preset-name-view { flex: 1; color: var(--ao-text); font-size: 12.5px; }
 .ao-preset-name-edit {
-  flex: 1; background: #141432; border: 1px solid #7c6af7; border-radius: 4px;
-  color: #c0b4ff; font-size: 12px; font-family: inherit; padding: 3px 7px; min-width: 0;
+  flex: 1; background: var(--ao-panel-2); border: 1px solid var(--ao-accent); border-radius: 4px;
+  color: var(--ao-text); font-size: 12px; font-family: inherit; padding: 3px 7px; min-width: 0;
 }
-.ao-preset-time { color: #5550aa; font-size: 11px; white-space: nowrap; }
+.ao-preset-time { color: var(--ao-text-faint); font-size: 11px; white-space: nowrap; }
 .ao-preset-btn {
   padding: 4px 10px; border-radius: 5px; font-size: 11px;
-  border: 1px solid #2d2d5c; background: #141432; color: #8880cc;
+  border: 1px solid var(--ao-border); background: var(--ao-panel-2); color: var(--ao-text-dim);
   cursor: pointer; font-family: inherit; transition: background .1s, color .1s;
 }
-.ao-preset-btn:hover { background: #1e1e44; color: #c0b4ff; }
-.ao-preset-btn.load { border-color: #7c6af7; color: #a89bff; }
-.ao-preset-btn.load:hover { background: #1e1e4a; }
-.ao-preset-btn.save { border-color: #3a6a3a; color: #80c080; }
-.ao-preset-btn.save:hover { background: #1a2a1a; }
-.ao-preset-btn.del:hover { border-color: #8a2a2a; color: #ff8080; }
+.ao-preset-btn:hover { background: var(--ao-panel); color: var(--ao-text); }
+.ao-preset-btn.load { border-color: var(--ao-accent); color: var(--ao-accent-soft); }
+.ao-preset-btn.save { border-color: #3a6a3a; color: #60a060; }
+.ao-preset-btn.del:hover { border-color: #c04040; color: #ff8080; }
 .ao-preset-save-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
 .ao-preset-name-in {
-  flex: 1; background: #0d0d22; border: 1px solid #2d2d5c; border-radius: 6px;
-  color: #c0b4ff; font-size: 12px; font-family: inherit; padding: 7px 10px;
+  flex: 1; background: var(--ao-panel); border: 1px solid var(--ao-border); border-radius: 6px;
+  color: var(--ao-text); font-size: 12px; font-family: inherit; padding: 7px 10px;
 }
-.ao-preset-name-in:focus { outline: 1px solid #7c6af7; border-color: #7c6af7; }
+.ao-preset-name-in:focus { outline: 1px solid var(--ao-accent); border-color: var(--ao-accent); }
 .ao-preset-save-btn {
-  padding: 7px 16px; background: #7c6af7; border: none; border-radius: 6px;
-  color: #fff; font-size: 12px; cursor: pointer; font-family: inherit; transition: background .1s;
+  padding: 7px 16px; background: var(--ao-accent); border: none; border-radius: 6px;
+  color: var(--ao-on-accent); font-size: 12px; cursor: pointer; font-family: inherit; transition: background .1s;
 }
-.ao-preset-save-btn:hover { background: #9080ff; }
+.ao-preset-save-btn:hover { background: var(--ao-accent-2); }
 
 /* About */
-.ao-about-card { padding: 16px; background: #0d0d22; border: 1px solid #1e1e44; border-radius: 10px; margin-bottom: 12px; }
-.ao-about-title { font-size: 18px; font-weight: 700; color: #a89bff; margin-bottom: 4px; }
-.ao-about-sub { font-size: 12px; color: #5550aa; }
+.ao-about-card { padding: 16px; background: var(--ao-panel); border: 1px solid var(--ao-border-soft); border-radius: 10px; margin-bottom: 12px; }
+.ao-about-title { font-size: 18px; font-weight: 700; color: var(--ao-accent-soft); margin-bottom: 4px; }
+.ao-about-sub { font-size: 12px; color: var(--ao-text-faint); }
 
 /* Status */
-.ao-status { font-size: 11px; height: 16px; color: #5550aa; padding: 2px 0; transition: color .2s; }
-.ao-status.ok  { color: #60c060; }
+.ao-status { font-size: 11px; height: 16px; color: var(--ao-text-faint); padding: 2px 0; transition: color .2s; }
+.ao-status.ok  { color: #4caf6a; }
 .ao-status.err { color: #c06060; }
 `;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+// Set by buildUI so palette applies can force open sections to rebuild from prefs.
+let invalidateSections: (() => void) | null = null;
+
 function status(el: HTMLElement, msg: string, cls: "ok" | "err" | ""): void {
-  el.textContent = msg; el.className = `ao-status ${cls}`;
+  el.textContent = tr(msg); el.className = `ao-status ${cls}`;
   if (cls) setTimeout(() => { el.textContent = ""; el.className = "ao-status"; }, 2400);
 }
 function note(doc: Document, text: string): HTMLElement {
@@ -439,17 +497,23 @@ function buildQuick(doc: Document, el: HTMLElement, st: HTMLElement): void {
   opVal.textContent = opSlider.value;
   opSlider.addEventListener("input", () => { opVal.textContent = opSlider.value; updatePreview(); });
   opWrap.appendChild(opHead); opWrap.appendChild(opSlider);
-  // mode
+  // mode (segmented)
   const modeWrap = doc.createElement("div"); modeWrap.style.cssText = "display:flex;align-items:center;gap:8px;";
-  const modeLbl = doc.createElement("span"); modeLbl.style.cssText = "font-size:12px;color:#b0b0d0;"; modeLbl.textContent = "Režim";
-  const modeSelect = doc.createElement("select"); modeSelect.className = "aoc-select"; modeSelect.style.minWidth = "110px";
+  const modeLbl = doc.createElement("span"); modeLbl.style.cssText = "font-size:12px;color:var(--ao-text-dim);"; modeLbl.textContent = "Režim";
+  const modeSeg = doc.createElement("div"); modeSeg.className = "aoc-seg";
+  const modeBtns: HTMLButtonElement[] = [];
   for (const [val, lbl] of [["dark", "🌙 Tmavý"], ["light", "☀️ Světlý"]]) {
-    const opt = doc.createElement("option"); opt.value = val; opt.textContent = lbl;
-    if ((val === "dark") === dark) opt.selected = true;
-    modeSelect.appendChild(opt);
+    const b = doc.createElement("button") as HTMLButtonElement; b.type = "button";
+    b.className = "aoc-seg-btn" + ((val === "dark") === dark ? " active" : "");
+    b.textContent = lbl; b.dataset.value = val;
+    b.addEventListener("click", () => {
+      dark = val === "dark";
+      for (const o of modeBtns) o.classList.toggle("active", o === b);
+      updatePreview();
+    });
+    modeSeg.appendChild(b); modeBtns.push(b);
   }
-  modeSelect.addEventListener("change", () => { dark = modeSelect.value === "dark"; updatePreview(); });
-  modeWrap.appendChild(modeLbl); modeWrap.appendChild(modeSelect);
+  modeWrap.appendChild(modeLbl); modeWrap.appendChild(modeSeg);
   ctrlRow.appendChild(opWrap); ctrlRow.appendChild(modeWrap);
   el.appendChild(ctrlRow);
 
@@ -485,8 +549,8 @@ function buildQuick(doc: Document, el: HTMLElement, st: HTMLElement): void {
       const t = doc.createElement("span"); t.textContent = label;
       s2.appendChild(c); s2.appendChild(t); return s2;
     };
-    swatchRow.appendChild(mk(`Akcent ${z.primaryColor}`, z.primaryColor));
-    swatchRow.appendChild(mk(`Schéma: ${z.colorScheme}`, z.colorScheme === "dark" ? "#222" : "#eee"));
+    swatchRow.appendChild(mk(`${tr("Akcent")} ${z.primaryColor}`, z.primaryColor));
+    swatchRow.appendChild(mk(`${tr("Schéma")}: ${z.colorScheme}`, z.colorScheme === "dark" ? "#222" : "#eee"));
   }
 
   renderDots();
@@ -508,6 +572,7 @@ function buildQuick(doc: Document, el: HTMLElement, st: HTMLElement): void {
     const z = generateZenTheme(colors, parseFloat(op) || 0.5, dark);
     const seed = rgbToHex(z.dominant);
     applyPalette(dark ? generateDarkPalette(seed) : generateLightPalette(seed));
+    invalidateSections?.();
     status(st, "✓ Motiv aplikován — gradient + paleta", "ok");
   });
 
@@ -517,6 +582,7 @@ function buildQuick(doc: Document, el: HTMLElement, st: HTMLElement): void {
   flatBtn.addEventListener("click", () => {
     setBoolPref("mod.aurora.gradient.enabled", false);
     applyPalette(dark ? generateDarkPalette(colors[0]) : generateLightPalette(colors[0]));
+    invalidateSections?.();
     status(st, "✓ Plochá paleta aplikována, gradient vypnut", "ok");
   });
 
@@ -580,12 +646,13 @@ function buildSpaces(doc: Document, el: HTMLElement, st: HTMLElement): void {
     // Reset button per space
     const resetBtn = doc.createElement("button"); resetBtn.className = "ao-nav-btn danger";
     resetBtn.style.cssText = "margin-top:12px;width:100%;";
-    resetBtn.textContent = `⟳ Reset Space ${i + 1} na výchozí`;
+    resetBtn.textContent = `⟳ Reset Space ${i + 1}`;
     const spaceIdx = i;
     resetBtn.addEventListener("click", () => {
       for (const sc of SPACE_COLORS)
         try { Services.prefs.clearUserPref(spaceColorPref(spaceIdx, sc.key)); } catch {}
-      status(st, `Space ${spaceIdx + 1} resetován`, "ok");
+      invalidateSections?.();
+      status(st, `Space ${spaceIdx + 1} ✓`, "ok");
     });
     content.appendChild(resetBtn);
     el.appendChild(content); contents.push(content);
@@ -900,7 +967,7 @@ function buildPresets(doc: Document, el: HTMLElement, st: HTMLElement): void {
       time.textContent = new Date(p.ts).toLocaleDateString("cs-CZ");
 
       const loadBtn = doc.createElement("button"); loadBtn.className = "ao-preset-btn load"; loadBtn.textContent = "Načíst";
-      loadBtn.addEventListener("click", () => { applyPresetData(p.json); status(st, `Načten "${p.name}"`, "ok"); });
+      loadBtn.addEventListener("click", () => { applyPresetData(p.json); invalidateSections?.(); status(st, "Profil načten", "ok"); });
 
       const renBtn = doc.createElement("button"); renBtn.className = "ao-preset-btn"; renBtn.textContent = "✎";
       renBtn.title = "Přejmenovat";
@@ -913,7 +980,7 @@ function buildPresets(doc: Document, el: HTMLElement, st: HTMLElement): void {
           const n = nameEdit.value.trim() || p.name;
           nameView.textContent = n;
           updatePresetMeta(p.idx, n, p.json);
-          status(st, `Přejmenován na "${n}"`, "ok");
+          status(st, "Přejmenováno", "ok");
         } else { nameEdit.focus(); nameEdit.select(); }
         renBtn.textContent = editing ? "✓" : "✎";
       });
@@ -921,7 +988,7 @@ function buildPresets(doc: Document, el: HTMLElement, st: HTMLElement): void {
 
       const overBtn = doc.createElement("button"); overBtn.className = "ao-preset-btn save"; overBtn.textContent = "↑ Přepsat";
       overBtn.addEventListener("click", () => {
-        updatePresetMeta(p.idx, p.name, capturePreset()); status(st, `Přepsán "${p.name}"`, "ok");
+        updatePresetMeta(p.idx, p.name, capturePreset()); status(st, "Profil přepsán", "ok");
       });
 
       const delBtn = doc.createElement("button"); delBtn.className = "ao-preset-btn del"; delBtn.textContent = "✕";
@@ -932,6 +999,7 @@ function buildPresets(doc: Document, el: HTMLElement, st: HTMLElement): void {
       item.appendChild(overBtn); item.appendChild(delBtn);
       listEl.appendChild(item);
     }
+    translateTree(listEl);
   }
   refresh();
 
@@ -943,7 +1011,7 @@ function buildPresets(doc: Document, el: HTMLElement, st: HTMLElement): void {
   saveBtn.addEventListener("click", () => {
     const n = nameIn.value.trim() || `Profil ${Date.now()}`;
     if (savePreset(n) < 0) { status(st, "Maximum 20 profilů dosaženo", "err"); return; }
-    nameIn.value = ""; refresh(); status(st, `Uložen "${n}"`, "ok");
+    nameIn.value = ""; refresh(); status(st, "Profil uložen", "ok");
   });
   saveRow.appendChild(nameIn); saveRow.appendChild(saveBtn); el.appendChild(saveRow);
 
@@ -1007,12 +1075,13 @@ function buildAbout(doc: Document, el: HTMLElement, st: HTMLElement): void {
   resetColorsBtn.style.cssText = "width:100%;margin-bottom:8px;";
   resetColorsBtn.textContent = "⟳  Reset barev na Aurora výchozí (fialový dark)";
   resetColorsBtn.addEventListener("click", () => {
-    if (!confirm("Opravdu resetovat všechny barvy na Aurora výchozí?")) return;
+    if (!confirm(tr("Opravdu resetovat všechny barvy na Aurora výchozí?"))) return;
     for (const [pref, val] of Object.entries(AURORA_COLOR_DEFAULTS))
       { try { Services.prefs.setStringPref(pref, val); } catch {} }
     for (let i = 0; i < SPACE_COUNT; i++)
       for (const sc of SPACE_COLORS)
         try { Services.prefs.clearUserPref(spaceColorPref(i, sc.key)); } catch {}
+    invalidateSections?.();
     status(st, "Barvy resetovány", "ok");
   });
   el.appendChild(resetColorsBtn);
@@ -1022,10 +1091,11 @@ function buildAbout(doc: Document, el: HTMLElement, st: HTMLElement): void {
   resetAllBtn.style.cssText = "width:100%;";
   resetAllBtn.textContent = "⟳  Reset VEŠKERÝCH nastavení Aurora";
   resetAllBtn.addEventListener("click", () => {
-    if (!confirm("Opravdu resetovat veškerá nastavení Aurora?")) return;
+    if (!confirm(tr("Opravdu resetovat veškerá nastavení Aurora?"))) return;
     for (const p of [...ALL_STRING_PREFS, ...ALL_BOOL_PREFS, ...Object.keys(AURORA_COLOR_DEFAULTS)])
       { try { Services.prefs.clearUserPref(p); } catch {} }
     for (let i = 1; i <= 20; i++) { try { Services.prefs.clearUserPref(`mod.aurora.preset.${i}`); } catch {} }
+    invalidateSections?.();
     status(st, "Veškerá nastavení resetována", "ok");
   });
   el.appendChild(resetAllBtn);
@@ -1062,8 +1132,41 @@ const SECTION_BUILDERS: Record<NavId, (doc: Document, el: HTMLElement, st: HTMLE
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
+// Mini segmented control for the header (appearance / language switches).
+function headSegment(
+  doc: Document, labelText: string,
+  options: { label: string; value: string }[], current: string,
+  onChange: (v: string) => void,
+): HTMLElement {
+  const group = doc.createElement("div"); group.className = "ao-head-group";
+  const lbl = doc.createElement("span"); lbl.className = "ao-head-group-lbl"; lbl.textContent = labelText;
+  const seg = doc.createElement("div"); seg.className = "aoc-seg mini";
+  const btns: HTMLButtonElement[] = [];
+  for (const opt of options) {
+    const b = doc.createElement("button") as HTMLButtonElement; b.type = "button";
+    b.className = "aoc-seg-btn" + (opt.value === current ? " active" : "");
+    b.textContent = opt.label;
+    b.addEventListener("click", () => {
+      for (const o of btns) o.classList.toggle("active", o === b);
+      onChange(opt.value);
+    });
+    seg.appendChild(b); btns.push(b);
+  }
+  group.appendChild(lbl); group.appendChild(seg);
+  return group;
+}
+
+function applyUiTheme(doc: Document): void {
+  const light = getPref("mod.aurora.ui.theme", "dark") === "light";
+  doc.body.classList.toggle("ao-light", light);
+}
+
 function buildUI(doc: Document): void {
-  const style = doc.createElement("style"); style.textContent = CSS; doc.head.appendChild(style);
+  if (!doc.getElementById("ao-style")) {
+    const style = doc.createElement("style"); style.id = "ao-style";
+    style.textContent = CSS; doc.head.appendChild(style);
+  }
+  applyUiTheme(doc);
   initColorPicker(doc);
 
   const nav = doc.createElement("div"); nav.className = "ao-nav";
@@ -1076,10 +1179,23 @@ function buildUI(doc: Document): void {
   const hTitle     = doc.createElement("div"); hTitle.className = "ao-header-title";
   const hSub       = doc.createElement("span"); hSub.className = "ao-header-sub";
   hTitle.appendChild(doc.createTextNode("✦ Aurora")); hTitle.appendChild(hSub);
+
+  const ctrls = doc.createElement("div"); ctrls.className = "ao-head-ctrls";
+  // Appearance (dark/light) — applies instantly
+  ctrls.appendChild(headSegment(doc, tr("Vzhled"),
+    [{ label: "🌙", value: "dark" }, { label: "☀️", value: "light" }],
+    getPref("mod.aurora.ui.theme", "dark"),
+    (v) => { setPref("mod.aurora.ui.theme", v); applyUiTheme(doc); }));
+  // Language (cs/en) — reloads to re-render in the chosen language
+  ctrls.appendChild(headSegment(doc, tr("Jazyk"),
+    [{ label: "CS", value: "cs" }, { label: "EN", value: "en" }],
+    getLang(),
+    (v) => { setLang(v as Lang); window.location.reload(); }));
   const closeBtn   = doc.createElement("button"); closeBtn.className = "ao-header-close";
-  closeBtn.textContent = "✕ Zavřít  (Esc)";
+  closeBtn.textContent = tr("✕ Zavřít  (Esc)");
   closeBtn.addEventListener("click", () => window.close());
-  header.appendChild(hTitle); header.appendChild(closeBtn);
+  ctrls.appendChild(closeBtn);
+  header.appendChild(hTitle); header.appendChild(ctrls);
 
   const content = doc.createElement("div"); content.className = "ao-content";
   const st = doc.createElement("div"); st.className = "ao-status"; st.style.marginBottom = "4px";
@@ -1098,6 +1214,7 @@ function buildUI(doc: Document): void {
     if (!sections[id]) {
       const sec = doc.createElement("div"); sec.className = "ao-section"; sec.dataset.section = id;
       SECTION_BUILDERS[id](doc, sec, st);
+      translateTree(sec);
       content.appendChild(sec);
       sections[id] = sec;
     }
@@ -1105,14 +1222,24 @@ function buildUI(doc: Document): void {
     navEls.find(n => n.dataset.id === id)?.classList.add("active");
     activeId = id;
     const item = NAV_ITEMS.find(n => n.id === id);
-    if (item) hSub.textContent = `— ${item.label}`;
+    if (item) hSub.textContent = `— ${tr(item.label)}`;
     content.scrollTop = 0;
   }
+
+  // Drop cached (stale) sections except the current one so they rebuild from
+  // prefs next time they're shown — used after Quick applies a palette/reset.
+  invalidateSections = () => {
+    for (const k of Object.keys(sections) as NavId[]) {
+      if (k === activeId) continue;
+      sections[k]?.remove();
+      delete sections[k];
+    }
+  };
 
   for (const item of NAV_ITEMS) {
     const ni = doc.createElement("div"); ni.className = "ao-nav-item"; ni.dataset.id = item.id;
     const ic = doc.createElement("span"); ic.className = "ao-nav-icon"; ic.textContent = item.icon;
-    const lb = doc.createElement("span"); lb.textContent = item.label;
+    const lb = doc.createElement("span"); lb.textContent = tr(item.label);
     ni.appendChild(ic); ni.appendChild(lb);
     ni.addEventListener("click", () => showSection(item.id as NavId));
     nav.appendChild(ni); navEls.push(ni);

@@ -102,6 +102,8 @@ export function buildSlider(
 
 // ── Select dropdown ───────────────────────────────────────────────────────────
 
+// Rendered as a segmented control (clickable chips) rather than a native
+// <select> — native dropdown popups are unreliable in a chrome:// window.
 export function buildSelect(
   doc: Document,
   container: HTMLElement,
@@ -114,18 +116,28 @@ export function buildSelect(
   const [wrap] = row(doc, label);
   wrap.classList.add("aoc-row-select");
 
-  const sel = doc.createElement("select") as HTMLSelectElement;
-  sel.className = "aoc-select";
-  const cur = getPref(pref, def);
-  for (const opt of options) {
-    const o = doc.createElement("option");
-    o.value = opt.value; o.textContent = opt.label;
-    if (opt.value === cur) o.selected = true;
-    sel.appendChild(o);
-  }
-  sel.addEventListener("change", () => { setPref(pref, sel.value); onChange?.(sel.value); });
+  const seg = doc.createElement("div");
+  seg.className = "aoc-seg";
+  let cur = getPref(pref, def);
 
-  wrap.appendChild(sel);
+  const btns: HTMLButtonElement[] = [];
+  for (const opt of options) {
+    const b = doc.createElement("button") as HTMLButtonElement;
+    b.type = "button";
+    b.className = "aoc-seg-btn" + (opt.value === cur ? " active" : "");
+    b.textContent = opt.label;
+    b.dataset.value = opt.value;
+    b.addEventListener("click", () => {
+      cur = opt.value;
+      setPref(pref, cur);
+      for (const o of btns) o.classList.toggle("active", o === b);
+      onChange?.(cur);
+    });
+    seg.appendChild(b);
+    btns.push(b);
+  }
+
+  wrap.appendChild(seg);
   container.appendChild(wrap);
 }
 
