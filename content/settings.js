@@ -822,6 +822,10 @@
     "Klikni na prvek v n\xE1hledu prohl\xED\u017Ee\u010De a uprav jeho barvy. Hrubou paletu nastav\xED\u0161 v sekci Rychl\xE9.": "Click an element in the browser preview to edit its colours. Set the rough palette in the Quick section.",
     "Gradient je aktivn\xED \u2014 pozad\xED toolbaru, sidebaru a obsahu \u0159\xEDd\xED gradient (sekce Rychl\xE9), proto na n\u011B ploch\xE9 barvy nemaj\xED vliv.": "Gradient is active \u2014 the toolbar, sidebar and content backgrounds are driven by the gradient (Quick section), so flat colours don't affect them.",
     "N\xE1hled prohl\xED\u017Ee\u010De": "Browser preview",
+    "Rozlo\u017Een\xED prohl\xED\u017Ee\u010De": "Browser layout",
+    "Jeden panel": "Single bar",
+    "V\xEDce panel\u016F": "Multiple bars",
+    "Sbalen\xFD": "Collapsed",
     "Z\xE1lo\u017Eky": "Tabs",
     "URL li\u0161ta": "URL bar",
     "Obsah": "Content",
@@ -1262,9 +1266,14 @@ body.ao-light {
 .ao-mock-tab:not(.active):hover { background: var(--m-tab-hover); }
 .ao-mock-tab .x { opacity: .55; font-size: 10px; }
 .ao-mock-tab .x:hover { color: var(--m-close); opacity: 1; }
-.ao-mock-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.ao-mock-toolbar { background: var(--m-toolbar-bg); padding: 7px 9px; display: flex; gap: 7px; align-items: center; }
-.ao-mock-btn { width: 22px; height: 22px; border-radius: 6px; background: var(--m-btn-bg); }
+.ao-mock.has-topbar { flex-direction: column; }
+.ao-mock-topbar { background: var(--m-toolbar-bg); padding: 7px 9px; display: flex; gap: 7px; align-items: center; }
+.ao-mock-topbar .ao-mock-urlbar { flex: 1; }
+.ao-mock-body { flex: 1; display: flex; min-height: 0; }
+.ao-mock-tbrow { display: flex; gap: 6px; background: var(--m-toolbar-bg); padding: 5px 6px; border-radius: 6px; }
+.ao-mock-sidebar.collapsed { width: 36px; padding: 9px 5px; }
+.ao-mock-sidebar.collapsed .ao-mock-tab { height: 16px; padding: 0; }
+.ao-mock-btn { width: 22px; height: 22px; border-radius: 6px; background: var(--m-btn-bg); flex-shrink: 0; }
 .ao-mock-btn:hover { background: var(--m-btn-hover); }
 .ao-mock-content { flex: 1; background: var(--m-browser-bg); color: var(--m-panel-text); padding: 14px; position: relative; overflow: hidden; line-height: 1.5; }
 .ao-mock-sel { background: var(--m-selection); border-radius: 2px; padding: 0 2px; }
@@ -1751,28 +1760,35 @@ body.ao-light {
       { label: "Ohrani\u010Den\xED", pref: "mod.aurora.color.border", def: "#3a3a5c" }
     ] }
   ];
-  var MOCK_HTML = `
-<div class="ao-mock-strip" data-el="strip">
-  <div class="ao-mock-dot active"></div><div class="ao-mock-dot"></div><div class="ao-mock-dot"></div>
-</div>
-<div class="ao-mock-sidebar" data-el="sidebar">
-  <div class="ao-mock-urlbar" data-el="urlbar">example.com</div>
-  <div class="ao-mock-tabs">
-    <div class="ao-mock-tab active" data-el="tab"><span>Z\xE1lo\u017Eka</span><span class="x">\u2715</span></div>
-    <div class="ao-mock-tab" data-el="tab"><span>Z\xE1lo\u017Eka</span><span class="x">\u2715</span></div>
-    <div class="ao-mock-tab" data-el="tab"><span>Z\xE1lo\u017Eka</span><span class="x">\u2715</span></div>
-  </div>
-</div>
-<div class="ao-mock-main">
-  <div class="ao-mock-toolbar" data-el="toolbar">
-    <div class="ao-mock-btn"></div><div class="ao-mock-btn"></div><div class="ao-mock-btn"></div>
-  </div>
-  <div class="ao-mock-content" data-el="content">
-    <div>Lorem ipsum <span class="ao-mock-sel">dolor sit</span> amet.</div>
-    <div class="ao-mock-menu" data-el="menu"><div class="mi">Polo\u017Eka</div><div class="mi">Polo\u017Eka</div><div class="mi">Polo\u017Eka</div></div>
-    <div class="ao-mock-scroll"></div>
-  </div>
+  var MOCK_DOTS = `<div class="ao-mock-dot active"></div><div class="ao-mock-dot"></div><div class="ao-mock-dot"></div>`;
+  var MOCK_URLBAR = `<div class="ao-mock-urlbar" data-el="urlbar">example.com</div>`;
+  var MOCK_BTNS = `<div class="ao-mock-btn"></div><div class="ao-mock-btn"></div><div class="ao-mock-btn"></div>`;
+  var MOCK_CONTENT = `<div class="ao-mock-content" data-el="content">
+  <div>Lorem ipsum <span class="ao-mock-sel">dolor sit</span> amet.</div>
+  <div class="ao-mock-menu" data-el="menu"><div class="mi">Polo\u017Eka</div><div class="mi">Polo\u017Eka</div><div class="mi">Polo\u017Eka</div></div>
+  <div class="ao-mock-scroll"></div>
 </div>`;
+  function mockTabs(collapsed) {
+    const tab = (active) => collapsed ? `<div class="ao-mock-tab${active ? " active" : ""}" data-el="tab"></div>` : `<div class="ao-mock-tab${active ? " active" : ""}" data-el="tab"><span>Z\xE1lo\u017Eka</span><span class="x">\u2715</span></div>`;
+    return `<div class="ao-mock-tabs">${tab(true)}${tab(false)}${tab(false)}</div>`;
+  }
+  function mockHtml(mode) {
+    const strip = `<div class="ao-mock-strip" data-el="strip">${MOCK_DOTS}</div>`;
+    if (mode === "single") {
+      return `${strip}
+      <div class="ao-mock-sidebar" data-el="sidebar">
+        <div class="ao-mock-tbrow" data-el="toolbar">${MOCK_BTNS}</div>
+        ${MOCK_URLBAR}${mockTabs(false)}
+      </div>${MOCK_CONTENT}`;
+    }
+    const collapsed = mode === "collapsed";
+    return `
+    <div class="ao-mock-topbar" data-el="toolbar">${MOCK_URLBAR}${MOCK_BTNS}</div>
+    <div class="ao-mock-body">${strip}
+      <div class="ao-mock-sidebar${collapsed ? " collapsed" : ""}" data-el="sidebar">${mockTabs(collapsed)}</div>
+      ${MOCK_CONTENT}
+    </div>`;
+  }
   function paintMock(root) {
     for (const m of MOCK_VARS) root.style.setProperty(m.v, getPref(m.pref, m.def));
     if (getBoolPref("mod.aurora.gradient.enabled", false)) {
@@ -1791,12 +1807,24 @@ body.ao-light {
     el.appendChild(note(doc, "Klikni na prvek v n\xE1hledu prohl\xED\u017Ee\u010De a uprav jeho barvy. Hrubou paletu nastav\xED\u0161 v sekci Rychl\xE9."));
     if (getBoolPref("mod.aurora.gradient.enabled", false))
       el.appendChild(note(doc, "Gradient je aktivn\xED \u2014 pozad\xED toolbaru, sidebaru a obsahu \u0159\xEDd\xED gradient (sekce Rychl\xE9), proto na n\u011B ploch\xE9 barvy nemaj\xED vliv."));
-    buildSectionHeading(doc, el, "N\xE1hled prohl\xED\u017Ee\u010De");
     const mock = doc.createElement("div");
-    mock.className = "ao-mock";
-    paintMock(mock);
-    mock.innerHTML = MOCK_HTML;
+    function renderMock() {
+      const mode = getPref("mod.aurora.layout.toolbar_mode", "multi");
+      mock.className = "ao-mock" + (mode === "single" ? " single" : " has-topbar");
+      mock.innerHTML = mockHtml(mode);
+      paintMock(mock);
+    }
+    buildSelect(doc, el, "Rozlo\u017Een\xED prohl\xED\u017Ee\u010De", "mod.aurora.layout.toolbar_mode", [
+      { label: "Jeden panel", value: "single" },
+      { label: "V\xEDce panel\u016F", value: "multi" },
+      { label: "Sbalen\xFD", value: "collapsed" }
+    ], "multi", () => {
+      renderMock();
+      invalidateSections?.();
+    });
+    buildSectionHeading(doc, el, "N\xE1hled prohl\xED\u017Ee\u010De");
     el.appendChild(mock);
+    renderMock();
     const extra = doc.createElement("div");
     extra.className = "ao-mock-extra";
     el.appendChild(extra);
@@ -2009,7 +2037,7 @@ body.ao-light {
       { label: "V\xEDce panel\u016F (v\xFDchoz\xED)", value: "multi" },
       { label: "Jeden panel (bez z\xE1lo\u017Ekov\xE9 li\u0161ty)", value: "single" },
       { label: "Sbalen\xFD (auto-hide)", value: "collapsed" }
-    ], "multi");
+    ], "multi", () => invalidateSections?.());
     buildSectionHeading(doc, el, "Hitbox horn\xED li\u0161ty (p\u0159i auto-hide)");
     el.appendChild(note(doc, "Zv\u011Bt\u0161\xED neviditelnou oblast naho\u0159e, kter\xE1 aktivuje vysunut\xED li\u0161ty."));
     buildSlider(doc, el, "V\xFD\u0161ka hitboxu", "mod.aurora.layout.hitbox_height", 4, 40, 2, "px", 4);

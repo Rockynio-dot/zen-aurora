@@ -91,6 +91,10 @@ const EN: Record<string, string> = {
   "Gradient je aktivní — pozadí toolbaru, sidebaru a obsahu řídí gradient (sekce Rychlé), proto na ně ploché barvy nemají vliv.":
     "Gradient is active — the toolbar, sidebar and content backgrounds are driven by the gradient (Quick section), so flat colours don't affect them.",
   "Náhled prohlížeče": "Browser preview",
+  "Rozložení prohlížeče": "Browser layout",
+  "Jeden panel": "Single bar",
+  "Více panelů": "Multiple bars",
+  "Sbalený": "Collapsed",
   "Záložky": "Tabs",
   "URL lišta": "URL bar",
   "Obsah": "Content",

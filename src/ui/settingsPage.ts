@@ -272,9 +272,14 @@ body.ao-light {
 .ao-mock-tab:not(.active):hover { background: var(--m-tab-hover); }
 .ao-mock-tab .x { opacity: .55; font-size: 10px; }
 .ao-mock-tab .x:hover { color: var(--m-close); opacity: 1; }
-.ao-mock-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.ao-mock-toolbar { background: var(--m-toolbar-bg); padding: 7px 9px; display: flex; gap: 7px; align-items: center; }
-.ao-mock-btn { width: 22px; height: 22px; border-radius: 6px; background: var(--m-btn-bg); }
+.ao-mock.has-topbar { flex-direction: column; }
+.ao-mock-topbar { background: var(--m-toolbar-bg); padding: 7px 9px; display: flex; gap: 7px; align-items: center; }
+.ao-mock-topbar .ao-mock-urlbar { flex: 1; }
+.ao-mock-body { flex: 1; display: flex; min-height: 0; }
+.ao-mock-tbrow { display: flex; gap: 6px; background: var(--m-toolbar-bg); padding: 5px 6px; border-radius: 6px; }
+.ao-mock-sidebar.collapsed { width: 36px; padding: 9px 5px; }
+.ao-mock-sidebar.collapsed .ao-mock-tab { height: 16px; padding: 0; }
+.ao-mock-btn { width: 22px; height: 22px; border-radius: 6px; background: var(--m-btn-bg); flex-shrink: 0; }
 .ao-mock-btn:hover { background: var(--m-btn-hover); }
 .ao-mock-content { flex: 1; background: var(--m-browser-bg); color: var(--m-panel-text); padding: 14px; position: relative; overflow: hidden; line-height: 1.5; }
 .ao-mock-sel { background: var(--m-selection); border-radius: 2px; padding: 0 2px; }
@@ -712,28 +717,43 @@ const MOCK_ELS: MockElDef[] = [
   ]},
 ];
 
-const MOCK_HTML = `
-<div class="ao-mock-strip" data-el="strip">
-  <div class="ao-mock-dot active"></div><div class="ao-mock-dot"></div><div class="ao-mock-dot"></div>
-</div>
-<div class="ao-mock-sidebar" data-el="sidebar">
-  <div class="ao-mock-urlbar" data-el="urlbar">example.com</div>
-  <div class="ao-mock-tabs">
-    <div class="ao-mock-tab active" data-el="tab"><span>Záložka</span><span class="x">✕</span></div>
-    <div class="ao-mock-tab" data-el="tab"><span>Záložka</span><span class="x">✕</span></div>
-    <div class="ao-mock-tab" data-el="tab"><span>Záložka</span><span class="x">✕</span></div>
-  </div>
-</div>
-<div class="ao-mock-main">
-  <div class="ao-mock-toolbar" data-el="toolbar">
-    <div class="ao-mock-btn"></div><div class="ao-mock-btn"></div><div class="ao-mock-btn"></div>
-  </div>
-  <div class="ao-mock-content" data-el="content">
-    <div>Lorem ipsum <span class="ao-mock-sel">dolor sit</span> amet.</div>
-    <div class="ao-mock-menu" data-el="menu"><div class="mi">Položka</div><div class="mi">Položka</div><div class="mi">Položka</div></div>
-    <div class="ao-mock-scroll"></div>
-  </div>
+const MOCK_DOTS  = `<div class="ao-mock-dot active"></div><div class="ao-mock-dot"></div><div class="ao-mock-dot"></div>`;
+const MOCK_URLBAR = `<div class="ao-mock-urlbar" data-el="urlbar">example.com</div>`;
+const MOCK_BTNS  = `<div class="ao-mock-btn"></div><div class="ao-mock-btn"></div><div class="ao-mock-btn"></div>`;
+const MOCK_CONTENT = `<div class="ao-mock-content" data-el="content">
+  <div>Lorem ipsum <span class="ao-mock-sel">dolor sit</span> amet.</div>
+  <div class="ao-mock-menu" data-el="menu"><div class="mi">Položka</div><div class="mi">Položka</div><div class="mi">Položka</div></div>
+  <div class="ao-mock-scroll"></div>
 </div>`;
+
+function mockTabs(collapsed: boolean): string {
+  const tab = (active: boolean) => collapsed
+    ? `<div class="ao-mock-tab${active ? " active" : ""}" data-el="tab"></div>`
+    : `<div class="ao-mock-tab${active ? " active" : ""}" data-el="tab"><span>Záložka</span><span class="x">✕</span></div>`;
+  return `<div class="ao-mock-tabs">${tab(true)}${tab(false)}${tab(false)}</div>`;
+}
+
+// Build the mockup markup for the active layout mode (mirrors Zen's
+// "Uspořádání prohlížeče": single / multi / collapsed toolbar).
+function mockHtml(mode: string): string {
+  const strip = `<div class="ao-mock-strip" data-el="strip">${MOCK_DOTS}</div>`;
+  if (mode === "single") {
+    // Jeden panel: buttons + urlbar live inside the sidebar, no top toolbar.
+    return `${strip}
+      <div class="ao-mock-sidebar" data-el="sidebar">
+        <div class="ao-mock-tbrow" data-el="toolbar">${MOCK_BTNS}</div>
+        ${MOCK_URLBAR}${mockTabs(false)}
+      </div>${MOCK_CONTENT}`;
+  }
+  // Více panelů / Sbalený: full-width top toolbar (urlbar + buttons), body below.
+  const collapsed = mode === "collapsed";
+  return `
+    <div class="ao-mock-topbar" data-el="toolbar">${MOCK_URLBAR}${MOCK_BTNS}</div>
+    <div class="ao-mock-body">${strip}
+      <div class="ao-mock-sidebar${collapsed ? " collapsed" : ""}" data-el="sidebar">${mockTabs(collapsed)}</div>
+      ${MOCK_CONTENT}
+    </div>`;
+}
 
 function paintMock(root: HTMLElement): void {
   for (const m of MOCK_VARS) root.style.setProperty(m.v, getPref(m.pref, m.def));
@@ -760,12 +780,26 @@ function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
   el.appendChild(note(doc, "Klikni na prvek v náhledu prohlížeče a uprav jeho barvy. Hrubou paletu nastavíš v sekci Rychlé."));
   if (getBoolPref("mod.aurora.gradient.enabled", false))
     el.appendChild(note(doc, "Gradient je aktivní — pozadí toolbaru, sidebaru a obsahu řídí gradient (sekce Rychlé), proto na ně ploché barvy nemají vliv."));
-  buildSectionHeading(doc, el, "Náhled prohlížeče");
 
-  const mock = doc.createElement("div"); mock.className = "ao-mock";
-  paintMock(mock);
-  mock.innerHTML = MOCK_HTML;
+  const mock = doc.createElement("div");
+  function renderMock(): void {
+    const mode = getPref("mod.aurora.layout.toolbar_mode", "multi");
+    mock.className = "ao-mock" + (mode === "single" ? " single" : " has-topbar");
+    mock.innerHTML = mockHtml(mode);
+    paintMock(mock);
+  }
+
+  // Layout switch — same pref as Sizing › Toolbar mode; mirrors Zen's
+  // "Uspořádání prohlížeče" and re-renders the preview live.
+  buildSelect(doc, el, "Rozložení prohlížeče", "mod.aurora.layout.toolbar_mode", [
+    { label: "Jeden panel", value: "single" },
+    { label: "Více panelů", value: "multi" },
+    { label: "Sbalený",     value: "collapsed" },
+  ], "multi", () => { renderMock(); invalidateSections?.(); });
+
+  buildSectionHeading(doc, el, "Náhled prohlížeče");
   el.appendChild(mock);
+  renderMock();
 
   const extra = doc.createElement("div"); extra.className = "ao-mock-extra";
   el.appendChild(extra);
@@ -959,7 +993,7 @@ function buildLayout(doc: Document, el: HTMLElement, _st: HTMLElement): void {
     { label: "Více panelů (výchozí)",    value: "multi"     },
     { label: "Jeden panel (bez záložkové lišty)", value: "single" },
     { label: "Sbalený (auto-hide)",      value: "collapsed" },
-  ], "multi");
+  ], "multi", () => invalidateSections?.());
   buildSectionHeading(doc, el, "Hitbox horní lišty (při auto-hide)");
   el.appendChild(note(doc, "Zvětší neviditelnou oblast nahoře, která aktivuje vysunutí lišty."));
   buildSlider(doc, el, "Výška hitboxu", "mod.aurora.layout.hitbox_height", 4, 40, 2, "px", 4);
