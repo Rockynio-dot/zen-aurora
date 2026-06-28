@@ -249,6 +249,53 @@ body.ao-light {
 .ao-status { font-size: 11px; height: 16px; color: var(--ao-text-faint); padding: 2px 0; transition: color .2s; }
 .ao-status.ok  { color: #4caf6a; }
 .ao-status.err { color: #c06060; }
+
+/* Interactive Zen mockup (WYSIWYG colour editor) */
+.ao-mock {
+  position: relative; display: flex; height: 300px; margin: 4px 0 8px;
+  border: 1px solid var(--ao-border); border-radius: 12px; overflow: hidden;
+  background: var(--m-browser-bg); font-size: 11px; user-select: none;
+  box-shadow: 0 6px 24px #00000044;
+}
+.ao-mock [data-el] { outline: 2px solid transparent; outline-offset: -2px; transition: outline-color .1s; cursor: pointer; }
+.ao-mock [data-el]:hover { outline-color: var(--m-accent); position: relative; z-index: 3; }
+/* only highlight the innermost element under the cursor */
+.ao-mock [data-el]:has([data-el]:hover) { outline-color: transparent; }
+.ao-mock-strip { width: 30px; flex-shrink: 0; background: var(--m-strip-bg); display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 12px 0; }
+.ao-mock-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--m-dot); }
+.ao-mock-dot.active { background: var(--m-dot-active); }
+.ao-mock-sidebar { width: 154px; flex-shrink: 0; background: var(--m-sidebar-bg); display: flex; flex-direction: column; gap: 8px; padding: 9px; }
+.ao-mock-urlbar { background: var(--m-urlbar-bg); border: 1px solid var(--m-urlbar-border); border-radius: 7px; color: var(--m-urlbar-text); padding: 5px 8px; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ao-mock-tabs { display: flex; flex-direction: column; gap: 4px; }
+.ao-mock-tab { background: var(--m-tab-inactive); color: var(--m-tab-text); border-radius: 6px; padding: 5px 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.ao-mock-tab.active { background: var(--m-tab-active); }
+.ao-mock-tab:not(.active):hover { background: var(--m-tab-hover); }
+.ao-mock-tab .x { opacity: .55; font-size: 10px; }
+.ao-mock-tab .x:hover { color: var(--m-close); opacity: 1; }
+.ao-mock-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.ao-mock-toolbar { background: var(--m-toolbar-bg); padding: 7px 9px; display: flex; gap: 7px; align-items: center; }
+.ao-mock-btn { width: 22px; height: 22px; border-radius: 6px; background: var(--m-btn-bg); }
+.ao-mock-btn:hover { background: var(--m-btn-hover); }
+.ao-mock-content { flex: 1; background: var(--m-browser-bg); color: var(--m-panel-text); padding: 14px; position: relative; overflow: hidden; line-height: 1.5; }
+.ao-mock-sel { background: var(--m-selection); border-radius: 2px; padding: 0 2px; }
+.ao-mock-menu { position: absolute; top: 26px; right: 22px; width: 116px; background: var(--m-panel-bg); border: 1px solid var(--m-border); border-radius: 8px; padding: 4px; color: var(--m-panel-text); }
+.ao-mock-menu .mi { padding: 4px 7px; border-radius: 4px; font-size: 10.5px; }
+.ao-mock-menu .mi:hover { background: var(--m-btn-hover); }
+.ao-mock-scroll { position: absolute; right: 3px; top: 10px; bottom: 10px; width: 5px; border-radius: 3px; background: var(--m-scrollbar); }
+.ao-mock-extra { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.ao-mock-chip { padding: 5px 11px; border: 1px solid var(--ao-border); border-radius: 7px; background: var(--ao-panel); color: var(--ao-text-dim); font-size: 12px; cursor: pointer; font-family: inherit; transition: background .1s, color .1s, border-color .1s; }
+.ao-mock-chip:hover { color: var(--ao-text); border-color: var(--ao-accent); }
+
+/* Mockup element inspector popover */
+.ao-mock-pop {
+  position: fixed; z-index: 50; width: 234px; background: var(--ao-panel);
+  border: 1px solid var(--ao-border); border-radius: 10px; box-shadow: 0 10px 34px #00000077;
+  padding: 10px;
+}
+.ao-mock-pop-h { font-size: 12.5px; font-weight: 700; color: var(--ao-text); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ao-mock-pop-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--ao-row-sep); }
+.ao-mock-pop-row:last-child { border-bottom: none; }
+.ao-mock-pop-row > span { color: var(--ao-text-dim); font-size: 12px; }
 `;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -589,44 +636,175 @@ function buildQuick(doc: Document, el: HTMLElement, st: HTMLElement): void {
   el.appendChild(btnRow);
 }
 
-// ── 2. Barvy (pokročilé) ──────────────────────────────────────────────────────
+// ── 2. Barvy — interaktivní mockup Zenu (WYSIWYG) ─────────────────────────────
+
+interface MockProp { label: string; pref: string; def: string; }
+interface MockElDef { id: string; label: string; selector: string; props: MockProp[]; }
+
+// Mirror of colour prefs → mockup CSS variables (keeps the preview live).
+const MOCK_VARS: { pref: string; def: string; v: string }[] = [
+  { pref: "mod.aurora.color.browser_bg",          def: "#0f0f1a",   v: "--m-browser-bg" },
+  { pref: "mod.aurora.color.toolbar_bg",          def: "#16162a",   v: "--m-toolbar-bg" },
+  { pref: "mod.aurora.color.panel_bg",            def: "#1a1a2e",   v: "--m-panel-bg" },
+  { pref: "mod.aurora.color.sidebar_bg",          def: "#12122a",   v: "--m-sidebar-bg" },
+  { pref: "mod.aurora.color.workspace_strip_bg",  def: "#0d0d1e",   v: "--m-strip-bg" },
+  { pref: "mod.aurora.color.workspace_dot",       def: "#3a3a6c",   v: "--m-dot" },
+  { pref: "mod.aurora.color.workspace_dot_active",def: "#7c6af7",   v: "--m-dot-active" },
+  { pref: "mod.aurora.color.tab_active_bg",       def: "#2a2a4e",   v: "--m-tab-active" },
+  { pref: "mod.aurora.color.tab_inactive_bg",     def: "#1a1a2e",   v: "--m-tab-inactive" },
+  { pref: "mod.aurora.color.tab_hover_bg",        def: "#252550",   v: "--m-tab-hover" },
+  { pref: "mod.aurora.color.tab_text",            def: "#c0c0e0",   v: "--m-tab-text" },
+  { pref: "mod.aurora.color.tab_close_hover",     def: "#ff6b6b",   v: "--m-close" },
+  { pref: "mod.aurora.color.panel_text",          def: "#e0e0ff",   v: "--m-panel-text" },
+  { pref: "mod.aurora.color.button_bg",           def: "#2a2a4e",   v: "--m-btn-bg" },
+  { pref: "mod.aurora.color.button_hover",        def: "#3a3a6e",   v: "--m-btn-hover" },
+  { pref: "mod.aurora.color.urlbar_bg",           def: "#1e1e3a",   v: "--m-urlbar-bg" },
+  { pref: "mod.aurora.color.urlbar_border",       def: "#3a3a6c",   v: "--m-urlbar-border" },
+  { pref: "mod.aurora.color.urlbar_text",         def: "#e0e0ff",   v: "--m-urlbar-text" },
+  { pref: "mod.aurora.color.accent",              def: "#7c6af7",   v: "--m-accent" },
+  { pref: "mod.aurora.color.border",              def: "#3a3a5c",   v: "--m-border" },
+  { pref: "mod.aurora.color.selection_bg",        def: "#7c6af740", v: "--m-selection" },
+  { pref: "mod.aurora.color.scrollbar",           def: "#3a3a6c",   v: "--m-scrollbar" },
+];
+
+const MOCK_ELS: MockElDef[] = [
+  { id: "strip", label: "Workspace strip", selector: "#zen-appcontent-navbar", props: [
+    { label: "Pozadí stripu", pref: "mod.aurora.color.workspace_strip_bg",   def: "#0d0d1e" },
+    { label: "Dot neaktivní", pref: "mod.aurora.color.workspace_dot",         def: "#3a3a6c" },
+    { label: "Dot aktivní",   pref: "mod.aurora.color.workspace_dot_active",  def: "#7c6af7" },
+  ]},
+  { id: "sidebar", label: "Sidebar", selector: "#sidebar-box", props: [
+    { label: "Pozadí sidebaru", pref: "mod.aurora.color.sidebar_bg", def: "#12122a" },
+  ]},
+  { id: "tab", label: "Záložky", selector: ".tabbrowser-tab", props: [
+    { label: "Aktivní záložka",   pref: "mod.aurora.color.tab_active_bg",   def: "#2a2a4e" },
+    { label: "Neaktivní záložka", pref: "mod.aurora.color.tab_inactive_bg", def: "#1a1a2e" },
+    { label: "Hover záložky",     pref: "mod.aurora.color.tab_hover_bg",     def: "#252550" },
+    { label: "Text záložek",      pref: "mod.aurora.color.tab_text",         def: "#c0c0e0" },
+    { label: "✕ tlačítko hover",  pref: "mod.aurora.color.tab_close_hover",  def: "#ff6b6b" },
+  ]},
+  { id: "urlbar", label: "URL lišta", selector: "#urlbar", props: [
+    { label: "Pozadí",           pref: "mod.aurora.color.urlbar_bg",     def: "#1e1e3a" },
+    { label: "Ohraničení idle",  pref: "mod.aurora.color.urlbar_border", def: "#3a3a6c" },
+    { label: "Ohraničení focus", pref: "mod.aurora.color.urlbar_focus",  def: "#7c6af7" },
+    { label: "Text URL lišty",   pref: "mod.aurora.color.urlbar_text",   def: "#e0e0ff" },
+  ]},
+  { id: "toolbar", label: "Toolbar", selector: "#nav-bar · #navigator-toolbox", props: [
+    { label: "Pozadí toolbaru",  pref: "mod.aurora.color.toolbar_bg",   def: "#16162a" },
+    { label: "Pozadí panelů",    pref: "mod.aurora.color.panel_bg",     def: "#1a1a2e" },
+    { label: "Tlačítka aktivní", pref: "mod.aurora.color.button_bg",    def: "#2a2a4e" },
+    { label: "Tlačítka hover",   pref: "mod.aurora.color.button_hover", def: "#3a3a6e" },
+    { label: "Text panelů",      pref: "mod.aurora.color.panel_text",   def: "#e0e0ff" },
+  ]},
+  { id: "content", label: "Obsah", selector: "#browser", props: [
+    { label: "Pozadí obsahu", pref: "mod.aurora.color.browser_bg",   def: "#0f0f1a" },
+    { label: "Výběr textu",   pref: "mod.aurora.color.selection_bg", def: "#7c6af740" },
+    { label: "Scrollbar",     pref: "mod.aurora.color.scrollbar",    def: "#3a3a6c" },
+  ]},
+  { id: "menu", label: "Menu", selector: "menupopup", props: [
+    { label: "Pozadí panelů",  pref: "mod.aurora.color.panel_bg",     def: "#1a1a2e" },
+    { label: "Tlačítka hover", pref: "mod.aurora.color.button_hover", def: "#3a3a6e" },
+    { label: "Text panelů",    pref: "mod.aurora.color.panel_text",   def: "#e0e0ff" },
+  ]},
+  { id: "global", label: "Globální", selector: ":root", props: [
+    { label: "Akcent",     pref: "mod.aurora.color.accent", def: "#7c6af7" },
+    { label: "Ohraničení", pref: "mod.aurora.color.border", def: "#3a3a5c" },
+  ]},
+];
+
+const MOCK_HTML = `
+<div class="ao-mock-strip" data-el="strip">
+  <div class="ao-mock-dot active"></div><div class="ao-mock-dot"></div><div class="ao-mock-dot"></div>
+</div>
+<div class="ao-mock-sidebar" data-el="sidebar">
+  <div class="ao-mock-urlbar" data-el="urlbar">example.com</div>
+  <div class="ao-mock-tabs">
+    <div class="ao-mock-tab active" data-el="tab"><span>Záložka</span><span class="x">✕</span></div>
+    <div class="ao-mock-tab" data-el="tab"><span>Záložka</span><span class="x">✕</span></div>
+    <div class="ao-mock-tab" data-el="tab"><span>Záložka</span><span class="x">✕</span></div>
+  </div>
+</div>
+<div class="ao-mock-main">
+  <div class="ao-mock-toolbar" data-el="toolbar">
+    <div class="ao-mock-btn"></div><div class="ao-mock-btn"></div><div class="ao-mock-btn"></div>
+  </div>
+  <div class="ao-mock-content" data-el="content">
+    <div>Lorem ipsum <span class="ao-mock-sel">dolor sit</span> amet.</div>
+    <div class="ao-mock-menu" data-el="menu"><div class="mi">Položka</div><div class="mi">Položka</div><div class="mi">Položka</div></div>
+    <div class="ao-mock-scroll"></div>
+  </div>
+</div>`;
+
+function paintMock(root: HTMLElement): void {
+  for (const m of MOCK_VARS) root.style.setProperty(m.v, getPref(m.pref, m.def));
+}
 
 function buildColors(doc: Document, el: HTMLElement, st: HTMLElement): void {
-  buildSectionHeading(doc, el, "Akcent & Ohraničení");
-  colorRow(doc, el, "Akcent", "mod.aurora.color.accent", "#7c6af7", st, "--zen-primary-color");
-  colorRow(doc, el, "Ohraničení", "mod.aurora.color.border", "#3a3a5c", st, "všechny border");
+  el.appendChild(note(doc, "Klikni na prvek v náhledu prohlížeče a uprav jeho barvy. Hrubou paletu nastavíš v sekci Rychlé."));
+  buildSectionHeading(doc, el, "Náhled prohlížeče");
 
-  buildSectionHeading(doc, el, "Toolbar");
-  colorRow(doc, el, "Pozadí toolbaru", "mod.aurora.color.toolbar_bg", "#16162a", st, "#navigator-toolbox");
+  const mock = doc.createElement("div"); mock.className = "ao-mock";
+  paintMock(mock);
+  mock.innerHTML = MOCK_HTML;
+  el.appendChild(mock);
 
-  buildSectionHeading(doc, el, "Panely (nav bar · záložkový · menu)");
-  colorRow(doc, el, "Pozadí panelů",          "mod.aurora.color.panel_bg",    "#1a1a2e", st, "#TabsToolbar #nav-bar menupopup");
-  colorRow(doc, el, "Tlačítka aktivní",        "mod.aurora.color.button_bg",   "#2a2a4e", st, "toolbarbutton[checked]");
-  colorRow(doc, el, "Tlačítka hover",          "mod.aurora.color.button_hover","#3a3a6e", st, "toolbarbutton:hover menuitem:hover");
+  const extra = doc.createElement("div"); extra.className = "ao-mock-extra";
+  el.appendChild(extra);
 
-  buildSectionHeading(doc, el, "Sidebar");
-  colorRow(doc, el, "Pozadí sidebaru", "mod.aurora.color.sidebar_bg", "#12122a", st, "#sidebar-box");
+  let pop: HTMLElement | null = null;
+  let outside: ((e: MouseEvent) => void) | null = null;
+  function closePop(): void {
+    pop?.remove(); pop = null;
+    if (outside) { doc.removeEventListener("mousedown", outside, true); outside = null; }
+  }
+  function openPop(defn: MockElDef, x: number, y: number): void {
+    closePop();
+    const p = doc.createElement("div"); p.className = "ao-mock-pop";
+    const h = doc.createElement("div"); h.className = "ao-mock-pop-h";
+    h.appendChild(doc.createTextNode(tr(defn.label)));
+    h.appendChild(badge(doc, defn.selector));
+    p.appendChild(h);
+    for (const pr of defn.props) {
+      const row = doc.createElement("div"); row.className = "ao-mock-pop-row";
+      const span = doc.createElement("span"); span.textContent = tr(pr.label);
+      const sw = doc.createElement("div"); sw.className = "aoc-color-swatch";
+      sw.style.background = getPref(pr.pref, pr.def);
+      sw.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openColorPicker(sw, getPref(pr.pref, pr.def), (v) => {
+          setPref(pr.pref, v); sw.style.background = v; paintMock(mock); status(st, "✓", "ok");
+        });
+      });
+      row.appendChild(span); row.appendChild(sw); p.appendChild(row);
+    }
+    doc.body.appendChild(p); pop = p;
+    const w = 234, ph = p.offsetHeight || 200;
+    const px = Math.min(x + 8, doc.documentElement.clientWidth - w - 10);
+    const py = Math.min(y + 8, doc.documentElement.clientHeight - ph - 10);
+    p.style.left = `${Math.max(10, px)}px`; p.style.top = `${Math.max(10, py)}px`;
+    outside = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (pop && (pop.contains(t) || t.closest?.("#aurora-cp-popup"))) return;
+      closePop();
+    };
+    setTimeout(() => { if (outside) doc.addEventListener("mousedown", outside, true); }, 0);
+  }
 
-  buildSectionHeading(doc, el, "Workspace strip (levý panel se spaces)");
-  colorRow(doc, el, "Pozadí stripu",   "mod.aurora.color.workspace_strip_bg",    "#0d0d1e", st, "#zen-appcontent-navbar");
-  colorRow(doc, el, "Dot neaktivní",   "mod.aurora.color.workspace_dot",          "#3a3a6c", st, ".zen-workspace-dot");
-  colorRow(doc, el, "Dot aktivní",     "mod.aurora.color.workspace_dot_active",   "#7c6af7", st, ".zen-workspace-dot[selected]");
+  mock.addEventListener("click", (e) => {
+    const target = (e.target as HTMLElement).closest<HTMLElement>("[data-el]");
+    if (!target) return;
+    const defn = MOCK_ELS.find((m) => m.id === target.dataset.el);
+    if (defn) openPop(defn, e.clientX, e.clientY);
+  });
 
-  buildSectionHeading(doc, el, "Záložky (.tabbrowser-tab)");
-  colorRow(doc, el, "Aktivní záložka",  "mod.aurora.color.tab_active_bg",  "#2a2a4e", st, "[selected] .tab-background");
-  colorRow(doc, el, "Neaktivní záložka","mod.aurora.color.tab_inactive_bg","#1a1a2e", st, ".tab-background");
-  colorRow(doc, el, "Hover záložky",    "mod.aurora.color.tab_hover_bg",   "#252550", st, ":hover .tab-background");
-  colorRow(doc, el, "✕ tlačítko hover", "mod.aurora.color.tab_close_hover","#ff6b6b", st, ".tab-close-button:hover");
-
-  buildSectionHeading(doc, el, "URL lišta (#urlbar)");
-  colorRow(doc, el, "Pozadí",          "mod.aurora.color.urlbar_bg",    "#1e1e3a", st, "#urlbar-background");
-  colorRow(doc, el, "Ohraničení idle", "mod.aurora.color.urlbar_border","#3a3a6c", st, "#urlbar border");
-  colorRow(doc, el, "Ohraničení focus","mod.aurora.color.urlbar_focus", "#7c6af7", st, "#urlbar:focus-within");
-
-  buildSectionHeading(doc, el, "Obsah a ostatní");
-  colorRow(doc, el, "Pozadí obsahu (#browser)", "mod.aurora.color.browser_bg",  "#0f0f1a", st, "#browser");
-  colorRow(doc, el, "Výběr textu (::selection)","mod.aurora.color.selection_bg","#7c6af740",st, "::selection");
-  colorRow(doc, el, "Scrollbar (thumb)",         "mod.aurora.color.scrollbar",  "#3a3a6c", st, "thumb");
+  // "Globální" has no obvious region — expose it as a chip below the preview.
+  const globalDef = MOCK_ELS.find((m) => m.id === "global");
+  if (globalDef) {
+    const chip = doc.createElement("button"); chip.className = "ao-mock-chip";
+    chip.textContent = tr("Globální");
+    chip.addEventListener("click", (e) => openPop(globalDef, e.clientX, e.clientY));
+    extra.appendChild(chip);
+  }
 }
 
 // ── 3. Spaces ─────────────────────────────────────────────────────────────────

@@ -818,6 +818,19 @@
     "Pozad\xED obsahu (#browser)": "Content background (#browser)",
     "V\xFDb\u011Br textu (::selection)": "Text selection (::selection)",
     "Scrollbar (thumb)": "Scrollbar (thumb)",
+    // ── Mockup (WYSIWYG colour editor) ──
+    "Klikni na prvek v n\xE1hledu prohl\xED\u017Ee\u010De a uprav jeho barvy. Hrubou paletu nastav\xED\u0161 v sekci Rychl\xE9.": "Click an element in the browser preview to edit its colours. Set the rough palette in the Quick section.",
+    "N\xE1hled prohl\xED\u017Ee\u010De": "Browser preview",
+    "Z\xE1lo\u017Eky": "Tabs",
+    "URL li\u0161ta": "URL bar",
+    "Obsah": "Content",
+    "Glob\xE1ln\xED": "Global",
+    "Text panel\u016F": "Panel text",
+    "Text z\xE1lo\u017Eek": "Tab text",
+    "V\xFDb\u011Br textu": "Text selection",
+    "Text URL li\u0161ty": "URL bar text",
+    "Z\xE1lo\u017Eka": "Tab",
+    "Polo\u017Eka": "Item",
     // ── Spaces ──
     "P\u0159ep\xED\u0161e glob\xE1ln\xED barvy jen pro vybran\xFD Space. Pr\xE1zdn\xE9 pole = glob\xE1ln\xED hodnota.": "Overrides global colours for the selected Space only. Empty field = global value.",
     // ── Background ──
@@ -1225,6 +1238,53 @@ body.ao-light {
 .ao-status { font-size: 11px; height: 16px; color: var(--ao-text-faint); padding: 2px 0; transition: color .2s; }
 .ao-status.ok  { color: #4caf6a; }
 .ao-status.err { color: #c06060; }
+
+/* Interactive Zen mockup (WYSIWYG colour editor) */
+.ao-mock {
+  position: relative; display: flex; height: 300px; margin: 4px 0 8px;
+  border: 1px solid var(--ao-border); border-radius: 12px; overflow: hidden;
+  background: var(--m-browser-bg); font-size: 11px; user-select: none;
+  box-shadow: 0 6px 24px #00000044;
+}
+.ao-mock [data-el] { outline: 2px solid transparent; outline-offset: -2px; transition: outline-color .1s; cursor: pointer; }
+.ao-mock [data-el]:hover { outline-color: var(--m-accent); position: relative; z-index: 3; }
+/* only highlight the innermost element under the cursor */
+.ao-mock [data-el]:has([data-el]:hover) { outline-color: transparent; }
+.ao-mock-strip { width: 30px; flex-shrink: 0; background: var(--m-strip-bg); display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 12px 0; }
+.ao-mock-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--m-dot); }
+.ao-mock-dot.active { background: var(--m-dot-active); }
+.ao-mock-sidebar { width: 154px; flex-shrink: 0; background: var(--m-sidebar-bg); display: flex; flex-direction: column; gap: 8px; padding: 9px; }
+.ao-mock-urlbar { background: var(--m-urlbar-bg); border: 1px solid var(--m-urlbar-border); border-radius: 7px; color: var(--m-urlbar-text); padding: 5px 8px; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ao-mock-tabs { display: flex; flex-direction: column; gap: 4px; }
+.ao-mock-tab { background: var(--m-tab-inactive); color: var(--m-tab-text); border-radius: 6px; padding: 5px 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.ao-mock-tab.active { background: var(--m-tab-active); }
+.ao-mock-tab:not(.active):hover { background: var(--m-tab-hover); }
+.ao-mock-tab .x { opacity: .55; font-size: 10px; }
+.ao-mock-tab .x:hover { color: var(--m-close); opacity: 1; }
+.ao-mock-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.ao-mock-toolbar { background: var(--m-toolbar-bg); padding: 7px 9px; display: flex; gap: 7px; align-items: center; }
+.ao-mock-btn { width: 22px; height: 22px; border-radius: 6px; background: var(--m-btn-bg); }
+.ao-mock-btn:hover { background: var(--m-btn-hover); }
+.ao-mock-content { flex: 1; background: var(--m-browser-bg); color: var(--m-panel-text); padding: 14px; position: relative; overflow: hidden; line-height: 1.5; }
+.ao-mock-sel { background: var(--m-selection); border-radius: 2px; padding: 0 2px; }
+.ao-mock-menu { position: absolute; top: 26px; right: 22px; width: 116px; background: var(--m-panel-bg); border: 1px solid var(--m-border); border-radius: 8px; padding: 4px; color: var(--m-panel-text); }
+.ao-mock-menu .mi { padding: 4px 7px; border-radius: 4px; font-size: 10.5px; }
+.ao-mock-menu .mi:hover { background: var(--m-btn-hover); }
+.ao-mock-scroll { position: absolute; right: 3px; top: 10px; bottom: 10px; width: 5px; border-radius: 3px; background: var(--m-scrollbar); }
+.ao-mock-extra { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.ao-mock-chip { padding: 5px 11px; border: 1px solid var(--ao-border); border-radius: 7px; background: var(--ao-panel); color: var(--ao-text-dim); font-size: 12px; cursor: pointer; font-family: inherit; transition: background .1s, color .1s, border-color .1s; }
+.ao-mock-chip:hover { color: var(--ao-text); border-color: var(--ao-accent); }
+
+/* Mockup element inspector popover */
+.ao-mock-pop {
+  position: fixed; z-index: 50; width: 234px; background: var(--ao-panel);
+  border: 1px solid var(--ao-border); border-radius: 10px; box-shadow: 0 10px 34px #00000077;
+  padding: 10px;
+}
+.ao-mock-pop-h { font-size: 12.5px; font-weight: 700; color: var(--ao-text); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ao-mock-pop-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--ao-row-sep); }
+.ao-mock-pop-row:last-child { border-bottom: none; }
+.ao-mock-pop-row > span { color: var(--ao-text-dim); font-size: 12px; }
 `;
   var invalidateSections = null;
   function status(el, msg, cls) {
@@ -1622,35 +1682,180 @@ body.ao-light {
     btnRow.appendChild(flatBtn);
     el.appendChild(btnRow);
   }
+  var MOCK_VARS = [
+    { pref: "mod.aurora.color.browser_bg", def: "#0f0f1a", v: "--m-browser-bg" },
+    { pref: "mod.aurora.color.toolbar_bg", def: "#16162a", v: "--m-toolbar-bg" },
+    { pref: "mod.aurora.color.panel_bg", def: "#1a1a2e", v: "--m-panel-bg" },
+    { pref: "mod.aurora.color.sidebar_bg", def: "#12122a", v: "--m-sidebar-bg" },
+    { pref: "mod.aurora.color.workspace_strip_bg", def: "#0d0d1e", v: "--m-strip-bg" },
+    { pref: "mod.aurora.color.workspace_dot", def: "#3a3a6c", v: "--m-dot" },
+    { pref: "mod.aurora.color.workspace_dot_active", def: "#7c6af7", v: "--m-dot-active" },
+    { pref: "mod.aurora.color.tab_active_bg", def: "#2a2a4e", v: "--m-tab-active" },
+    { pref: "mod.aurora.color.tab_inactive_bg", def: "#1a1a2e", v: "--m-tab-inactive" },
+    { pref: "mod.aurora.color.tab_hover_bg", def: "#252550", v: "--m-tab-hover" },
+    { pref: "mod.aurora.color.tab_text", def: "#c0c0e0", v: "--m-tab-text" },
+    { pref: "mod.aurora.color.tab_close_hover", def: "#ff6b6b", v: "--m-close" },
+    { pref: "mod.aurora.color.panel_text", def: "#e0e0ff", v: "--m-panel-text" },
+    { pref: "mod.aurora.color.button_bg", def: "#2a2a4e", v: "--m-btn-bg" },
+    { pref: "mod.aurora.color.button_hover", def: "#3a3a6e", v: "--m-btn-hover" },
+    { pref: "mod.aurora.color.urlbar_bg", def: "#1e1e3a", v: "--m-urlbar-bg" },
+    { pref: "mod.aurora.color.urlbar_border", def: "#3a3a6c", v: "--m-urlbar-border" },
+    { pref: "mod.aurora.color.urlbar_text", def: "#e0e0ff", v: "--m-urlbar-text" },
+    { pref: "mod.aurora.color.accent", def: "#7c6af7", v: "--m-accent" },
+    { pref: "mod.aurora.color.border", def: "#3a3a5c", v: "--m-border" },
+    { pref: "mod.aurora.color.selection_bg", def: "#7c6af740", v: "--m-selection" },
+    { pref: "mod.aurora.color.scrollbar", def: "#3a3a6c", v: "--m-scrollbar" }
+  ];
+  var MOCK_ELS = [
+    { id: "strip", label: "Workspace strip", selector: "#zen-appcontent-navbar", props: [
+      { label: "Pozad\xED stripu", pref: "mod.aurora.color.workspace_strip_bg", def: "#0d0d1e" },
+      { label: "Dot neaktivn\xED", pref: "mod.aurora.color.workspace_dot", def: "#3a3a6c" },
+      { label: "Dot aktivn\xED", pref: "mod.aurora.color.workspace_dot_active", def: "#7c6af7" }
+    ] },
+    { id: "sidebar", label: "Sidebar", selector: "#sidebar-box", props: [
+      { label: "Pozad\xED sidebaru", pref: "mod.aurora.color.sidebar_bg", def: "#12122a" }
+    ] },
+    { id: "tab", label: "Z\xE1lo\u017Eky", selector: ".tabbrowser-tab", props: [
+      { label: "Aktivn\xED z\xE1lo\u017Eka", pref: "mod.aurora.color.tab_active_bg", def: "#2a2a4e" },
+      { label: "Neaktivn\xED z\xE1lo\u017Eka", pref: "mod.aurora.color.tab_inactive_bg", def: "#1a1a2e" },
+      { label: "Hover z\xE1lo\u017Eky", pref: "mod.aurora.color.tab_hover_bg", def: "#252550" },
+      { label: "Text z\xE1lo\u017Eek", pref: "mod.aurora.color.tab_text", def: "#c0c0e0" },
+      { label: "\u2715 tla\u010D\xEDtko hover", pref: "mod.aurora.color.tab_close_hover", def: "#ff6b6b" }
+    ] },
+    { id: "urlbar", label: "URL li\u0161ta", selector: "#urlbar", props: [
+      { label: "Pozad\xED", pref: "mod.aurora.color.urlbar_bg", def: "#1e1e3a" },
+      { label: "Ohrani\u010Den\xED idle", pref: "mod.aurora.color.urlbar_border", def: "#3a3a6c" },
+      { label: "Ohrani\u010Den\xED focus", pref: "mod.aurora.color.urlbar_focus", def: "#7c6af7" },
+      { label: "Text URL li\u0161ty", pref: "mod.aurora.color.urlbar_text", def: "#e0e0ff" }
+    ] },
+    { id: "toolbar", label: "Toolbar", selector: "#nav-bar \xB7 #navigator-toolbox", props: [
+      { label: "Pozad\xED toolbaru", pref: "mod.aurora.color.toolbar_bg", def: "#16162a" },
+      { label: "Pozad\xED panel\u016F", pref: "mod.aurora.color.panel_bg", def: "#1a1a2e" },
+      { label: "Tla\u010D\xEDtka aktivn\xED", pref: "mod.aurora.color.button_bg", def: "#2a2a4e" },
+      { label: "Tla\u010D\xEDtka hover", pref: "mod.aurora.color.button_hover", def: "#3a3a6e" },
+      { label: "Text panel\u016F", pref: "mod.aurora.color.panel_text", def: "#e0e0ff" }
+    ] },
+    { id: "content", label: "Obsah", selector: "#browser", props: [
+      { label: "Pozad\xED obsahu", pref: "mod.aurora.color.browser_bg", def: "#0f0f1a" },
+      { label: "V\xFDb\u011Br textu", pref: "mod.aurora.color.selection_bg", def: "#7c6af740" },
+      { label: "Scrollbar", pref: "mod.aurora.color.scrollbar", def: "#3a3a6c" }
+    ] },
+    { id: "menu", label: "Menu", selector: "menupopup", props: [
+      { label: "Pozad\xED panel\u016F", pref: "mod.aurora.color.panel_bg", def: "#1a1a2e" },
+      { label: "Tla\u010D\xEDtka hover", pref: "mod.aurora.color.button_hover", def: "#3a3a6e" },
+      { label: "Text panel\u016F", pref: "mod.aurora.color.panel_text", def: "#e0e0ff" }
+    ] },
+    { id: "global", label: "Glob\xE1ln\xED", selector: ":root", props: [
+      { label: "Akcent", pref: "mod.aurora.color.accent", def: "#7c6af7" },
+      { label: "Ohrani\u010Den\xED", pref: "mod.aurora.color.border", def: "#3a3a5c" }
+    ] }
+  ];
+  var MOCK_HTML = `
+<div class="ao-mock-strip" data-el="strip">
+  <div class="ao-mock-dot active"></div><div class="ao-mock-dot"></div><div class="ao-mock-dot"></div>
+</div>
+<div class="ao-mock-sidebar" data-el="sidebar">
+  <div class="ao-mock-urlbar" data-el="urlbar">example.com</div>
+  <div class="ao-mock-tabs">
+    <div class="ao-mock-tab active" data-el="tab"><span>Z\xE1lo\u017Eka</span><span class="x">\u2715</span></div>
+    <div class="ao-mock-tab" data-el="tab"><span>Z\xE1lo\u017Eka</span><span class="x">\u2715</span></div>
+    <div class="ao-mock-tab" data-el="tab"><span>Z\xE1lo\u017Eka</span><span class="x">\u2715</span></div>
+  </div>
+</div>
+<div class="ao-mock-main">
+  <div class="ao-mock-toolbar" data-el="toolbar">
+    <div class="ao-mock-btn"></div><div class="ao-mock-btn"></div><div class="ao-mock-btn"></div>
+  </div>
+  <div class="ao-mock-content" data-el="content">
+    <div>Lorem ipsum <span class="ao-mock-sel">dolor sit</span> amet.</div>
+    <div class="ao-mock-menu" data-el="menu"><div class="mi">Polo\u017Eka</div><div class="mi">Polo\u017Eka</div><div class="mi">Polo\u017Eka</div></div>
+    <div class="ao-mock-scroll"></div>
+  </div>
+</div>`;
+  function paintMock(root) {
+    for (const m of MOCK_VARS) root.style.setProperty(m.v, getPref(m.pref, m.def));
+  }
   function buildColors(doc, el, st) {
-    buildSectionHeading(doc, el, "Akcent & Ohrani\u010Den\xED");
-    colorRow(doc, el, "Akcent", "mod.aurora.color.accent", "#7c6af7", st, "--zen-primary-color");
-    colorRow(doc, el, "Ohrani\u010Den\xED", "mod.aurora.color.border", "#3a3a5c", st, "v\u0161echny border");
-    buildSectionHeading(doc, el, "Toolbar");
-    colorRow(doc, el, "Pozad\xED toolbaru", "mod.aurora.color.toolbar_bg", "#16162a", st, "#navigator-toolbox");
-    buildSectionHeading(doc, el, "Panely (nav bar \xB7 z\xE1lo\u017Ekov\xFD \xB7 menu)");
-    colorRow(doc, el, "Pozad\xED panel\u016F", "mod.aurora.color.panel_bg", "#1a1a2e", st, "#TabsToolbar #nav-bar menupopup");
-    colorRow(doc, el, "Tla\u010D\xEDtka aktivn\xED", "mod.aurora.color.button_bg", "#2a2a4e", st, "toolbarbutton[checked]");
-    colorRow(doc, el, "Tla\u010D\xEDtka hover", "mod.aurora.color.button_hover", "#3a3a6e", st, "toolbarbutton:hover menuitem:hover");
-    buildSectionHeading(doc, el, "Sidebar");
-    colorRow(doc, el, "Pozad\xED sidebaru", "mod.aurora.color.sidebar_bg", "#12122a", st, "#sidebar-box");
-    buildSectionHeading(doc, el, "Workspace strip (lev\xFD panel se spaces)");
-    colorRow(doc, el, "Pozad\xED stripu", "mod.aurora.color.workspace_strip_bg", "#0d0d1e", st, "#zen-appcontent-navbar");
-    colorRow(doc, el, "Dot neaktivn\xED", "mod.aurora.color.workspace_dot", "#3a3a6c", st, ".zen-workspace-dot");
-    colorRow(doc, el, "Dot aktivn\xED", "mod.aurora.color.workspace_dot_active", "#7c6af7", st, ".zen-workspace-dot[selected]");
-    buildSectionHeading(doc, el, "Z\xE1lo\u017Eky (.tabbrowser-tab)");
-    colorRow(doc, el, "Aktivn\xED z\xE1lo\u017Eka", "mod.aurora.color.tab_active_bg", "#2a2a4e", st, "[selected] .tab-background");
-    colorRow(doc, el, "Neaktivn\xED z\xE1lo\u017Eka", "mod.aurora.color.tab_inactive_bg", "#1a1a2e", st, ".tab-background");
-    colorRow(doc, el, "Hover z\xE1lo\u017Eky", "mod.aurora.color.tab_hover_bg", "#252550", st, ":hover .tab-background");
-    colorRow(doc, el, "\u2715 tla\u010D\xEDtko hover", "mod.aurora.color.tab_close_hover", "#ff6b6b", st, ".tab-close-button:hover");
-    buildSectionHeading(doc, el, "URL li\u0161ta (#urlbar)");
-    colorRow(doc, el, "Pozad\xED", "mod.aurora.color.urlbar_bg", "#1e1e3a", st, "#urlbar-background");
-    colorRow(doc, el, "Ohrani\u010Den\xED idle", "mod.aurora.color.urlbar_border", "#3a3a6c", st, "#urlbar border");
-    colorRow(doc, el, "Ohrani\u010Den\xED focus", "mod.aurora.color.urlbar_focus", "#7c6af7", st, "#urlbar:focus-within");
-    buildSectionHeading(doc, el, "Obsah a ostatn\xED");
-    colorRow(doc, el, "Pozad\xED obsahu (#browser)", "mod.aurora.color.browser_bg", "#0f0f1a", st, "#browser");
-    colorRow(doc, el, "V\xFDb\u011Br textu (::selection)", "mod.aurora.color.selection_bg", "#7c6af740", st, "::selection");
-    colorRow(doc, el, "Scrollbar (thumb)", "mod.aurora.color.scrollbar", "#3a3a6c", st, "thumb");
+    el.appendChild(note(doc, "Klikni na prvek v n\xE1hledu prohl\xED\u017Ee\u010De a uprav jeho barvy. Hrubou paletu nastav\xED\u0161 v sekci Rychl\xE9."));
+    buildSectionHeading(doc, el, "N\xE1hled prohl\xED\u017Ee\u010De");
+    const mock = doc.createElement("div");
+    mock.className = "ao-mock";
+    paintMock(mock);
+    mock.innerHTML = MOCK_HTML;
+    el.appendChild(mock);
+    const extra = doc.createElement("div");
+    extra.className = "ao-mock-extra";
+    el.appendChild(extra);
+    let pop = null;
+    let outside = null;
+    function closePop() {
+      pop?.remove();
+      pop = null;
+      if (outside) {
+        doc.removeEventListener("mousedown", outside, true);
+        outside = null;
+      }
+    }
+    function openPop(defn, x, y) {
+      closePop();
+      const p = doc.createElement("div");
+      p.className = "ao-mock-pop";
+      const h = doc.createElement("div");
+      h.className = "ao-mock-pop-h";
+      h.appendChild(doc.createTextNode(tr(defn.label)));
+      h.appendChild(badge(doc, defn.selector));
+      p.appendChild(h);
+      for (const pr of defn.props) {
+        const row2 = doc.createElement("div");
+        row2.className = "ao-mock-pop-row";
+        const span = doc.createElement("span");
+        span.textContent = tr(pr.label);
+        const sw = doc.createElement("div");
+        sw.className = "aoc-color-swatch";
+        sw.style.background = getPref(pr.pref, pr.def);
+        sw.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openColorPicker(sw, getPref(pr.pref, pr.def), (v) => {
+            setPref(pr.pref, v);
+            sw.style.background = v;
+            paintMock(mock);
+            status(st, "\u2713", "ok");
+          });
+        });
+        row2.appendChild(span);
+        row2.appendChild(sw);
+        p.appendChild(row2);
+      }
+      doc.body.appendChild(p);
+      pop = p;
+      const w = 234, ph = p.offsetHeight || 200;
+      const px = Math.min(x + 8, doc.documentElement.clientWidth - w - 10);
+      const py = Math.min(y + 8, doc.documentElement.clientHeight - ph - 10);
+      p.style.left = `${Math.max(10, px)}px`;
+      p.style.top = `${Math.max(10, py)}px`;
+      outside = (e) => {
+        const t = e.target;
+        if (pop && (pop.contains(t) || t.closest?.("#aurora-cp-popup"))) return;
+        closePop();
+      };
+      setTimeout(() => {
+        if (outside) doc.addEventListener("mousedown", outside, true);
+      }, 0);
+    }
+    mock.addEventListener("click", (e) => {
+      const target = e.target.closest("[data-el]");
+      if (!target) return;
+      const defn = MOCK_ELS.find((m) => m.id === target.dataset.el);
+      if (defn) openPop(defn, e.clientX, e.clientY);
+    });
+    const globalDef = MOCK_ELS.find((m) => m.id === "global");
+    if (globalDef) {
+      const chip = doc.createElement("button");
+      chip.className = "ao-mock-chip";
+      chip.textContent = tr("Glob\xE1ln\xED");
+      chip.addEventListener("click", (e) => openPop(globalDef, e.clientX, e.clientY));
+      extra.appendChild(chip);
+    }
   }
   function buildSpaces(doc, el, st) {
     el.appendChild(note(doc, "P\u0159ep\xED\u0161e glob\xE1ln\xED barvy jen pro vybran\xFD Space. Pr\xE1zdn\xE9 pole = glob\xE1ln\xED hodnota."));

@@ -85,6 +85,21 @@ const EN: Record<string, string> = {
   "Výběr textu (::selection)": "Text selection (::selection)",
   "Scrollbar (thumb)": "Scrollbar (thumb)",
 
+  // ── Mockup (WYSIWYG colour editor) ──
+  "Klikni na prvek v náhledu prohlížeče a uprav jeho barvy. Hrubou paletu nastavíš v sekci Rychlé.":
+    "Click an element in the browser preview to edit its colours. Set the rough palette in the Quick section.",
+  "Náhled prohlížeče": "Browser preview",
+  "Záložky": "Tabs",
+  "URL lišta": "URL bar",
+  "Obsah": "Content",
+  "Globální": "Global",
+  "Text panelů": "Panel text",
+  "Text záložek": "Tab text",
+  "Výběr textu": "Text selection",
+  "Text URL lišty": "URL bar text",
+  "Záložka": "Tab",
+  "Položka": "Item",
+
   // ── Spaces ──
   "Přepíše globální barvy jen pro vybraný Space. Prázdné pole = globální hodnota.":
     "Overrides global colours for the selected Space only. Empty field = global value.",
